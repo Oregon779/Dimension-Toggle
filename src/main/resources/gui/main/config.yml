@@ -2,46 +2,47 @@
 #   DimensionToggle - Main GUI
 # =====================================================================
 # Every text shown in the main menu (/dt editor), fully editable/translatable.
-# Placeholders where noted. Colors: & codes work as usual.
+# Placeholders where noted. Full MiniMessage is supported here (gradients,
+# small caps via Unicode, etc.) alongside classic & color codes.
 
-title: "&5&lDimensionToggle"
+title: "<gradient:#A78BFA:#7C3AED><bold>ᴅɪᴍᴇɴꜱɪᴏɴ ᴛᴏɢɢʟᴇ</bold></gradient> <dark_gray>| <gray>ᴀᴅᴍɪɴ ᴇᴅɪᴛᴏʀ"
 
 nether-head:
-  name: "&c&lNether"
+  name: "<gradient:#FF6B4A:#C81E1E><bold>Nether</bold></gradient>"
   lore:
-    - "&7Status: %status%"
+    - "<gray>Status: %status%"
     - ""
-    - "&eClick to manage this dimension"
+    - "<gold>➤ <gray>Click to manage this dimension"
 
 end-head:
-  name: "&d&lEnd"
+  name: "<gradient:#C084FC:#EC4899><bold>End</bold></gradient>"
   lore:
-    - "&7Status: %status%"
+    - "<gray>Status: %status%"
     - ""
-    - "&eClick to manage this dimension"
+    - "<gold>➤ <gray>Click to manage this dimension"
 
 emblem:
-  name: "&5&lDimensionToggle"
+  name: "<gradient:#A78BFA:#7C3AED><bold>Dimension Toggle</bold></gradient>"
   lore:
-    - "&7A plugin by Stone Plugins"
+    - "<dark_gray>A plugin by Stone Plugins"
 
 lockdown-button:
-  name-active: "&4&lLift Lockdown"
-  name-inactive: "&4&lLockdown"
+  name-active: "<gradient:#F87171:#DC2626><bold>⚠ Lift Lockdown</bold></gradient>"
+  name-inactive: "<gray><bold>Lockdown"
   lore-active:
-    - "&7Lockdown is currently ACTIVE."
+    - "<gray>Lockdown is currently <red><bold>ACTIVE</bold><gray>."
     - ""
-    - "&eClick to lift the lockdown"
+    - "<gold>➤ <gray>Click to lift the lockdown"
   lore-inactive:
-    - "&7Instantly disables both dimensions."
+    - "<gray>Instantly disables both dimensions."
     - ""
-    - "&eClick to activate lockdown"
+    - "<gold>➤ <gray>Click to activate lockdown"
 
 close-button:
-  name: "&c&lClose"
+  name: "<red><bold>Close"
   lore:
-    - "&7Leave this menu"
+    - "<gray>Leave this menu"
 
 # Words used for %status% above
-status-enabled: "&a&lEnabled"
-status-disabled: "&c&lDisabled"
+status-enabled: "<gradient:#4ADE80:#16A34A><bold>✔ Enabled</bold></gradient>"
+status-disabled: "<gray>✖ Disabled"

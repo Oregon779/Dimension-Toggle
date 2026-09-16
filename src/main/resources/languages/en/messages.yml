@@ -34,14 +34,14 @@ portal-blocked: "&c&l✘ &cAccess to &f%dimension% &cis currently disabled."
 portal-locked: "&6&l⚠ &f%dimension% &6is locked &7- no new players can enter right now."
 dimension-full: "&6&l⚠ &f%dimension% &6is currently full &7(%limit% players). Try again later."
 
-status-header: "&8&m----&r &5&lDimensionToggle&r &8&m----"
+status-header: "<gradient:#A78BFA:#7C3AED>━━━━━</gradient> <gradient:#A78BFA:#7C3AED><bold>Dimension Toggle</bold></gradient> <gradient:#A78BFA:#7C3AED>━━━━━</gradient>"
 status-nether: " &7Nether  &8» %status% &8(&7%players% players&8)"
 status-end: " &7End     &8» %status% &8(&7%players% players&8)"
 status-enabled: "&a&l● Enabled"
 status-disabled: "&c&l● Disabled"
 status-maintenance-pending: "&6&l● Under maintenance &7(closes in %seconds%s)"
 status-locked: "&6&l● Locked &7(players inside can stay)"
-status-footer: "&8&m--------------------------&r"
+status-footer: "<gradient:#A78BFA:#7C3AED>━━━━━━━━━━━━━━━━━━━━━━━━━</gradient>"
 
 reload-success: "&a&l✔ &aConfiguration reloaded successfully."
 reload-error: "&c&l✘ &cError while reloading configuration: &7%error%"
@@ -78,7 +78,7 @@ lockdown-activated-console: "&4&l⚠ &cLockdown activated - all dimensions have 
 lockdown-lifted-console: "&a&l✔ &aLockdown lifted - all dimensions are enabled again."
 
 # ---------- HELP (dimensiontoggle.admin only) ----------
-help-header: "&8&m----&r &5&lDimensionToggle Help&r &8&m----"
+help-header: "<gradient:#A78BFA:#7C3AED>━━━━━</gradient> <gradient:#A78BFA:#7C3AED><bold>Dimension Toggle Help</bold></gradient> <gradient:#A78BFA:#7C3AED>━━━━━</gradient>"
 help-checkupdate: "&d/dt checkupdate &8» &7Checks Modrinth for a new version right now"
 help-end: "&d/dt end <on|off> &8» &7Enable/disable the End"
 help-help: "&d/dt help &8» &7Shows this overview"
@@ -91,7 +91,7 @@ help-reload: "&d/dt reload &8» &7Reloads config.yml and messages.yml"
 help-softlock: "&d/dt softlock <nether|end> &8» &7Soft-locks a dimension &8(different from lockdown)"
 help-status: "&d/dt status &8» &7Shows status & player count"
 help-editor: "&d/dt editor &8» &7Opens the click-based control panel"
-help-footer: "&8&m--------------------------------&r"
+help-footer: "<gradient:#A78BFA:#7C3AED>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</gradient>"
 
 names:
   nether: "Nether"
