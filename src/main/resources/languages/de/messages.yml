@@ -1,0 +1,100 @@
+# =========================================
+#   DimensionToggle - Nachrichten (Deutsch)
+# =========================================
+# Diese Datei deckt nur Command-Rückmeldungen und UI-Texte ab. Es wird
+# bewusst nur mit Legacy-&-Farbcodes gearbeitet (keine MiniMessage-Tags).
+#
+# Die Broadcast-Texte fürs Aktivieren/Deaktivieren, Wartung, Zeitplan und
+# Lockdown stehen NICHT hier - die liegen direkt in der config.yml (immer
+# auf Englisch, direkt neben den zugehörigen Einstellungen wie Farbe/Timing).
+#
+# Aktivieren mit config.yml -> language: "de"
+
+prefix: "&8[&5DT&8]&r "
+
+no-permission: "&c&l✘ &cDu hast keine Berechtigung dafür."
+unknown-command: "&c&l✘ &cUnbekannter Command. Nutze &f/dt help &cfür Hilfe."
+invalid-usage: "&7Nutzung: &f/dt <editor|status|nether|end|softlock|lockdown|limit|maintenance|help|reload|checkupdate>"
+invalid-usage-status-only: "&7Nutze &f/dt status &7für den aktuellen Status."
+
+unit-hours: "Stunde(n)"
+unit-minutes: "Minute(n)"
+unit-seconds: "Sekunde(n)"
+
+dimension-already-enabled: "&e➤ &f%dimension% &7ist bereits aktiviert."
+dimension-already-disabled: "&e➤ &f%dimension% &7ist bereits deaktiviert."
+dimension-enabled: "&a&l✔ &f%dimension% &awurde erfolgreich aktiviert."
+dimension-disabled: "&c&l✘ &f%dimension% &cwurde erfolgreich deaktiviert."
+
+portal-blocked: "&c&l✘ &cDer Zugang zu &f%dimension% &cist derzeit deaktiviert."
+portal-locked: "&6&l⚠ &f%dimension% &6ist gesperrt &7- es können keine neuen Spieler mehr rein."
+dimension-full: "&6&l⚠ &f%dimension% &6ist derzeit voll &7(%limit% Spieler). Versuche es später erneut."
+
+status-header: "&8&m----&r &5&lDimensionToggle&r &8&m----"
+status-nether: " &7Nether  &8» %status% &8(&7%players% Spieler&8)"
+status-end: " &7End     &8» %status% &8(&7%players% Spieler&8)"
+status-enabled: "&a&l● Aktiviert"
+status-disabled: "&c&l● Deaktiviert"
+status-maintenance-pending: "&6&l● In Wartung &7(schließt in %seconds%s)"
+status-locked: "&6&l● Gesperrt &7(Spieler drinnen können bleiben)"
+status-footer: "&8&m--------------------------&r"
+
+reload-success: "&a&l✔ &aKonfiguration wurde erfolgreich neu geladen."
+reload-error: "&c&l✘ &cFehler beim Neuladen der Konfiguration: &7%error%"
+
+error-invalid-sound: "&c&l✘ &cUngültiger Sound in der Konfiguration: &7%sound%"
+error-generic: "&c&l✘ &cEs ist ein Fehler aufgetreten. Bitte kontaktiere einen Administrator."
+
+# ---------- WARTUNGSMODUS (Command-Rückmeldungen) ----------
+maintenance-usage: "&7Nutzung: &f/dt maintenance <nether|end> <zeit|cancel> &8(z.B. 5m, 1h, 30s, 1h30m)"
+maintenance-invalid-duration: "&c&l✘ &cUngültige Zeitangabe. Beispiele: &f5m&7, &f1h&7, &f30s&7, &f1h30m"
+maintenance-already-active: "&6&l⚠ &7Für &f%dimension% &7läuft bereits ein Wartungs-Countdown."
+maintenance-none-active: "&6&l⚠ &7Für &f%dimension% &7läuft aktuell kein Wartungs-Countdown, und sie ist auch nicht in Wartung."
+maintenance-start-success: "&a&l✔ &7Wartungs-Countdown für &f%dimension% &7gestartet &8(&f%duration%&8)."
+maintenance-cancel-success: "&a&l✔ &7Wartungs-Countdown für &f%dimension% &7wurde abgebrochen."
+maintenance-ended-success: "&a&l✔ &f%dimension% &7wurde wieder geöffnet, Wartung beendet."
+maintenance-teleported: "&6&l⚠ &7Du wurdest wegen Wartungsarbeiten an &f%dimension% &7entfernt."
+
+# ---------- ZEITPLAN ----------
+action-opens: "öffnet"
+action-closes: "schließt"
+
+# ---------- SPIELER-LIMIT ----------
+limit-usage: "&7Nutzung: &f/dt limit <nether|end> <zahl>"
+limit-invalid-number: "&c&l✘ &cBitte gib eine gültige Zahl &7(0 oder größer) an."
+limit-set-success: "&a&l✔ &7Limit für &f%dimension% &7wurde auf &f%limit% &7Spieler gesetzt."
+
+# ---------- SOFT-LOCK (/dt softlock - getrennt von /dt lockdown weiter unten) ----------
+softlock-usage: "&7Nutzung: &f/dt softlock <nether|end>"
+softlock-enabled: "&6&l⚠ &f%dimension% &6wurde weich gesperrt &7- keine neuen Spieler können mehr rein, wer schon drin ist, kann bleiben."
+softlock-disabled: "&a&l✔ &f%dimension% &awurde entsperrt &7- neue Spieler können wieder rein."
+
+# ---------- LOCKDOWN (Konsolen-Rückmeldung) ----------
+lockdown-activated-console: "&4&l⚠ &cLockdown aktiviert - alle Dimensionen wurden deaktiviert."
+lockdown-lifted-console: "&a&l✔ &aLockdown aufgehoben - alle Dimensionen wieder aktiviert."
+
+# ---------- HELP (nur dimensiontoggle.admin) ----------
+help-header: "&8&m----&r &5&lDimensionToggle Hilfe&r &8&m----"
+help-checkupdate: "&d/dt checkupdate &8» &7Prüft sofort auf Modrinth nach einer neuen Version"
+help-end: "&d/dt end <on|off> &8» &7End aktivieren/deaktivieren"
+help-help: "&d/dt help &8» &7Zeigt diese Übersicht"
+help-limit: "&d/dt limit <nether|end> <zahl> &8» &7Setzt das Spieler-Limit sofort"
+help-lockdown: "&d/dt lockdown &8» &7Deaktiviert alle Dimensionen, nochmal ausführen hebt es auf"
+help-maintenance: "&d/dt maintenance <nether|end> <zeit> &8» &7Startet Countdown &8(z.B. 5m, 1h, 30s)"
+help-maintenance-cancel: "&d/dt maintenance <nether|end> cancel &8» &7Bricht Wartung ab/beendet sie"
+help-nether: "&d/dt nether <on|off> &8» &7Nether aktivieren/deaktivieren"
+help-reload: "&d/dt reload &8» &7Lädt config.yml und messages.yml neu"
+help-softlock: "&d/dt softlock <nether|end> &8» &7Sperrt eine Dimension weich &8(anders als lockdown)"
+help-status: "&d/dt status &8» &7Zeigt Status & Spielerzahl"
+help-editor: "&d/dt editor &8» &7Öffnet das klickbare Bedienmenü"
+help-footer: "&8&m--------------------------------&r"
+
+names:
+  nether: "Nether"
+  end: "End"
+
+# ---------- UPDATE-CHECKER ----------
+update-available: "&5&l⚠ &d[DimensionToggle] &fEine neue Version ist verfügbar: &a%version% &7(du hast &c%current%&7, &e%behind% &7Rückstand). Schau auf Modrinth vorbei."
+update-versions-behind: "%count% Version(en)"
+update-versions-behind-unknown: "eine unbekannte Anzahl an Versionen"
+update-check-triggered: "&5&l⚠ &dPrüfe jetzt auf Modrinth nach Updates... &7schau in die Konsole für das Ergebnis."

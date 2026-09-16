@@ -1,0 +1,240 @@
+# =====================================================================
+#   DimensionToggle - End GUI
+# =====================================================================
+# Every text shown in the End control panel and its sub-menus (player
+# list, maintenance, schedule), fully editable/translatable. Placeholders
+# where noted. Colors: & codes work as usual.
+
+# ---------- Control panel ----------
+control-panel:
+  title: "&5&lEnd &7- Control Panel"
+
+  toggle-button:
+    name-enabled: "&a&lEnabled"
+    name-disabled: "&c&lDisabled"
+    lore: "&7Click to %action% the End"
+
+  softlock-button:
+    name-locked: "&6&lSoft-Locked"
+    name-unlocked: "&7Soft-Lock: Off"
+    lore:
+      - "&7No new arrivals while locked;"
+      - "&7players already inside can stay."
+      - ""
+      - "&eClick to %action%"
+
+  playerlist-button:
+    name: "&b&lPlayers Inside (%count%)"
+    lore:
+      - "&7Click to see who's in the End"
+      - "&7and teleport to them."
+
+  keepinventory-button:
+    name-on: "&a&lKeep Inventory: On"
+    name-off: "&c&lKeep Inventory: Off"
+    lore:
+      - "&7Players keep their items"
+      - "&7on death in the End."
+      - ""
+      - "&eClick to toggle"
+
+  limit-button:
+    name: "&e&lPlayer Limit"
+    lore:
+      - "&7Limit is currently %limit-status%"
+      - "&7Max players: %limit%"
+      - ""
+      - "&eLeft-click: &7-1   &eShift-Left: &7-10"
+      - "&eRight-click: &7+1   &eShift-Right: &7+10"
+
+  maintenance-button:
+    name: "&6&lMaintenance"
+    lore:
+      - "&7Start a countdown, then close"
+      - "&7the End and remove everyone inside."
+      - ""
+      - "&eClick to open"
+
+  schedule-button:
+    name: "&b&lSchedule"
+    lore:
+      - "&7Automatic daily open/close times."
+      - ""
+      - "&eClick to open"
+
+  mobmanagement-button:
+    name: "&2&lMob Management"
+    lore:
+      - "&7Toggle spawning per mob type,"
+      - "&7and set automatic cleanup intervals."
+      - ""
+      - "&eClick to open"
+
+  mobspawn-button:
+    name-on: "&a&lMob Spawning: On"
+    name-off: "&c&lMob Spawning: Off"
+    lore:
+      - "&7Whether ANY mob can spawn at all"
+      - "&7in the End (vanilla doMobSpawning)."
+      - ""
+      - "&eClick to toggle"
+
+  worldborder-button:
+    name: "&b&lWorld Border"
+    lore:
+      - "&7Adjust how far the End"
+      - "&7extends from its center."
+      - ""
+      - "&eClick to open"
+
+  pvp-button:
+    name-on: "&a&lPvP: On"
+    name-off: "&c&lPvP: Off"
+    name-unavailable: "&7&lPvP: Unavailable"
+    lore-available:
+      - "&7Whether players can fight each"
+      - "&7other in the End."
+      - ""
+      - "&eClick to toggle"
+    lore-unavailable:
+      - "&cRequires the 'PvPManager' plugin"
+      - "&cto be installed on this server."
+
+  elytra-button:
+    name-on: "&a&lElytra Flight: On"
+    name-off: "&c&lElytra Flight: Off"
+    lore:
+      - "&7Whether players may glide"
+      - "&7with an Elytra in the End."
+      - ""
+      - "&eClick to toggle"
+
+  gateway-button:
+    name-blocked: "&c&lGateways Blocked"
+    name-allowed: "&a&lGateways Allowed"
+    lore:
+      - "&7Whether players can teleport via"
+      - "&7End Gateways, independent of"
+      - "&7whether the End itself is open."
+      - ""
+      - "&eClick to toggle"
+
+  back-button:
+    name: "&7« &fBack"
+    lore: "&7Return to the main menu"
+
+  dashboard:
+    title: "&d&lDashboard - End"
+    peak-players: "&7Peak players seen: &f%peak%"
+    world-border: "&7World border size: &f%size%"
+    loaded-chunks: "&7Loaded chunks: &f%chunks%"
+    entities-header: "&8Top entities in this dimension:"
+    entity-line: "&7 - %type%: &f%count%"
+    world-not-loaded: "&7(World not loaded)"
+    server-wide-header: "&8Server-wide (not dimension-specific):"
+    tps-line: "&7TPS: &f%tps%"
+
+# Words used above for %action% / %limit-status%
+action-enable: "enable"
+action-disable: "disable"
+action-lock: "soft-lock"
+action-unlock: "unlock"
+limit-status-enabled: "&aenabled"
+limit-status-disabled: "&7disabled"
+
+# ---------- Player list sub-menu ----------
+playerlist:
+  title: "&b&lPlayers in the End"
+  empty-message: "&7Nobody is currently in the End"
+  head-lore: "&7Click to teleport to this player"
+  back-button:
+    name: "&7« &fBack"
+    lore: "&7Return to the End's control panel"
+
+# ---------- Maintenance sub-menu ----------
+maintenance:
+  title: "&6&lMaintenance - End"
+  preset-lore: "&7Start a %preset% countdown for the End"
+  status-active: "&6&lCountdown Running"
+  status-active-lore: "&7End closes in &f%seconds%s"
+  status-idle: "&7&lNo Countdown Running"
+  status-idle-lore: "&7Pick a preset below to start one."
+  custom-button:
+    name: "&b&lCustom Time"
+    lore:
+      - "&7Click, then rename the item to any"
+      - "&7duration (e.g. 1h30m, 45m, 2h)"
+      - "&7and click it again to confirm."
+  cancel-button:
+    name: "&c&lCancel Countdown"
+    lore:
+      - "&7A countdown is running: &f%seconds%s &7left"
+      - ""
+      - "&eClick to cancel it"
+  back-button:
+    name: "&7« &fBack"
+    lore: "&7Return to the End's control panel"
+
+# ---------- Schedule sub-menu ----------
+schedule:
+  title: "&b&lSchedule - End"
+  toggle-button:
+    name-on: "&a&lSchedule: On"
+    name-off: "&c&lSchedule: Off"
+    lore:
+      - "&7Open: &f%open-time%  &7Close: &f%close-time%"
+      - ""
+      - "&eClick to toggle the whole schedule"
+  open-time-header: "&e&lPick an OPEN time"
+  open-time-lore: "&7Set the opening time to %time%"
+  close-time-header: "&6&lPick a CLOSE time"
+  close-time-lore: "&7Set the closing time to %time%"
+  countdown-button:
+    name-on: "&a&lCountdown: On"
+    name-off: "&c&lCountdown: Off"
+    lore:
+      - "&7Whether a countdown warning is shown"
+      - "&7before opening/closing automatically."
+      - ""
+      - "&eClick to toggle"
+  back-button:
+    name: "&7« &fBack"
+    lore: "&7Return to the End's control panel"
+
+# ---------- Mob management sub-menu ----------
+mob-management:
+  title: "&2&lMob Management - End"
+  mob-name-enabled: "&a%mob%"
+  mob-name-disabled: "&c%mob%"
+  status-spawning-allowed: "&7Spawning: &aallowed"
+  status-spawning-blocked: "&7Spawning: &cblocked"
+  cleanup-off: "&7Auto-cleanup: &7off"
+  cleanup-active: "&7Auto-cleanup: &fevery %minutes%m"
+  cleanup-next: "&7Next cleanup in: &e%next%m"
+  mob-lore-hint:
+    - "&eClick: &7toggle spawning"
+    - "&eShift-click: &7cycle cleanup interval"
+  back-button:
+    name: "&7« &fBack"
+    lore: "&7Return to the End's control panel"
+
+# ---------- World border sub-menu ----------
+worldborder:
+  title: "&b&lWorld Border - End"
+  adjust-button:
+    name: "&b&lDiameter: %size%"
+    lore:
+      - "&7Center: &f%center-x%&7, &f%center-z%"
+      - ""
+      - "&eLeft-click: &7-100   &eShift-Left: &7-1000"
+      - "&eRight-click: &7+100   &eShift-Right: &7+1000"
+  preset-name: "&6%size%"
+  preset-lore: "&7Set the border diameter to %size%"
+  center-button:
+    name: "&b&lCenter at 0, 0"
+    lore:
+      - "&7Moves the border's center"
+      - "&7back to the world origin."
+  back-button:
+    name: "&7« &fBack"
+    lore: "&7Return to the End's control panel"

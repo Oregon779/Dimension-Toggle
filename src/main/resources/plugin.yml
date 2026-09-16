@@ -1,0 +1,33 @@
+name: DimensionToggle
+version: '${project.version}'
+main: net.dimensiontoggle.DimensionToggle
+api-version: '1.21'
+author: Stone Plugins
+description: Enable or disable the Nether and End on your server - with scheduling, maintenance windows, player limits, and lockdowns.
+folia-supported: false
+
+commands:
+  dimensiontoggle:
+    description: Main command for DimensionToggle
+    usage: /dt <editor|status|nether|end|softlock|lockdown|limit|maintenance|help|reload|checkupdate> [on|off|time|cancel]
+    aliases: [dt, dimtoggle]
+
+permissions:
+  dimensiontoggle.admin:
+    description: Access to all DimensionToggle commands
+    default: op
+  dimensiontoggle.status:
+    description: Access to /dt status
+    default: true
+  dimensiontoggle.bypass:
+    description: Can still enter disabled, soft-locked, and full dimensions (both)
+    default: op
+    children:
+      dimensiontoggle.bypass.limit.nether: true
+      dimensiontoggle.bypass.limit.end: true
+  dimensiontoggle.bypass.limit.nether:
+    description: Can enter the Nether even when its player limit is reached
+    default: op
+  dimensiontoggle.bypass.limit.end:
+    description: Can enter the End even when its player limit is reached
+    default: op

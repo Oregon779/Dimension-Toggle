@@ -1,0 +1,338 @@
+# =====================================================================
+#                     DimensionToggle - config.yml
+#                       A plugin by Stone Plugins
+# =====================================================================
+#
+# This file contains SETTINGS (switches, times, colors, sounds) as well
+# as the text for every notification below - it all lives here (not in
+# messages.yml) so the whole "what does this look/sound like" experience
+# for one feature is configured in one single place.
+#
+# Text for every channel (chat/actionbar/bossbar/title/subtitle) stays
+# filled in under "messages" at the same time - the "notification" field
+# just picks which ONE of them is actually shown, so you can freely
+# switch your mind later without having to write the text again.
+#   CHAT, ACTIONBAR, BOSSBAR, TITLE, or NONE to show nothing.
+#
+# General command feedback (help, errors, status, ...) is translated
+# per-language instead, in:
+#   plugins/DimensionToggle/languages/<language>/messages.yml
+#
+# Missing options are added automatically on plugin updates. Existing
+# values you changed are never overwritten, even in nested sections.
+# =====================================================================
+
+# Language used for general command feedback. Must match a folder under
+# languages/ - "en" and "de" ship by default.
+language: "en"
+
+# Initial state on the very first plugin start (afterwards only data.yml matters)
+dimensions:
+  nether:
+    enabled: true
+  end:
+    enabled: true
+
+# Play a sound alongside every notification below. Independent of the
+# "notification" display-channel choice, since sound isn't a visual channel.
+sounds-enabled: true
+
+# ---------- NETHER ----------
+nether:
+  activate:
+    # >>> Which channel is this shown on? CHAT, ACTIONBAR, BOSSBAR, TITLE, or NONE
+    notification: "Title"
+    title: "&a&lNETHER ENABLED"
+    subtitle: "&7You can now enter the &aNether"
+    chat: "&a✔ The Nether has been enabled"
+    actionbar: "&a✔ The Nether has been enabled"
+    bossbar: "&aNether is now enabled"
+    fadein: 10
+    stay: 60
+    fadeout: 10
+    bossbar-color: GREEN
+    bossbar-style: PROGRESS
+    bossbar-duration: 5
+    sound: ENTITY_PLAYER_LEVELUP
+    sound-volume: 1.0
+    sound-pitch: 1.0
+  deactivate:
+    # >>> Which channel is this shown on? CHAT, ACTIONBAR, BOSSBAR, TITLE, or NONE
+    notification: "Title"
+    title: "&c&lNETHER DISABLED"
+    subtitle: "&7The Nether has been closed"
+    chat: "&c✘ The Nether has been disabled"
+    actionbar: "&c✘ The Nether has been disabled"
+    bossbar: "&cNether is now disabled"
+    fadein: 10
+    stay: 60
+    fadeout: 10
+    bossbar-color: RED
+    bossbar-style: PROGRESS
+    bossbar-duration: 5
+    sound: ENTITY_ENDERMAN_TELEPORT
+    sound-volume: 1.0
+    sound-pitch: 0.7
+  portal-blocked-sound:
+    sound: BLOCK_FIRE_EXTINGUISH
+    volume: 1.0
+    pitch: 1.0
+
+# ---------- END ----------
+end:
+  activate:
+    # >>> Which channel is this shown on? CHAT, ACTIONBAR, BOSSBAR, TITLE, or NONE
+    notification: "Title"
+    title: "&d&lEND ENABLED"
+    subtitle: "&7You can now enter the &dEnd"
+    chat: "&d✔ The End has been enabled"
+    actionbar: "&d✔ The End has been enabled"
+    bossbar: "&dEnd is now enabled"
+    fadein: 10
+    stay: 60
+    fadeout: 10
+    bossbar-color: PURPLE
+    bossbar-style: PROGRESS
+    bossbar-duration: 5
+    sound: ENTITY_ENDER_DRAGON_AMBIENT
+    sound-volume: 1.0
+    sound-pitch: 1.0
+  deactivate:
+    # >>> Which channel is this shown on? CHAT, ACTIONBAR, BOSSBAR, TITLE, or NONE
+    notification: "Title"
+    title: "&c&lEND DISABLED"
+    subtitle: "&7The End has been closed"
+    chat: "&c✘ The End has been disabled"
+    actionbar: "&c✘ The End has been disabled"
+    bossbar: "&cEnd is now disabled"
+    fadein: 10
+    stay: 60
+    fadeout: 10
+    bossbar-color: RED
+    bossbar-style: PROGRESS
+    bossbar-duration: 5
+    sound: ENTITY_ENDERMAN_TELEPORT
+    sound-volume: 1.0
+    sound-pitch: 0.7
+  portal-blocked-sound:
+    sound: BLOCK_FIRE_EXTINGUISH
+    volume: 1.0
+    pitch: 1.0
+
+# Blocks End Gateway teleportation on its own, independent of whether the
+# End itself is enabled or disabled - e.g. to close the "backdoor" into
+# the End even while the End is otherwise open.
+block-end-gateways: true
+
+# =====================================================================
+#   MAINTENANCE MODE
+# =====================================================================
+# /dt maintenance <nether|end> <time>   - starts a countdown
+# /dt maintenance <nether|end> cancel   - cancels a pending countdown,
+#                                          or re-opens a dimension that
+#                                          is currently in maintenance
+maintenance:
+  # Command (without /) run for every player still in the dimension once the
+  # countdown ends, e.g. "spawn". Leave empty to teleport to spawn instead.
+  action-command: ""
+  kick-to-spawn: true
+  # "dimension" = only players inside the dimension, "server" = everyone
+  broadcast-scope: "server"
+  countdown:
+    warnings: [600, 300, 120, 60, 30, 10, 5, 4, 3, 2, 1]
+
+  # Which single channel ALL maintenance messages below use.
+  # >>> Which channel is this shown on? CHAT, ACTIONBAR, BOSSBAR, TITLE, or NONE
+  notification: "BossBar"
+  title:
+    fadein: 10
+    stay: 40
+    fadeout: 10
+  bossbar:
+    color: YELLOW
+    style: PROGRESS
+    duration: 5
+  sound:
+    warning:
+      sound: BLOCK_NOTE_BLOCK_PLING
+      volume: 1.0
+      pitch: 1.0
+    execute:
+      sound: ENTITY_ENDERMAN_TELEPORT
+      volume: 1.0
+      pitch: 0.8
+
+  # Text for every channel, per event - only the channel picked above is used.
+  messages:
+    scheduled:
+      chat: "&6%dimension% will close for maintenance in %duration%."
+      actionbar: "&6%dimension% closes in %duration%"
+      title: "&6&lMAINTENANCE SCHEDULED"
+      subtitle: "&7%dimension% closes in %duration%"
+      bossbar: "&6%dimension% closes in %duration%"
+    # "warning.bossbar" also doubles as the live countdown text (%time%), used
+    # continuously while notification is BossBar - the bar counts down visibly
+    # instead of a new one appearing each warning.
+    warning:
+      chat: "&6Attention: %dimension% closes in %time% for maintenance!"
+      actionbar: "&6%dimension% closes in %time%"
+      title: "&6&lMAINTENANCE"
+      subtitle: "&7%dimension% closes in %time%"
+      bossbar: "&6%dimension% closes in %time%"
+    executed:
+      chat: "&c%dimension% has been closed for maintenance."
+      actionbar: "&c%dimension% is now closed"
+      title: "&c&lCLOSED"
+      subtitle: "&7%dimension% is closed for maintenance"
+      bossbar: "&c%dimension% is now closed"
+    cancelled:
+      chat: "&aThe scheduled maintenance for %dimension% has been cancelled."
+      actionbar: "&aMaintenance for %dimension% cancelled"
+      title: "&a&lCANCELLED"
+      subtitle: "&7Maintenance for %dimension% was cancelled"
+      bossbar: "&aMaintenance for %dimension% cancelled"
+    ended:
+      chat: "&aMaintenance for %dimension% has ended, it is open again."
+      actionbar: "&a%dimension% is open again"
+      title: "&a&lMAINTENANCE ENDED"
+      subtitle: "&7%dimension% is open again"
+      bossbar: "&a%dimension% is open again"
+
+# =====================================================================
+#   SCHEDULE
+# =====================================================================
+# Automatic opening/closing at fixed times (format "HH:mm")
+schedule:
+  nether:
+    enabled: false
+    open-time: "08:00"
+    close-time: "22:00"
+    # Countdown warnings before opening/closing, on or off
+    countdown-enabled: true
+    countdown-warnings: [600, 300, 60, 10]
+  end:
+    enabled: false
+    open-time: "08:00"
+    close-time: "22:00"
+    countdown-enabled: true
+    countdown-warnings: [600, 300, 60, 10]
+  # Command (without /) run for every player in the dimension when it closes
+  # automatically, e.g. "spawn". Leave empty to teleport to spawn instead.
+  action-command: ""
+
+  # Which single channel ALL schedule messages below use.
+  # >>> Which channel is this shown on? CHAT, ACTIONBAR, BOSSBAR, TITLE, or NONE
+  notification: "ActionBar"
+  title:
+    fadein: 10
+    stay: 40
+    fadeout: 10
+  bossbar:
+    color: BLUE
+    style: PROGRESS
+    duration: 5
+  sound:
+    warning:
+      sound: BLOCK_NOTE_BLOCK_PLING
+      volume: 1.0
+      pitch: 1.0
+
+  messages:
+    warning:
+      chat: "&6Notice: %dimension% %action% in %time%."
+      actionbar: "&6%dimension% %action% in %time%"
+      title: "&6&lSCHEDULE"
+      subtitle: "&7%dimension% %action% in %time%"
+      bossbar: "&6%dimension% %action% in %time%"
+    opened:
+      chat: "&a%dimension% has automatically (schedule) opened."
+      actionbar: "&a%dimension% is now open"
+      title: "&a&lOPENED"
+      subtitle: "&7%dimension% opened automatically"
+      bossbar: "&a%dimension% is now open"
+    closed:
+      chat: "&c%dimension% has automatically (schedule) closed."
+      actionbar: "&c%dimension% is now closed"
+      title: "&c&lCLOSED"
+      subtitle: "&7%dimension% closed automatically"
+      bossbar: "&c%dimension% is now closed"
+
+# =====================================================================
+#   SOFT LOCK
+# =====================================================================
+# /dt softlock <nether|end> - toggles a "soft lock": nobody NEW can enter,
+# but players already inside can keep playing and leave normally. Different
+# from disabling the dimension entirely (which blocks everyone, including
+# people already inside from re-entering later). Deliberately a very
+# different command word from "lockdown" below so the two can't be confused.
+softlock:
+  # "dimension" = only broadcast to players inside, "server" = everyone
+  broadcast-scope: "server"
+
+# =====================================================================
+#   LOCKDOWN
+# =====================================================================
+# /dt lockdown            - instantly disables Nether and End
+# /dt lockdown (again)    - lifts the lockdown again
+lockdown:
+  # Command (without /) run for every player in Nether/End when lockdown
+  # activates, e.g. "spawn". Leave empty to teleport to spawn instead.
+  action-command: ""
+  kick-players: true
+
+  # Which single channel BOTH lockdown messages below use.
+  # >>> Which channel is this shown on? CHAT, ACTIONBAR, BOSSBAR, TITLE, or NONE
+  notification: "Title"
+  title:
+    fadein: 10
+    stay: 60
+    fadeout: 10
+  bossbar:
+    color: RED
+    style: PROGRESS
+    duration: 6
+
+  messages:
+    activated:
+      chat: "&4&lSERVER LOCKDOWN &r&cAll dimensions have been disabled by staff."
+      actionbar: "&4Lockdown: all dimensions disabled"
+      title: "&4&lLOCKDOWN"
+      subtitle: "&cAll dimensions have been disabled"
+      bossbar: "&4&lLOCKDOWN ACTIVE"
+    lifted:
+      chat: "&aThe server lockdown has been lifted. All dimensions are enabled again."
+      actionbar: "&aLockdown lifted"
+      title: "&a&lLOCKDOWN LIFTED"
+      subtitle: "&7All dimensions are enabled again"
+      bossbar: "&aLockdown lifted"
+
+# =====================================================================
+#   PLAYER LIMIT
+# =====================================================================
+# Can also be changed live via /dt limit <nether|end> <number> (no reload needed)
+limits:
+  nether:
+    enabled: false
+    max-players: 10
+  end:
+    enabled: false
+    max-players: 5
+
+# =====================================================================
+#   LOGGING
+# =====================================================================
+logging:
+  enabled: true
+  file: "logs/dimensiontoggle.log"
+
+# =====================================================================
+#   UPDATE CHECKER
+# =====================================================================
+# Periodically checks Modrinth for a newer plugin version and notifies
+# OPs and dimensiontoggle.admin holders in chat, every time they join, as
+# long as a newer version is known. The Modrinth project itself is fixed
+# in the plugin (not configurable here) - you can only turn the checker
+# on/off and adjust how often it checks.
+update-checker:
+  enabled: true
+  check-interval-minutes: 60

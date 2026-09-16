@@ -1,0 +1,47 @@
+# =====================================================================
+#   DimensionToggle - Main GUI
+# =====================================================================
+# Every text shown in the main menu (/dt editor), fully editable/translatable.
+# Placeholders where noted. Colors: & codes work as usual.
+
+title: "&5&lDimensionToggle"
+
+nether-head:
+  name: "&c&lNether"
+  lore:
+    - "&7Status: %status%"
+    - ""
+    - "&eClick to manage this dimension"
+
+end-head:
+  name: "&d&lEnd"
+  lore:
+    - "&7Status: %status%"
+    - ""
+    - "&eClick to manage this dimension"
+
+emblem:
+  name: "&5&lDimensionToggle"
+  lore:
+    - "&7A plugin by Stone Plugins"
+
+lockdown-button:
+  name-active: "&4&lLift Lockdown"
+  name-inactive: "&4&lLockdown"
+  lore-active:
+    - "&7Lockdown is currently ACTIVE."
+    - ""
+    - "&eClick to lift the lockdown"
+  lore-inactive:
+    - "&7Instantly disables both dimensions."
+    - ""
+    - "&eClick to activate lockdown"
+
+close-button:
+  name: "&c&lClose"
+  lore:
+    - "&7Leave this menu"
+
+# Words used for %status% above
+status-enabled: "&a&lEnabled"
+status-disabled: "&c&lDisabled"
