@@ -18,7 +18,11 @@ public final class MainGuiBuilder {
     public static Inventory build(DimensionToggle plugin) {
         FileConfiguration cfg = plugin.getGuiConfigManager().getMain();
 
-        Inventory inventory = Bukkit.createInventory(null, 45,
+        // Only 5 real buttons - a 45-slot inventory made 40 of them decorative
+        // glass, which read as cluttered rather than clean. 3 rows fits the
+        // content instead of padding it out, and stays empty (no filler)
+        // everywhere else so the icons get room to breathe.
+        Inventory inventory = Bukkit.createInventory(null, 27,
                 plugin.getMessageManager().parse(cfg.getString("title", "&5&lDimensionToggle")));
 
         boolean netherEnabled = plugin.getDimensionManager().isEnabled(ToggleDimension.NETHER);
@@ -44,14 +48,11 @@ public final class MainGuiBuilder {
 
         String lockdownName = cfg.getString(lockdown ? "lockdown-button.name-active" : "lockdown-button.name-inactive");
         var lockdownLore = cfg.getStringList(lockdown ? "lockdown-button.lore-active" : "lockdown-button.lore-inactive");
-        inventory.setItem(40, GuiItems.build(plugin, lockdown ? Material.RED_CONCRETE : Material.BARRIER, "MAIN_LOCKDOWN",
+        inventory.setItem(22, GuiItems.build(plugin, lockdown ? Material.RED_CONCRETE : Material.BARRIER, "MAIN_LOCKDOWN",
                 lockdownName, lockdownLore, lockdown));
 
-        inventory.setItem(44, GuiItems.build(plugin, Material.OAK_DOOR, "MAIN_CLOSE",
+        inventory.setItem(26, GuiItems.build(plugin, Material.OAK_DOOR, "MAIN_CLOSE",
                 cfg.getString("close-button.name"), cfg.getStringList("close-button.lore")));
-
-        GuiItems.fillBorderAndFiller(inventory, plugin,
-                Material.BLACK_STAINED_GLASS_PANE, Material.PURPLE_STAINED_GLASS_PANE, 5);
 
         return inventory;
     }
