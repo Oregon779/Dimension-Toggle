@@ -943,3 +943,55 @@ per recipient - fine at 10-20 players, wasteful at 250+.
 
 Everything single-target (a message to one specific player) is
 unchanged - this only affects the "notify everyone" paths.
+
+---
+
+## Nachträge zu Version 3.1.0 - Bugfixes, weitere Performance, Editor-Redesign
+
+### Bugfix: Zeitplan konnte einen Tag komplett verpassen
+`ScheduleManager` löste das automatische Öffnen/Schließen bisher nur bei
+einem exakten `secondsUntil == 0` aus. Bei einem Lag-Spike konnte dieser
+Wert übersprungen werden (z.B. Sprung von 2 direkt auf -3), wodurch die
+geplante Aktion für den ganzen Tag ausfiel. Erkennt jetzt stattdessen den
+Vorzeichenwechsel zwischen zwei Ticks - kann nicht mehr übersprungen werden.
+
+### Deprecated APIs bereinigt
+`AnvilInventory#getRenameText()` (von Paper 1.21 als `forRemoval=true`
+markiert) durch `AnvilView#getRenameText()` ersetzt; die alte
+String-basierte `ItemMeta#setDisplayName/getDisplayName` durch die
+Adventure-Component-API; `JavaPlugin#getDescription()` durch
+`getPluginMeta()`. Build läuft jetzt ohne Deprecation-Warnungen.
+
+### Weitere Performance für 250-300 Spieler
+- `MobManagementManager`: Der Mob-Spawn-Handler (läuft bei jedem
+  Mob-Spawn serverweit) baute pro Aufruf einen String-Key zusammen -
+  jetzt verschachtelte `EnumMap`s, keine Allocation mehr auf dem Hot Path.
+- `DashboardStatsManager`: Scannte bisher alle 5 Sekunden dauerhaft alle
+  Entities in Nether/End, unabhängig davon ob überhaupt ein Dashboard
+  offen ist. Läuft jetzt nur noch bei tatsächlichem Bedarf (`refreshIfStale()`,
+  aufgerufen beim Rendern des Dashboards, intern weiterhin auf max. 1x/5s
+  gedeckelt).
+- `MaintenanceManager`: Wartungs-Warnungen und Teleport-Nachrichten
+  wurden pro betroffenem Spieler einzeln geparst/aufgelöst - jetzt über
+  `MessageManager.sendToAll()` / `SoundManager.*ForAll()` einmal aufgelöst
+  und wiederverwendet (gleiches Muster wie oben in der 3.1.0-Passage).
+- `LogManager`: Schreibt jetzt asynchron; Config-Zugriffe und Formatierung
+  bleiben synchron, um keine neue Race mit `/dt reload` einzuführen.
+
+### Editor-GUI komplett überarbeitet
+- Alle Texte in `gui/main`, `gui/nether`, `gui/end` neu gestylt: Gradient +
+  Small-Caps-Header pro Bereich (Nether = Orange-Rot, End = Lila-Pink,
+  Hauptmenü/Marke = Violett-Blau), einheitliche Status-Sprache (grün+✔ =
+  an, grau+✖ = aus, gold = Warnung/Countdown/Wert), Lore als
+  Beschreibung + aktueller Wert + Klick-Hinweis. `/dt help` und
+  `/dt status` haben passende Gradient-Trennlinien in DE+EN bekommen.
+- Aktive Toggle-Buttons glühen jetzt (versteckter Verzauberungs-Glanz),
+  damit der Zustand eines Panels auf einen Blick erkennbar ist.
+- Alle Dimension-Menüs (Control Panel, Maintenance, Schedule, Mob
+  Management, World Border, Player List) haben einen zweifarbigen Rahmen
+  (Akzentfarbe am äußeren Rand, neutrale Füllung innen) statt einer Farbe.
+- **Hauptmenü (`/dt editor`) neu gebaut**: War mit nur 5 echten Buttons auf
+  45 Slots zu ~90% Zier-Glas und wirkte vollgestopft. Jetzt 4 Zeilen (36
+  Slots) mit einer leeren Pufferzeile zwischen Nether/Emblem/End und
+  Lockdown/Close, komplett ohne Glas-Füllung - die Icons stehen frei.
+  Titel: `DT Toggle | Admin Editor`.
