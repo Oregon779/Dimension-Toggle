@@ -277,7 +277,13 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
         plugin.getConfigManager().getConfig().set("limits." + dimension.getKey() + ".enabled", true);
 
         try {
-            ConfigValueWriter.setLimit(plugin.getConfigManager().getConfigFile().toPath(), dimension.getKey(), max);
+            boolean persisted = ConfigValueWriter.setLimit(
+                    plugin.getConfigManager().getConfigFile().toPath(), dimension.getKey(), max);
+            if (!persisted) {
+                plugin.getLogger().warning("Could not save the limit permanently: 'limits." + dimension.getKey()
+                        + "' section not found in config.yml in the expected format. The change is only active "
+                        + "until the next reload/restart.");
+            }
         } catch (Exception ex) {
             plugin.getLogger().warning("Could not save the limit permanently: " + ex.getMessage());
         }

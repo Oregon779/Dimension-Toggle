@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +38,7 @@ public final class ScheduleGuiBuilder {
         inventory.setItem(4, GuiItems.build(plugin, scheduleEnabled ? Material.LIME_DYE : Material.GRAY_DYE,
                 "SCHED_TOGGLE_ENABLED",
                 guiCfg.getString(base + "toggle-button." + (scheduleEnabled ? "name-on" : "name-off")),
-                GuiItems.subList(guiCfg.getStringList(base + "toggle-button.lore"), timesPlaceholders)));
+                GuiItems.subList(guiCfg.getStringList(base + "toggle-button.lore"), timesPlaceholders), scheduleEnabled));
 
         inventory.setItem(20, GuiItems.build(plugin, Material.YELLOW_STAINED_GLASS_PANE, null,
                 guiCfg.getString(base + "open-time-header"), null));
@@ -62,14 +61,9 @@ public final class ScheduleGuiBuilder {
 
         inventory.setItem(49, GuiItems.build(plugin, Material.BELL, "SCHED_TOGGLE_COUNTDOWN",
                 guiCfg.getString(base + "countdown-button." + (countdownEnabled ? "name-on" : "name-off")),
-                guiCfg.getStringList(base + "countdown-button.lore")));
+                guiCfg.getStringList(base + "countdown-button.lore"), countdownEnabled));
 
-        ItemStack filler = GuiItems.build(plugin, GuiItems.fillerFor(dimension), null, " ", null);
-        for (int slot = 0; slot < 54; slot++) {
-            if (inventory.getItem(slot) == null) {
-                inventory.setItem(slot, filler);
-            }
-        }
+        GuiItems.fillBorderAndFiller(inventory, plugin, dimension, 6);
 
         inventory.setItem(45, GuiItems.build(plugin, Material.ARROW, "SCHED_BACK",
                 guiCfg.getString(base + "back-button.name"), guiCfg.getStringList(base + "back-button.lore")));

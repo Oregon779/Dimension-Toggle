@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,7 @@ public final class MaintenanceGuiBuilder {
             int remaining = plugin.getMaintenanceManager().getRemainingSeconds(dimension);
             inventory.setItem(13, GuiItems.build(plugin, Material.CLOCK, null,
                     cfg.getString(base + "status-active"),
-                    List.of(GuiItems.sub(cfg.getString(base + "status-active-lore"), Map.of("seconds", String.valueOf(remaining))))));
+                    List.of(GuiItems.sub(cfg.getString(base + "status-active-lore"), Map.of("seconds", String.valueOf(remaining)))), true));
         } else {
             inventory.setItem(13, GuiItems.build(plugin, Material.GRAY_DYE, null,
                     cfg.getString(base + "status-idle"), List.of(cfg.getString(base + "status-idle-lore"))));
@@ -52,12 +51,7 @@ public final class MaintenanceGuiBuilder {
                     GuiItems.subList(cfg.getStringList(base + "cancel-button.lore"), Map.of("seconds", String.valueOf(remaining)))));
         }
 
-        ItemStack filler = GuiItems.build(plugin, GuiItems.fillerFor(dimension), null, " ", null);
-        for (int slot = 0; slot < 27; slot++) {
-            if (inventory.getItem(slot) == null) {
-                inventory.setItem(slot, filler);
-            }
-        }
+        GuiItems.fillBorderAndFiller(inventory, plugin, dimension, 3);
 
         inventory.setItem(18, GuiItems.build(plugin, Material.ARROW, "MAINT_BACK",
                 cfg.getString(base + "back-button.name"), cfg.getStringList(base + "back-button.lore")));

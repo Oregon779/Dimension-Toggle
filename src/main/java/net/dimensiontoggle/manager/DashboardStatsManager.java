@@ -2,11 +2,9 @@ package net.dimensiontoggle.manager;
 
 import net.dimensiontoggle.DimensionToggle;
 import net.dimensiontoggle.model.ToggleDimension;
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -15,25 +13,39 @@ import java.util.Map;
 
 public class DashboardStatsManager {
 
+    private static final long REFRESH_INTERVAL_MILLIS = 5000;
+
     private final DimensionToggle plugin;
     private final Map<ToggleDimension, Integer> loadedChunksCache = new EnumMap<>(ToggleDimension.class);
     private final Map<ToggleDimension, List<Map.Entry<EntityType, Integer>>> topEntitiesCache = new EnumMap<>(ToggleDimension.class);
-    private BukkitTask task;
+    private long lastRefresh = 0L;
 
     public DashboardStatsManager(DimensionToggle plugin) {
         this.plugin = plugin;
     }
 
     public void start() {
-        refresh();
-        task = Bukkit.getScheduler().runTaskTimer(plugin, this::refresh, 100L, 100L);
+        // Stats are computed on demand (see refreshIfStale()) instead of on a
+        // fixed schedule, so a server with no dashboard GUI open never pays
+        // for scanning world.getEntities() in the background.
     }
 
     public void stop() {
-        if (task != null) {
-            task.cancel();
-            task = null;
+    }
+
+    // world.getEntities() and getLoadedChunks() scale with total entities/chunks
+    // in the dimension, which on a busy 250-300 player server can be
+    // thousands - not something to run unconditionally forever in the
+    // background. Only recompute when the dashboard is actually about to be
+    // rendered, and even then at most once per REFRESH_INTERVAL_MILLIS no
+    // matter how many panels are open or how often they redraw.
+    public void refreshIfStale() {
+        long now = System.currentTimeMillis();
+        if (now - lastRefresh < REFRESH_INTERVAL_MILLIS) {
+            return;
         }
+        lastRefresh = now;
+        refresh();
     }
 
     private void refresh() {

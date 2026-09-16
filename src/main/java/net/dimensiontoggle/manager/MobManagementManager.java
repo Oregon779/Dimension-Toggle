@@ -12,7 +12,7 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,9 +34,12 @@ public class MobManagementManager implements Listener {
     public static final int[] CLEANUP_PRESETS_MINUTES = {0, 5, 10, 30, 60};
 
     private final DimensionToggle plugin;
-    private final Map<String, Boolean> spawnEnabled = new HashMap<>();
-    private final Map<String, Integer> cleanupMinutes = new HashMap<>();
-    private final Map<String, Integer> minutesSinceCleanup = new HashMap<>();
+    // Keyed by dimension then entity type (EnumMap, not a String-concat key) so the
+    // CreatureSpawnEvent handler below - which fires for every mob spawn server-wide -
+    // never has to allocate a new String just to look up whether a type may spawn.
+    private final Map<ToggleDimension, Map<EntityType, Boolean>> spawnEnabled = new EnumMap<>(ToggleDimension.class);
+    private final Map<ToggleDimension, Map<EntityType, Integer>> cleanupMinutes = new EnumMap<>(ToggleDimension.class);
+    private final Map<ToggleDimension, Map<EntityType, Integer>> minutesSinceCleanup = new EnumMap<>(ToggleDimension.class);
     private BukkitTask task;
 
     public MobManagementManager(DimensionToggle plugin) {
@@ -46,13 +49,17 @@ public class MobManagementManager implements Listener {
 
     private void loadState() {
         for (ToggleDimension dimension : ToggleDimension.values()) {
+            Map<EntityType, Boolean> spawnMap = new EnumMap<>(EntityType.class);
+            Map<EntityType, Integer> cleanupMap = new EnumMap<>(EntityType.class);
             for (EntityType type : mobsFor(dimension)) {
-                String key = key(dimension, type);
-                spawnEnabled.put(key, plugin.getConfigManager().getData()
+                spawnMap.put(type, plugin.getConfigManager().getData()
                         .getBoolean("mob-management." + dimension.getKey() + "." + type.name() + ".enabled", true));
-                cleanupMinutes.put(key, plugin.getConfigManager().getData()
+                cleanupMap.put(type, plugin.getConfigManager().getData()
                         .getInt("mob-management." + dimension.getKey() + "." + type.name() + ".cleanup-minutes", 0));
             }
+            spawnEnabled.put(dimension, spawnMap);
+            cleanupMinutes.put(dimension, cleanupMap);
+            minutesSinceCleanup.put(dimension, new EnumMap<>(EntityType.class));
         }
     }
 
@@ -60,17 +67,14 @@ public class MobManagementManager implements Listener {
         return dimension == ToggleDimension.NETHER ? NETHER_MOBS : END_MOBS;
     }
 
-    private String key(ToggleDimension dimension, EntityType type) {
-        return dimension.getKey() + ":" + type.name();
-    }
-
     public boolean isSpawnEnabled(ToggleDimension dimension, EntityType type) {
-        return spawnEnabled.getOrDefault(key(dimension, type), true);
+        Map<EntityType, Boolean> map = spawnEnabled.get(dimension);
+        return map == null || map.getOrDefault(type, true);
     }
 
     public boolean toggleSpawnEnabled(ToggleDimension dimension, EntityType type) {
         boolean newValue = !isSpawnEnabled(dimension, type);
-        spawnEnabled.put(key(dimension, type), newValue);
+        spawnEnabled.computeIfAbsent(dimension, d -> new EnumMap<>(EntityType.class)).put(type, newValue);
         plugin.getConfigManager().getData()
                 .set("mob-management." + dimension.getKey() + "." + type.name() + ".enabled", newValue);
         plugin.getConfigManager().saveData();
@@ -78,7 +82,8 @@ public class MobManagementManager implements Listener {
     }
 
     public int getCleanupMinutes(ToggleDimension dimension, EntityType type) {
-        return cleanupMinutes.getOrDefault(key(dimension, type), 0);
+        Map<EntityType, Integer> map = cleanupMinutes.get(dimension);
+        return map == null ? 0 : map.getOrDefault(type, 0);
     }
 
     public int getMinutesUntilNextCleanup(ToggleDimension dimension, EntityType type) {
@@ -86,7 +91,8 @@ public class MobManagementManager implements Listener {
         if (interval <= 0) {
             return -1;
         }
-        int elapsed = minutesSinceCleanup.getOrDefault(key(dimension, type), 0);
+        Map<EntityType, Integer> map = minutesSinceCleanup.get(dimension);
+        int elapsed = map == null ? 0 : map.getOrDefault(type, 0);
         return Math.max(0, interval - elapsed);
     }
 
@@ -101,9 +107,8 @@ public class MobManagementManager implements Listener {
         }
         int next = CLEANUP_PRESETS_MINUTES[(currentIndex + 1) % CLEANUP_PRESETS_MINUTES.length];
 
-        String key = key(dimension, type);
-        cleanupMinutes.put(key, next);
-        minutesSinceCleanup.put(key, 0);
+        cleanupMinutes.computeIfAbsent(dimension, d -> new EnumMap<>(EntityType.class)).put(type, next);
+        minutesSinceCleanup.computeIfAbsent(dimension, d -> new EnumMap<>(EntityType.class)).put(type, 0);
         plugin.getConfigManager().getData()
                 .set("mob-management." + dimension.getKey() + "." + type.name() + ".cleanup-minutes", next);
         plugin.getConfigManager().saveData();
@@ -123,18 +128,18 @@ public class MobManagementManager implements Listener {
 
     private void tickCleanup() {
         for (ToggleDimension dimension : ToggleDimension.values()) {
+            Map<EntityType, Integer> map = minutesSinceCleanup.computeIfAbsent(dimension, d -> new EnumMap<>(EntityType.class));
             for (EntityType type : mobsFor(dimension)) {
                 int interval = getCleanupMinutes(dimension, type);
                 if (interval <= 0) {
                     continue;
                 }
-                String key = key(dimension, type);
-                int elapsed = minutesSinceCleanup.getOrDefault(key, 0) + 1;
+                int elapsed = map.getOrDefault(type, 0) + 1;
                 if (elapsed >= interval) {
                     removeAll(dimension, type);
-                    minutesSinceCleanup.put(key, 0);
+                    map.put(type, 0);
                 } else {
-                    minutesSinceCleanup.put(key, elapsed);
+                    map.put(type, elapsed);
                 }
             }
         }

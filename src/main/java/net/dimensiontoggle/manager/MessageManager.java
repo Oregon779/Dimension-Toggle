@@ -5,7 +5,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -100,6 +102,21 @@ public class MessageManager {
 
     public void send(CommandSender sender, String path) {
         send(sender, path, null);
+    }
+
+    // Same idea as the broadcast-path bulk helpers elsewhere: resolve and parse
+    // the message once, then reuse the Component for every recipient instead of
+    // repeating the placeholder substitution + MiniMessage parse per player.
+    public void sendToAll(Collection<? extends Player> targets, String path, Map<String, String> placeholders) {
+        if (targets.isEmpty()) {
+            return;
+        }
+        String raw = prefix() + get(path);
+        raw = replacePlaceholders(raw, placeholders);
+        Component message = parse(raw);
+        for (Player player : targets) {
+            player.sendMessage(message);
+        }
     }
 
     public String getFormatted(String path, Map<String, String> placeholders) {

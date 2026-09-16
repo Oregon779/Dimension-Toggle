@@ -24,6 +24,7 @@ public class ScheduleManager {
 
     private final Map<ToggleDimension, Set<Integer>> firedOpenWarnings = new EnumMap<>(ToggleDimension.class);
     private final Map<ToggleDimension, Set<Integer>> firedCloseWarnings = new EnumMap<>(ToggleDimension.class);
+    private final Map<String, Long> lastRawSecondsUntil = new HashMap<>();
     private LocalDate lastResetDate = LocalDate.now();
 
     public ScheduleManager(DimensionToggle plugin) {
@@ -63,6 +64,10 @@ public class ScheduleManager {
         ConfigurationSection section = plugin.getConfigManager().getConfig()
                 .getConfigurationSection("schedule." + dimension.getKey());
         if (section == null || !section.getBoolean("enabled", false)) {
+            // Feature is off - forget any in-progress crossing tracking so a later
+            // re-enable starts clean instead of comparing against stale data.
+            lastRawSecondsUntil.remove("schedule:" + dimension.getKey() + ":open");
+            lastRawSecondsUntil.remove("schedule:" + dimension.getKey() + ":close");
             return;
         }
 
@@ -77,6 +82,7 @@ public class ScheduleManager {
 
         if (timeStr == null || timeStr.isBlank()) {
             plugin.getNotificationManager().removeCountdownBossBar(bossBarKey, Bukkit.getOnlinePlayers());
+            lastRawSecondsUntil.remove(bossBarKey);
             return;
         }
 
@@ -88,16 +94,26 @@ public class ScheduleManager {
         }
 
         LocalTime now = LocalTime.now().withNano(0);
-        long secondsUntil = Duration.between(now, target).getSeconds();
-        if (secondsUntil < 0) {
-            secondsUntil += 86400;
-        }
+        // Unwrapped difference: positive while today's target is still ahead,
+        // <= 0 the instant "now" reaches or passes it.
+        long rawSecondsUntil = Duration.between(now, target).getSeconds();
+
+        // The tick only runs ~once/second; on a lag spike more than a second
+        // of real time can pass between two runs, so rawSecondsUntil can jump
+        // straight from e.g. 2 to -3 and skip the exact value 0 entirely. A
+        // plain "== 0" check would then silently miss that day's open/close.
+        // Comparing against the previous tick's sign catches the crossing
+        // regardless of how many seconds were skipped over.
+        Long previousRaw = lastRawSecondsUntil.put(bossBarKey, rawSecondsUntil);
+        boolean crossedTarget = previousRaw != null && previousRaw > 0 && rawSecondsUntil <= 0;
+
+        long secondsUntil = rawSecondsUntil < 0 ? rawSecondsUntil + 86400 : rawSecondsUntil;
 
         boolean countdownEnabled = section.getBoolean("countdown-enabled", true);
         List<Integer> warnings = countdownEnabled ? section.getIntegerList("countdown-warnings") : List.of();
         int maxWarning = warnings.isEmpty() ? 0 : Collections.max(warnings);
 
-        if (secondsUntil == 0) {
+        if (crossedTarget) {
             plugin.getNotificationManager().removeCountdownBossBar(bossBarKey, Bukkit.getOnlinePlayers());
 
             boolean changed = plugin.getDimensionManager().isEnabled(dimension) != opening;

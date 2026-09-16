@@ -75,7 +75,7 @@ public class GuiManager implements Listener {
 
         ItemStack hint = new ItemStack(Material.PAPER);
         ItemMeta meta = hint.getItemMeta();
-        meta.setDisplayName("1h30m");
+        meta.displayName(net.kyori.adventure.text.Component.text("1h30m"));
         hint.setItemMeta(meta);
         inv.setItem(0, hint);
 
@@ -167,7 +167,8 @@ public class GuiManager implements Listener {
             return;
         }
 
-        String typed = result.getItemMeta().getDisplayName();
+        net.kyori.adventure.text.Component displayName = result.getItemMeta().displayName();
+        String typed = displayName == null ? "" : net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(displayName);
         Integer seconds = net.dimensiontoggle.manager.MaintenanceManager.parseDurationToSeconds(typed);
         if (seconds == null || seconds <= 0) {
             return;
@@ -187,14 +188,14 @@ public class GuiManager implements Listener {
             return;
         }
 
-        String typed = event.getInventory().getRenameText();
+        String typed = event.getView().getRenameText();
         if (typed == null || typed.isBlank()) {
             typed = "1h30m";
         }
 
         ItemStack result = new ItemStack(Material.PAPER);
         ItemMeta meta = result.getItemMeta();
-        meta.setDisplayName(typed);
+        meta.displayName(net.kyori.adventure.text.Component.text(typed));
         result.setItemMeta(meta);
         event.setResult(result);
     }
@@ -328,8 +329,12 @@ public class GuiManager implements Listener {
         plugin.getConfigManager().getConfig().set("limits." + dimension.getKey() + ".enabled", true);
 
         try {
-            net.dimensiontoggle.config.ConfigValueWriter.setLimit(
+            boolean persisted = net.dimensiontoggle.config.ConfigValueWriter.setLimit(
                     plugin.getConfigManager().getConfigFile().toPath(), dimension.getKey(), updated);
+            if (!persisted) {
+                plugin.getLogger().warning("Could not persist the GUI limit change: 'limits." + dimension.getKey()
+                        + "' section not found in config.yml in the expected format.");
+            }
         } catch (Exception e) {
             plugin.getLogger().warning("Could not persist the GUI limit change: " + e.getMessage());
         }
@@ -360,8 +365,12 @@ public class GuiManager implements Listener {
         boolean current = plugin.getConfigManager().getConfig().getBoolean("block-end-gateways", true);
         plugin.getConfigManager().getConfig().set("block-end-gateways", !current);
         try {
-            net.dimensiontoggle.config.ConfigValueWriter.setNestedValue(
+            boolean persisted = net.dimensiontoggle.config.ConfigValueWriter.setNestedValue(
                     plugin.getConfigManager().getConfigFile().toPath(), String.valueOf(!current), "block-end-gateways");
+            if (!persisted) {
+                plugin.getLogger().warning("Could not persist the GUI gateway change: "
+                        + "'block-end-gateways' not found in config.yml in the expected format.");
+            }
         } catch (Exception e) {
             plugin.getLogger().warning("Could not persist the GUI gateway change: " + e.getMessage());
         }
@@ -372,9 +381,13 @@ public class GuiManager implements Listener {
         boolean current = plugin.getConfigManager().getConfig().getBoolean(path, false);
         plugin.getConfigManager().getConfig().set(path, !current);
         try {
-            net.dimensiontoggle.config.ConfigValueWriter.setNestedValue(
+            boolean persisted = net.dimensiontoggle.config.ConfigValueWriter.setNestedValue(
                     plugin.getConfigManager().getConfigFile().toPath(), String.valueOf(!current),
                     "schedule", dimension.getKey(), key);
+            if (!persisted) {
+                plugin.getLogger().warning("Could not persist the GUI schedule change: '" + path
+                        + "' not found in config.yml in the expected format.");
+            }
         } catch (Exception e) {
             plugin.getLogger().warning("Could not persist the GUI schedule change: " + e.getMessage());
         }
@@ -384,9 +397,13 @@ public class GuiManager implements Listener {
         String path = "schedule." + dimension.getKey() + "." + key;
         plugin.getConfigManager().getConfig().set(path, time);
         try {
-            net.dimensiontoggle.config.ConfigValueWriter.setNestedValue(
+            boolean persisted = net.dimensiontoggle.config.ConfigValueWriter.setNestedValue(
                     plugin.getConfigManager().getConfigFile().toPath(), "\"" + time + "\"",
                     "schedule", dimension.getKey(), key);
+            if (!persisted) {
+                plugin.getLogger().warning("Could not persist the GUI schedule change: '" + path
+                        + "' not found in config.yml in the expected format.");
+            }
         } catch (Exception e) {
             plugin.getLogger().warning("Could not persist the GUI schedule change: " + e.getMessage());
         }

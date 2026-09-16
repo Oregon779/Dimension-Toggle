@@ -41,9 +41,12 @@ public final class PlayerListGuiBuilder {
                     cfg.getString(base + "empty-message"), null));
         }
 
+        // Only the bottom row is decorative here - the head grid above it is
+        // meant to stay a clean roster, not framed like the other menus.
         ItemStack filler = GuiItems.build(plugin, GuiItems.fillerFor(dimension), null, " ", null);
+        ItemStack border = GuiItems.build(plugin, GuiItems.borderFor(dimension), null, " ", null);
         for (int i = 45; i < 54; i++) {
-            inventory.setItem(i, filler);
+            inventory.setItem(i, (i == 45 || i == 53) ? border : filler);
         }
         inventory.setItem(49, GuiItems.build(plugin, Material.ARROW, "PLIST_BACK",
                 cfg.getString(base + "back-button.name"), cfg.getStringList(base + "back-button.lore")));

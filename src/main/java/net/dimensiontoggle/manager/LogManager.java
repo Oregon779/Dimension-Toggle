@@ -2,6 +2,7 @@ package net.dimensiontoggle.manager;
 
 import net.dimensiontoggle.DimensionToggle;
 import net.dimensiontoggle.model.ToggleDimension;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.io.File;
@@ -52,6 +53,13 @@ public class LogManager {
                 + " | Dimension: " + dimensionName
                 + (details == null || details.isBlank() ? "" : " | " + details);
 
+        // The actual disk write is the only part that can block on a slow/busy
+        // disk, so that's the only part pushed off the main thread - everything
+        // above (config reads, formatting) still happens on the calling thread.
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> writeLine(logFile, line));
+    }
+
+    private void writeLine(File logFile, String line) {
         try (FileWriter fw = new FileWriter(logFile, true);
              PrintWriter pw = new PrintWriter(fw)) {
             pw.println(line);

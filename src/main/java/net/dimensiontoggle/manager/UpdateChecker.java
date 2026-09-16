@@ -3,6 +3,7 @@ package net.dimensiontoggle.manager;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import net.dimensiontoggle.DimensionToggle;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -43,11 +44,6 @@ public class UpdateChecker implements Listener {
             return;
         }
 
-        if (MODRINTH_PROJECT_SLUG == null || MODRINTH_PROJECT_SLUG.isBlank()) {
-            plugin.getLogger().info("Update checker: no Modrinth project configured - staying inactive.");
-            return;
-        }
-
         long intervalMinutes = Math.max(5, plugin.getConfigManager().getConfig()
                 .getLong("update-checker.check-interval-minutes", 60));
         long intervalTicks = intervalMinutes * 60L * 20L;
@@ -56,10 +52,6 @@ public class UpdateChecker implements Listener {
     }
 
     public void checkNow() {
-        if (MODRINTH_PROJECT_SLUG == null || MODRINTH_PROJECT_SLUG.isBlank()) {
-            plugin.getLogger().info("Update checker: no Modrinth project configured, cannot check manually.");
-            return;
-        }
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> check(MODRINTH_PROJECT_SLUG));
     }
 
@@ -94,7 +86,7 @@ public class UpdateChecker implements Listener {
             }
 
             String newest = versions.get(0).getAsJsonObject().get("version_number").getAsString();
-            String current = plugin.getDescription().getVersion();
+            String current = plugin.getPluginMeta().getVersion();
 
             if (isNewer(newest, current)) {
                 latestKnownVersion = newest;
@@ -139,17 +131,27 @@ public class UpdateChecker implements Listener {
         if (newest == null || !isEligible(player)) {
             return;
         }
-        notifyPlayer(player, newest, plugin.getDescription().getVersion());
+        notifyPlayer(player, newest, plugin.getPluginMeta().getVersion());
     }
 
     private boolean isEligible(Player player) {
         return player.isOp() || player.hasPermission("dimensiontoggle.admin");
     }
 
+    // Resolve the message once and reuse the parsed Component for every
+    // recipient, instead of re-parsing the identical text per online player.
     private void notifyOnlineEligiblePlayers(String newest, String current) {
+        MessageManager messages = plugin.getMessageManager();
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("version", newest);
+        placeholders.put("current", current);
+        placeholders.put("behind", describeVersionsBehind());
+
+        Component message = messages.parseWithPlaceholders(messages.getPrefix() + messages.get("update-available"), placeholders);
+
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (isEligible(player)) {
-                notifyPlayer(player, newest, current);
+                player.sendMessage(message);
             }
         }
     }

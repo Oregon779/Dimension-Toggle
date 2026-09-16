@@ -47,14 +47,14 @@ public final class DimensionGuiBuilder {
         Map<String, String> actionPlaceholder = Map.of("action", cfg.getString(enabled ? "action-disable" : "action-enable", ""));
         inventory.setItem(13, GuiItems.build(plugin, enabled ? Material.LIME_DYE : Material.GRAY_DYE, "DIM_TOGGLE",
                 cfg.getString(base + "toggle-button." + (enabled ? "name-enabled" : "name-disabled")),
-                List.of(GuiItems.sub(cfg.getString(base + "toggle-button.lore"), actionPlaceholder))));
+                List.of(GuiItems.sub(cfg.getString(base + "toggle-button.lore"), actionPlaceholder)), enabled));
 
         List<ItemStack> features = new ArrayList<>();
 
         Map<String, String> lockActionPlaceholder = Map.of("action", cfg.getString(locked ? "action-unlock" : "action-lock", ""));
         features.add(GuiItems.build(plugin, locked ? Material.IRON_BARS : Material.OAK_FENCE_GATE, "DIM_SOFTLOCK",
                 cfg.getString(base + "softlock-button." + (locked ? "name-locked" : "name-unlocked")),
-                GuiItems.subList(cfg.getStringList(base + "softlock-button.lore"), lockActionPlaceholder)));
+                GuiItems.subList(cfg.getStringList(base + "softlock-button.lore"), lockActionPlaceholder), locked));
 
         Map<String, String> countPlaceholder = Map.of("count", String.valueOf(playerCount));
         features.add(GuiItems.build(plugin, Material.PLAYER_HEAD, "DIM_PLAYERLIST",
@@ -70,7 +70,7 @@ public final class DimensionGuiBuilder {
 
         features.add(GuiItems.build(plugin, keepInv ? Material.TOTEM_OF_UNDYING : Material.BARRIER, "DIM_KEEPINV",
                 cfg.getString(base + "keepinventory-button." + (keepInv ? "name-on" : "name-off")),
-                cfg.getStringList(base + "keepinventory-button.lore")));
+                cfg.getStringList(base + "keepinventory-button.lore"), keepInv));
 
         features.add(GuiItems.build(plugin, Material.CLOCK, "DIM_MAINTENANCE",
                 cfg.getString(base + "maintenance-button.name"), cfg.getStringList(base + "maintenance-button.lore")));
@@ -84,7 +84,7 @@ public final class DimensionGuiBuilder {
         boolean mobSpawningEnabled = plugin.getMobSpawnManager().isEnabled(dimension);
         features.add(GuiItems.build(plugin, mobSpawningEnabled ? Material.SPAWNER : Material.BARRIER, "DIM_MOBSPAWN",
                 cfg.getString(base + "mobspawn-button." + (mobSpawningEnabled ? "name-on" : "name-off")),
-                cfg.getStringList(base + "mobspawn-button.lore")));
+                cfg.getStringList(base + "mobspawn-button.lore"), mobSpawningEnabled));
 
         features.add(GuiItems.build(plugin, Material.WHITE_STAINED_GLASS, "DIM_WORLDBORDER",
                 cfg.getString(base + "worldborder-button.name"), cfg.getStringList(base + "worldborder-button.lore")));
@@ -94,7 +94,8 @@ public final class DimensionGuiBuilder {
         Material pvpMaterial = !pvpAvailable ? Material.BARRIER : pvpEnabled ? Material.IRON_SWORD : Material.WOODEN_HOE;
         String pvpKey = !pvpAvailable ? "name-unavailable" : pvpEnabled ? "name-on" : "name-off";
         features.add(GuiItems.build(plugin, pvpMaterial, pvpAvailable ? "DIM_PVP" : null,
-                cfg.getString(base + "pvp-button." + pvpKey), cfg.getStringList(base + "pvp-button.lore-" + (pvpAvailable ? "available" : "unavailable"))));
+                cfg.getString(base + "pvp-button." + pvpKey), cfg.getStringList(base + "pvp-button.lore-" + (pvpAvailable ? "available" : "unavailable")),
+                pvpEnabled));
 
         if (dimension == ToggleDimension.END) {
             boolean elytra = plugin.getElytraFlyManager().isEnabled();
@@ -102,17 +103,17 @@ public final class DimensionGuiBuilder {
 
             features.add(GuiItems.build(plugin, elytra ? Material.ELYTRA : Material.BARRIER, "DIM_ELYTRA",
                     cfg.getString(base + "elytra-button." + (elytra ? "name-on" : "name-off")),
-                    cfg.getStringList(base + "elytra-button.lore")));
+                    cfg.getStringList(base + "elytra-button.lore"), elytra));
 
             features.add(GuiItems.build(plugin, gatewaysBlocked ? Material.BARRIER : Material.ENDER_EYE, "DIM_GATEWAY",
                     cfg.getString(base + "gateway-button." + (gatewaysBlocked ? "name-blocked" : "name-allowed")),
-                    cfg.getStringList(base + "gateway-button.lore")));
+                    cfg.getStringList(base + "gateway-button.lore"), !gatewaysBlocked));
         } else {
             boolean spawnersEnabled = plugin.getSpawnerToggleManager().isEnabled(dimension);
 
             features.add(GuiItems.build(plugin, spawnersEnabled ? Material.SPAWNER : Material.BARRIER, "DIM_SPAWNERS",
                     cfg.getString(base + "spawners-button." + (spawnersEnabled ? "name-on" : "name-off")),
-                    cfg.getStringList(base + "spawners-button.lore")));
+                    cfg.getStringList(base + "spawners-button.lore"), spawnersEnabled));
         }
 
         for (int i = 0; i < features.size() && i < INTERIOR_SLOTS.length; i++) {
@@ -124,18 +125,14 @@ public final class DimensionGuiBuilder {
         inventory.setItem(49, GuiItems.build(plugin, Material.ARROW, "DIM_BACK",
                 cfg.getString(base + "back-button.name"), cfg.getStringList(base + "back-button.lore")));
 
-        ItemStack filler = GuiItems.build(plugin, GuiItems.fillerFor(dimension), null, " ", null);
-        for (int slot = 0; slot < 54; slot++) {
-            if (inventory.getItem(slot) == null) {
-                inventory.setItem(slot, filler);
-            }
-        }
+        GuiItems.fillBorderAndFiller(inventory, plugin, dimension, 6);
 
         return inventory;
     }
 
     private static ItemStack buildDashboardItem(DimensionToggle plugin, ToggleDimension dimension,
                                                  FileConfiguration cfg, String base) {
+        plugin.getDashboardStatsManager().refreshIfStale();
         World world = dimension.findWorld();
 
         String dashboardBase = base + "dashboard.";

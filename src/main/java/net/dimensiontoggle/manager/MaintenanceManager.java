@@ -71,9 +71,8 @@ public class MaintenanceManager {
 
             if (warnings.contains(current)) {
                 broadcast(dimension, "warning", Map.of("time", formatSeconds(current)), false);
-                for (Player player : plugin.getDimensionManager().getPlayersInDimension(dimension)) {
-                    plugin.getSoundManager().playMaintenanceWarning(player);
-                }
+                plugin.getSoundManager().playMaintenanceWarningForAll(
+                        plugin.getDimensionManager().getPlayersInDimension(dimension));
             }
         }, 20L, 20L);
 
@@ -117,10 +116,9 @@ public class MaintenanceManager {
         boolean kickToSpawn = plugin.getConfigManager().getConfig().getBoolean("maintenance.kick-to-spawn", true);
 
         Map<String, String> teleportPlaceholders = Map.of("dimension", plugin.getMessageManager().getDimensionName(dimension.getKey()));
-        for (Player player : plugin.getDimensionManager().getPlayersInDimension(dimension)) {
-            plugin.getMessageManager().send(player, "maintenance-teleported", teleportPlaceholders);
-            plugin.getSoundManager().playMaintenanceExecute(player);
-        }
+        List<Player> affectedPlayers = plugin.getDimensionManager().getPlayersInDimension(dimension);
+        plugin.getMessageManager().sendToAll(affectedPlayers, "maintenance-teleported", teleportPlaceholders);
+        plugin.getSoundManager().playMaintenanceExecuteForAll(affectedPlayers);
 
         if (kickToSpawn || (actionCommand != null && !actionCommand.isBlank())) {
             plugin.getDimensionManager().removePlayersFromDimension(dimension, actionCommand);

@@ -8,7 +8,6 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +58,7 @@ public final class MobManagementGuiBuilder {
 
             Material icon = GuiItems.resolveMobIcon(type);
             inventory.setItem(slot, GuiItems.build(plugin, icon, "MOB_TOGGLE_" + type.name(),
-                    GuiItems.sub(nameTemplate, Map.of("mob", mobName)), lore));
+                    GuiItems.sub(nameTemplate, Map.of("mob", mobName)), lore, spawnEnabled));
 
             slot++;
         }
@@ -67,12 +66,7 @@ public final class MobManagementGuiBuilder {
         inventory.setItem(49, GuiItems.build(plugin, Material.ARROW, "MOB_BACK",
                 cfg.getString(base + "back-button.name"), cfg.getStringList(base + "back-button.lore")));
 
-        ItemStack filler = GuiItems.build(plugin, GuiItems.fillerFor(dimension), null, " ", null);
-        for (int i = 0; i < 54; i++) {
-            if (inventory.getItem(i) == null) {
-                inventory.setItem(i, filler);
-            }
-        }
+        GuiItems.fillBorderAndFiller(inventory, plugin, dimension, 6);
 
         return inventory;
     }

@@ -47,6 +47,14 @@ public class SoundManager {
         play(player, "maintenance.sound.execute");
     }
 
+    public void playMaintenanceWarningForAll(java.util.Collection<? extends Player> targets) {
+        playForAll(targets, "maintenance.sound.warning");
+    }
+
+    public void playMaintenanceExecuteForAll(java.util.Collection<? extends Player> targets) {
+        playForAll(targets, "maintenance.sound.execute");
+    }
+
     public void playScheduleWarning(Player player) {
         play(player, "schedule.sound.warning");
     }

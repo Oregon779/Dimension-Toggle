@@ -7,7 +7,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 import java.util.Map;
@@ -54,12 +53,7 @@ public final class WorldBorderGuiBuilder {
         inventory.setItem(22, GuiItems.build(plugin, Material.COMPASS, "WB_CENTER",
                 cfg.getString(base + "center-button.name"), cfg.getStringList(base + "center-button.lore")));
 
-        ItemStack filler = GuiItems.build(plugin, GuiItems.fillerFor(dimension), null, " ", null);
-        for (int slot = 0; slot < 27; slot++) {
-            if (inventory.getItem(slot) == null) {
-                inventory.setItem(slot, filler);
-            }
-        }
+        GuiItems.fillBorderAndFiller(inventory, plugin, dimension, 3);
 
         inventory.setItem(18, GuiItems.build(plugin, Material.ARROW, "WB_BACK",
                 cfg.getString(base + "back-button.name"), cfg.getStringList(base + "back-button.lore")));
