@@ -38,6 +38,22 @@
             <version>2.10.1</version>
             <scope>provided</scope>
         </dependency>
+
+        <!-- Test-only. This MockBukkit release is pinned because it is built
+             against the exact same paper-api (1.21.1-R0.1-SNAPSHOT) as the
+             plugin itself; newer releases target newer Paper versions. -->
+        <dependency>
+            <groupId>com.github.seeseemelk</groupId>
+            <artifactId>MockBukkit-v1.21</artifactId>
+            <version>3.133.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.11.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

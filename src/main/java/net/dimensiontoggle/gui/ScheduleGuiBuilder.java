@@ -28,8 +28,8 @@ public final class ScheduleGuiBuilder {
         var section = plugin.getConfigManager().getConfig().getConfigurationSection("schedule." + dimension.getKey());
         boolean scheduleEnabled = section != null && section.getBoolean("enabled", false);
         boolean countdownEnabled = section != null && section.getBoolean("countdown-enabled", true);
-        String openTime = section == null ? "?" : section.getString("open-time", "08:00");
-        String closeTime = section == null ? "?" : section.getString("close-time", "22:00");
+        String openTime = section == null ? "?" : net.dimensiontoggle.manager.ScheduleManager.formatTime(section.get("open-time"));
+        String closeTime = section == null ? "?" : net.dimensiontoggle.manager.ScheduleManager.formatTime(section.get("close-time"));
 
         Map<String, String> timesPlaceholders = new HashMap<>();
         timesPlaceholders.put("open-time", openTime);

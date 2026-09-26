@@ -6,9 +6,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -19,13 +22,20 @@ import java.util.Set;
 
 public class ScheduleManager {
 
+    private static final DateTimeFormatter INPUT_FORMAT = DateTimeFormatter.ofPattern("H:mm[:ss]");
+    private static final DateTimeFormatter DISPLAY_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+
     private final DimensionToggle plugin;
     private BukkitTask task;
+    private Clock clock = Clock.systemDefaultZone();
 
     private final Map<ToggleDimension, Set<Integer>> firedOpenWarnings = new EnumMap<>(ToggleDimension.class);
     private final Map<ToggleDimension, Set<Integer>> firedCloseWarnings = new EnumMap<>(ToggleDimension.class);
     private final Map<String, Long> lastRawSecondsUntil = new HashMap<>();
-    private LocalDate lastResetDate = LocalDate.now();
+    // "path=value" pairs already reported as invalid - the tick runs every
+    // second, so without this a single typo would spam the console forever.
+    private final Set<String> warnedInvalidTimes = new HashSet<>();
+    private LocalDate lastResetDate = LocalDate.now(clock);
 
     public ScheduleManager(DimensionToggle plugin) {
         this.plugin = plugin;
@@ -47,8 +57,14 @@ public class ScheduleManager {
         }
     }
 
-    private void tick() {
-        LocalDate today = LocalDate.now();
+    // Test seam: lets tests drive the schedule with a controllable clock.
+    void setClock(Clock clock) {
+        this.clock = clock;
+        this.lastResetDate = LocalDate.now(clock);
+    }
+
+    void tick() {
+        LocalDate today = LocalDate.now(clock);
         if (!today.equals(lastResetDate)) {
             firedOpenWarnings.values().forEach(Set::clear);
             firedCloseWarnings.values().forEach(Set::clear);
@@ -77,23 +93,28 @@ public class ScheduleManager {
 
     private void checkTarget(ToggleDimension dimension, ConfigurationSection section, String timeKey,
                               boolean opening, Set<Integer> fired) {
-        String timeStr = section.getString(timeKey, null);
+        Object rawTime = section.get(timeKey);
         String bossBarKey = "schedule:" + dimension.getKey() + ":" + (opening ? "open" : "close");
 
-        if (timeStr == null || timeStr.isBlank()) {
+        if (rawTime == null || rawTime.toString().isBlank()) {
             plugin.getNotificationManager().removeCountdownBossBar(bossBarKey, Bukkit.getOnlinePlayers());
             lastRawSecondsUntil.remove(bossBarKey);
             return;
         }
 
-        LocalTime target;
-        try {
-            target = LocalTime.parse(timeStr.trim());
-        } catch (Exception ex) {
+        LocalTime target = parseTime(rawTime);
+        if (target == null) {
+            lastRawSecondsUntil.remove(bossBarKey);
+            String path = section.getCurrentPath() + "." + timeKey;
+            if (warnedInvalidTimes.add(path + "=" + rawTime)) {
+                plugin.getLogger().warning("Invalid time '" + rawTime + "' at " + path
+                        + " in config.yml (expected HH:mm, e.g. \"22:00\") - this schedule entry is ignored.");
+            }
             return;
         }
+        String timeStr = DISPLAY_FORMAT.format(target);
 
-        LocalTime now = LocalTime.now().withNano(0);
+        LocalTime now = LocalTime.now(clock).withNano(0);
         // Unwrapped difference: positive while today's target is still ahead,
         // <= 0 the instant "now" reaches or passes it.
         long rawSecondsUntil = Duration.between(now, target).getSeconds();
@@ -117,6 +138,13 @@ public class ScheduleManager {
             plugin.getNotificationManager().removeCountdownBossBar(bossBarKey, Bukkit.getOnlinePlayers());
 
             boolean changed = plugin.getDimensionManager().isEnabled(dimension) != opening;
+            if (changed && opening && plugin.getDimensionManager().isLockdownActive()) {
+                // A lockdown is an explicit emergency stop - a timer must not
+                // silently lift it by reopening a dimension behind the admin's back.
+                plugin.getLogManager().log(null, "SCHEDULE OPEN SKIPPED", dimension,
+                        "Lockdown active at " + timeStr);
+                changed = false;
+            }
             if (changed) {
                 if (!opening) {
                     String actionCommand = plugin.getConfigManager().getConfig()
@@ -182,5 +210,54 @@ public class ScheduleManager {
 
     private String formatSeconds(int totalSeconds) {
         return plugin.getMessageManager().formatDuration(totalSeconds);
+    }
+
+    // Bukkit's YAML parser follows YAML 1.1, where an unquoted time such as
+    // `close-time: 22:00` is a base-60 integer (22*60+0 = 1320), not a string.
+    // Plain LocalTime.parse() on "1320" fails, so a perfectly natural config
+    // line used to silently disable that schedule entry. Accept both forms,
+    // plus single-digit hours ("8:00"), which LocalTime.parse() rejects too.
+    public static LocalTime parseTime(Object raw) {
+        if (raw instanceof Integer || raw instanceof Long) {
+            long value = ((Number) raw).longValue();
+            if (value < 0) {
+                return null;
+            }
+            // Two-part H:mm yields H*60+m (< 1440); three-part H:mm:ss yields
+            // H*3600+m*60+s, which is always >= 3600 because a leading-zero
+            // hour ("0:05:00") isn't sexagesimal and stays a string. Anything
+            // in between can only be an out-of-range H:mm such as "25:00",
+            // except 24:00, which (like the quoted form) means midnight.
+            if (value < 24 * 60) {
+                return LocalTime.of((int) (value / 60), (int) (value % 60));
+            }
+            if (value == 24 * 60) {
+                return LocalTime.MIDNIGHT;
+            }
+            if (value >= 3600 && value < 24 * 3600) {
+                return LocalTime.ofSecondOfDay(value);
+            }
+            return null;
+        }
+        if (raw instanceof String text) {
+            String trimmed = text.trim();
+            if (trimmed.isEmpty()) {
+                return null;
+            }
+            try {
+                return LocalTime.parse(trimmed, INPUT_FORMAT);
+            } catch (DateTimeParseException ex) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public static String formatTime(Object raw) {
+        if (raw == null) {
+            return "?";
+        }
+        LocalTime time = parseTime(raw);
+        return time == null ? raw.toString() : DISPLAY_FORMAT.format(time);
     }
 }

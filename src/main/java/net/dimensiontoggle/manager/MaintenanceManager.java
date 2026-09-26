@@ -168,33 +168,54 @@ public class MaintenanceManager {
                 messageKeyPrefix, placeholders, includeBossbar);
     }
 
+    private static final java.util.regex.Pattern PLAIN_MINUTES = java.util.regex.Pattern.compile("\\d+");
+    private static final java.util.regex.Pattern DURATION_PART = java.util.regex.Pattern.compile("(\\d+)([hms])");
+    // More digits than this can't fit in an int number of seconds anyway, and
+    // capping here keeps Long.parseLong itself from overflowing.
+    private static final int MAX_DIGITS = 10;
+
+    // Returns null for anything unusable, including 0 and values whose total
+    // doesn't fit in an int - callers treat null as "invalid duration".
     public static Integer parseDurationToSeconds(String input) {
         if (input == null || input.isBlank()) {
             return null;
         }
         String trimmed = input.trim().toLowerCase();
 
-        if (trimmed.matches("\\d+")) {
-            return Integer.parseInt(trimmed) * 60;
-        }
-
-        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(\\d+)([hms])").matcher(trimmed);
-        int total = 0;
-        int matchedChars = 0;
-        while (matcher.find()) {
-            int value = Integer.parseInt(matcher.group(1));
-            switch (matcher.group(2)) {
-                case "h" -> total += value * 3600;
-                case "m" -> total += value * 60;
-                case "s" -> total += value;
+        long total = 0;
+        if (PLAIN_MINUTES.matcher(trimmed).matches()) {
+            if (trimmed.length() > MAX_DIGITS) {
+                return null;
             }
-            matchedChars += matcher.group().length();
+            total = Long.parseLong(trimmed) * 60;
+        } else {
+            java.util.regex.Matcher matcher = DURATION_PART.matcher(trimmed);
+            int matchedChars = 0;
+            while (matcher.find()) {
+                String digits = matcher.group(1);
+                if (digits.length() > MAX_DIGITS) {
+                    return null;
+                }
+                long value = Long.parseLong(digits);
+                switch (matcher.group(2)) {
+                    case "h" -> total += value * 3600;
+                    case "m" -> total += value * 60;
+                    case "s" -> total += value;
+                }
+                if (total > Integer.MAX_VALUE) {
+                    return null;
+                }
+                matchedChars += matcher.group().length();
+            }
+            if (matchedChars == 0 || matchedChars != trimmed.length()) {
+                return null;
+            }
         }
 
-        if (matchedChars == 0 || matchedChars != trimmed.length()) {
+        if (total <= 0 || total > Integer.MAX_VALUE) {
             return null;
         }
-        return total;
+        return (int) total;
     }
 
     private String formatSeconds(int totalSeconds) {

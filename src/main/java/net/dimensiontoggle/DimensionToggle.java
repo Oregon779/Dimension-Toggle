@@ -25,7 +25,7 @@ import net.dimensiontoggle.model.ToggleDimension;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class DimensionToggle extends JavaPlugin {
+public class DimensionToggle extends JavaPlugin {
 
     private static DimensionToggle instance;
 
