@@ -1,12 +1,19 @@
 package net.dimensiontoggle.config;
 
 import net.dimensiontoggle.DimensionToggle;
+import net.dimensiontoggle.io.AtomicFiles;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 public class ConfigManager {
@@ -36,6 +43,10 @@ public class ConfigManager {
 
     private File dataFile;
     private FileConfiguration data;
+    // Latest serialized data.yml waiting to be written, or null if nothing is
+    // pending. Lets a burst of saves (lockdown saves 3x in one tick) collapse
+    // into a single disk write.
+    private final AtomicReference<String> pendingData = new AtomicReference<>();
 
     public ConfigManager(DimensionToggle plugin) {
         this.plugin = plugin;
@@ -48,6 +59,9 @@ public class ConfigManager {
     }
 
     public void reloadAll() {
+        // A GUI click or state change may still have a write queued for
+        // config.yml/data.yml - reading before it lands would load stale data.
+        plugin.getIoExecutor().drain(5000);
         loadAll();
     }
 
@@ -64,6 +78,28 @@ public class ConfigManager {
 
     public FileConfiguration getConfig() {
         return config;
+    }
+
+    @FunctionalInterface
+    public interface ConfigEdit {
+        boolean apply(java.nio.file.Path configFile) throws IOException;
+    }
+
+    // Callers update the in-memory config themselves (so the change takes
+    // effect immediately); this persists it to config.yml on the IO thread,
+    // in submission order, without rewriting the user's comments/layout.
+    public void persistConfigEdit(String what, ConfigEdit edit) {
+        java.nio.file.Path path = configFile.toPath();
+        plugin.getIoExecutor().execute(() -> {
+            try {
+                if (!edit.apply(path)) {
+                    plugin.getLogger().warning("Could not persist " + what + ": not found in config.yml in the "
+                            + "expected format. The change is only active until the next reload/restart.");
+                }
+            } catch (IOException e) {
+                plugin.getLogger().warning("Could not persist " + what + ": " + e.getMessage());
+            }
+        });
     }
 
     public File getConfigFile() {
@@ -200,7 +236,7 @@ public class ConfigManager {
                 plugin.getLogger().log(Level.SEVERE, "Could not create data.yml", e);
             }
         }
-        data = YamlConfiguration.loadConfiguration(dataFile);
+        data = loadDataFile();
 
         boolean changed = false;
         if (!data.isSet("dimensions.nether.enabled")) {
@@ -216,13 +252,61 @@ public class ConfigManager {
         }
     }
 
+    // YamlConfiguration.loadConfiguration() swallows a parse error and hands
+    // back an empty config - the next save would then overwrite the damaged
+    // file with defaults (re-opening disabled dimensions, dropping lockdown).
+    // Move the unreadable file aside first so the admin can still recover it.
+    private FileConfiguration loadDataFile() {
+        YamlConfiguration loaded = new YamlConfiguration();
+        try {
+            loaded.load(dataFile);
+            return loaded;
+        } catch (IOException | InvalidConfigurationException e) {
+            String stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+            File backup = new File(dataFile.getParentFile(), "data.yml.corrupt-" + stamp);
+            String reason = e.getMessage() == null
+                    ? e.getClass().getSimpleName()
+                    : e.getMessage().lines().findFirst().orElse(e.getClass().getSimpleName());
+            try {
+                Files.move(dataFile.toPath(), backup.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                plugin.getLogger().severe("data.yml could not be read (" + reason + ") - moved it to "
+                        + backup.getName() + " and started with fresh state.");
+            } catch (IOException moveError) {
+                plugin.getLogger().log(Level.SEVERE, "data.yml is unreadable and could not be backed up", moveError);
+            }
+            return new YamlConfiguration();
+        }
+    }
+
     public FileConfiguration getData() {
         return data;
     }
 
+    // Serializes on the calling (main) thread - FileConfiguration isn't
+    // thread-safe - and leaves the actual disk write to the IO thread.
     public void saveData() {
+        String yaml = data.saveToString();
+        if (pendingData.getAndSet(yaml) != null) {
+            return; // a write is already queued and will pick up this snapshot
+        }
+        File target = dataFile;
+        plugin.getIoExecutor().execute(() -> {
+            String latest = pendingData.getAndSet(null);
+            if (latest != null) {
+                writeData(target, latest);
+            }
+        });
+    }
+
+    // For onDisable, after the IO thread has been shut down.
+    public void saveDataSync() {
+        pendingData.set(null);
+        writeData(dataFile, data.saveToString());
+    }
+
+    private void writeData(File target, String yaml) {
         try {
-            data.save(dataFile);
+            AtomicFiles.write(target.toPath(), yaml);
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Could not save data.yml", e);
         }

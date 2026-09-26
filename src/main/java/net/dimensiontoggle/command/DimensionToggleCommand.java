@@ -276,17 +276,8 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
         plugin.getConfigManager().getConfig().set("limits." + dimension.getKey() + ".max-players", max);
         plugin.getConfigManager().getConfig().set("limits." + dimension.getKey() + ".enabled", true);
 
-        try {
-            boolean persisted = ConfigValueWriter.setLimit(
-                    plugin.getConfigManager().getConfigFile().toPath(), dimension.getKey(), max);
-            if (!persisted) {
-                plugin.getLogger().warning("Could not save the limit permanently: 'limits." + dimension.getKey()
-                        + "' section not found in config.yml in the expected format. The change is only active "
-                        + "until the next reload/restart.");
-            }
-        } catch (Exception ex) {
-            plugin.getLogger().warning("Could not save the limit permanently: " + ex.getMessage());
-        }
+        plugin.getConfigManager().persistConfigEdit("limits." + dimension.getKey(),
+                path -> ConfigValueWriter.setLimit(path, dimension.getKey(), max));
 
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("dimension", messages.getDimensionName(dimension.getKey()));

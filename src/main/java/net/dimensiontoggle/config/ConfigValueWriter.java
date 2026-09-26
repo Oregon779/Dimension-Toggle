@@ -1,5 +1,7 @@
 package net.dimensiontoggle.config;
 
+import net.dimensiontoggle.io.AtomicFiles;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -52,7 +54,7 @@ public final class ConfigValueWriter {
         }
 
         if (changed) {
-            Files.write(file, lines, StandardCharsets.UTF_8);
+            AtomicFiles.write(file, lines);
         }
         return changed;
     }
@@ -84,7 +86,7 @@ public final class ConfigValueWriter {
             if (leadingSpaces(line) == indent && trimmed.startsWith(leafKey + ":")) {
                 String indentStr = line.substring(0, indent);
                 lines.set(i, indentStr + leafKey + ": " + rawValue);
-                Files.write(file, lines, StandardCharsets.UTF_8);
+                AtomicFiles.write(file, lines);
                 return true;
             }
         }

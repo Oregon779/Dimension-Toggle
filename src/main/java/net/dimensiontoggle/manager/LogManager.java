@@ -2,7 +2,6 @@ package net.dimensiontoggle.manager;
 
 import net.dimensiontoggle.DimensionToggle;
 import net.dimensiontoggle.model.ToggleDimension;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.io.File;
@@ -24,7 +23,8 @@ public class LogManager {
     }
 
     private void ensureLogFileExistsNow() {
-        File logFile = resolveLogFile();
+        File logFile = resolveLogFile(plugin.getConfigManager().getConfig()
+                .getString("logging.file", "logs/dimensiontoggle.log"));
         if (logFile == null || logFile.exists()) {
             return;
         }
@@ -36,27 +36,32 @@ public class LogManager {
     }
 
     public void log(CommandSender actor, String action, ToggleDimension dimension, String details) {
+        logByName(actor == null ? null : actor.getName(), action, dimension, details);
+    }
+
+    // Name-based variant for callers that must not keep a CommandSender (and
+    // thereby a Player object) alive until the log line is written.
+    public void logByName(String actorName, String action, ToggleDimension dimension, String details) {
         if (!plugin.getConfigManager().getConfig().getBoolean("logging.enabled", true)) {
             return;
         }
+        String relativePath = plugin.getConfigManager().getConfig()
+                .getString("logging.file", "logs/dimensiontoggle.log");
 
-        File logFile = resolveLogFile();
-        if (logFile == null) {
-            return;
-        }
-
-        String actorName = actor == null ? "SYSTEM" : actor.getName();
         String dimensionName = dimension == null ? "-" : dimension.getKey().toUpperCase();
         String timestamp = LocalDateTime.now().format(FORMAT);
-
-        String line = "[" + timestamp + "] " + actorName + " -> " + action
+        String line = "[" + timestamp + "] " + (actorName == null ? "SYSTEM" : actorName) + " -> " + action
                 + " | Dimension: " + dimensionName
                 + (details == null || details.isBlank() ? "" : " | " + details);
 
-        // The actual disk write is the only part that can block on a slow/busy
-        // disk, so that's the only part pushed off the main thread - everything
-        // above (config reads, formatting) still happens on the calling thread.
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> writeLine(logFile, line));
+        // Config is read here on the calling thread; only the file work runs on
+        // the shared IO thread, which also keeps lines in action order.
+        plugin.getIoExecutor().execute(() -> {
+            File logFile = resolveLogFile(relativePath);
+            if (logFile != null) {
+                writeLine(logFile, line);
+            }
+        });
     }
 
     private void writeLine(File logFile, String line) {
@@ -68,10 +73,7 @@ public class LogManager {
         }
     }
 
-    private File resolveLogFile() {
-        String relativePath = plugin.getConfigManager().getConfig()
-                .getString("logging.file", "logs/dimensiontoggle.log");
-
+    private File resolveLogFile(String relativePath) {
         File logFile = new File(plugin.getDataFolder(), relativePath);
         File parent = logFile.getParentFile();
         if (parent != null && !parent.exists() && !parent.mkdirs()) {

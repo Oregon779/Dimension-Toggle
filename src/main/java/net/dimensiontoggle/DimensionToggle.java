@@ -4,6 +4,7 @@ import net.dimensiontoggle.command.DimensionToggleCommand;
 import net.dimensiontoggle.config.ConfigManager;
 import net.dimensiontoggle.config.GuiConfigManager;
 import net.dimensiontoggle.gui.GuiManager;
+import net.dimensiontoggle.io.IoExecutor;
 import net.dimensiontoggle.listener.PortalListener;
 import net.dimensiontoggle.manager.DashboardStatsManager;
 import net.dimensiontoggle.manager.DimensionManager;
@@ -29,6 +30,7 @@ public class DimensionToggle extends JavaPlugin {
 
     private static DimensionToggle instance;
 
+    private IoExecutor ioExecutor;
     private ConfigManager configManager;
     private MessageManager messageManager;
     private SoundManager soundManager;
@@ -53,6 +55,8 @@ public class DimensionToggle extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
+        // First: ConfigManager may already save data.yml while loading.
+        this.ioExecutor = new IoExecutor(getLogger());
         this.configManager = new ConfigManager(this);
         this.configManager.loadAll();
 
@@ -119,8 +123,13 @@ public class DimensionToggle extends JavaPlugin {
         if (guiManager != null) {
             guiManager.stop();
         }
+        // Let queued writes (log lines, config edits, data.yml) finish first,
+        // then write the final state synchronously so nothing is lost.
+        if (ioExecutor != null) {
+            ioExecutor.shutdown(5000);
+        }
         if (configManager != null) {
-            configManager.saveData();
+            configManager.saveDataSync();
         }
         getLogger().info("DimensionToggle has been disabled.");
     }
@@ -147,6 +156,10 @@ public class DimensionToggle extends JavaPlugin {
 
     public static DimensionToggle getInstance() {
         return instance;
+    }
+
+    public IoExecutor getIoExecutor() {
+        return ioExecutor;
     }
 
     public ConfigManager getConfigManager() {

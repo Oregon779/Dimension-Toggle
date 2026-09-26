@@ -1,6 +1,7 @@
 package net.dimensiontoggle.gui;
 
 import net.dimensiontoggle.DimensionToggle;
+import net.dimensiontoggle.config.ConfigValueWriter;
 import net.dimensiontoggle.model.ToggleDimension;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -328,16 +329,8 @@ public class GuiManager implements Listener {
         plugin.getConfigManager().getConfig().set("limits." + dimension.getKey() + ".max-players", updated);
         plugin.getConfigManager().getConfig().set("limits." + dimension.getKey() + ".enabled", true);
 
-        try {
-            boolean persisted = net.dimensiontoggle.config.ConfigValueWriter.setLimit(
-                    plugin.getConfigManager().getConfigFile().toPath(), dimension.getKey(), updated);
-            if (!persisted) {
-                plugin.getLogger().warning("Could not persist the GUI limit change: 'limits." + dimension.getKey()
-                        + "' section not found in config.yml in the expected format.");
-            }
-        } catch (Exception e) {
-            plugin.getLogger().warning("Could not persist the GUI limit change: " + e.getMessage());
-        }
+        plugin.getConfigManager().persistConfigEdit("limits." + dimension.getKey(),
+                path -> ConfigValueWriter.setLimit(path, dimension.getKey(), updated));
     }
 
     private void teleportToPlayer(Player admin, String uuidString) {
@@ -364,49 +357,23 @@ public class GuiManager implements Listener {
     private void toggleGateway() {
         boolean current = plugin.getConfigManager().getConfig().getBoolean("block-end-gateways", true);
         plugin.getConfigManager().getConfig().set("block-end-gateways", !current);
-        try {
-            boolean persisted = net.dimensiontoggle.config.ConfigValueWriter.setNestedValue(
-                    plugin.getConfigManager().getConfigFile().toPath(), String.valueOf(!current), "block-end-gateways");
-            if (!persisted) {
-                plugin.getLogger().warning("Could not persist the GUI gateway change: "
-                        + "'block-end-gateways' not found in config.yml in the expected format.");
-            }
-        } catch (Exception e) {
-            plugin.getLogger().warning("Could not persist the GUI gateway change: " + e.getMessage());
-        }
+        plugin.getConfigManager().persistConfigEdit("block-end-gateways",
+                path -> ConfigValueWriter.setNestedValue(path, String.valueOf(!current), "block-end-gateways"));
     }
 
     private void toggleScheduleBoolean(ToggleDimension dimension, String key) {
         String path = "schedule." + dimension.getKey() + "." + key;
         boolean current = plugin.getConfigManager().getConfig().getBoolean(path, false);
         plugin.getConfigManager().getConfig().set(path, !current);
-        try {
-            boolean persisted = net.dimensiontoggle.config.ConfigValueWriter.setNestedValue(
-                    plugin.getConfigManager().getConfigFile().toPath(), String.valueOf(!current),
-                    "schedule", dimension.getKey(), key);
-            if (!persisted) {
-                plugin.getLogger().warning("Could not persist the GUI schedule change: '" + path
-                        + "' not found in config.yml in the expected format.");
-            }
-        } catch (Exception e) {
-            plugin.getLogger().warning("Could not persist the GUI schedule change: " + e.getMessage());
-        }
+        plugin.getConfigManager().persistConfigEdit(path,
+                file -> ConfigValueWriter.setNestedValue(file, String.valueOf(!current), "schedule", dimension.getKey(), key));
     }
 
     private void setScheduleTime(ToggleDimension dimension, String key, String time) {
         String path = "schedule." + dimension.getKey() + "." + key;
         plugin.getConfigManager().getConfig().set(path, time);
-        try {
-            boolean persisted = net.dimensiontoggle.config.ConfigValueWriter.setNestedValue(
-                    plugin.getConfigManager().getConfigFile().toPath(), "\"" + time + "\"",
-                    "schedule", dimension.getKey(), key);
-            if (!persisted) {
-                plugin.getLogger().warning("Could not persist the GUI schedule change: '" + path
-                        + "' not found in config.yml in the expected format.");
-            }
-        } catch (Exception e) {
-            plugin.getLogger().warning("Could not persist the GUI schedule change: " + e.getMessage());
-        }
+        plugin.getConfigManager().persistConfigEdit(path,
+                file -> ConfigValueWriter.setNestedValue(file, "\"" + time + "\"", "schedule", dimension.getKey(), key));
     }
 
     private void handleMobToggle(ToggleDimension dimension, String entityTypeName, ClickType click) {

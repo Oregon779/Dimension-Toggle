@@ -1,5 +1,7 @@
 package net.dimensiontoggle.config;
 
+import net.dimensiontoggle.io.AtomicFiles;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -45,7 +47,7 @@ public final class ConfigUpdater {
             output.addAll(block);
         }
 
-        Files.write(userFile, output, StandardCharsets.UTF_8);
+        AtomicFiles.write(userFile, output);
         return true;
     }
 
@@ -108,7 +110,7 @@ public final class ConfigUpdater {
         output.addAll(block);
         output.addAll(userLines.subList(insertAt, userLines.size()));
 
-        Files.write(userFile, output, StandardCharsets.UTF_8);
+        AtomicFiles.write(userFile, output);
         return true;
     }
 
