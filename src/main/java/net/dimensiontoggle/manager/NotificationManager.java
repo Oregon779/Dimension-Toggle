@@ -19,6 +19,7 @@ public class NotificationManager {
     private final DimensionToggle plugin;
     private final MessageManager messages;
     private final Map<String, BossBar> countdownBossBars = new java.util.HashMap<>();
+    private final java.util.Set<BossBar> temporaryBossBars = new java.util.HashSet<>();
 
     public NotificationManager(DimensionToggle plugin) {
         this.plugin = plugin;
@@ -301,15 +302,21 @@ public class NotificationManager {
 
     private void showTemporaryBossBar(Player player, Component message, BossBar.Color color,
                                        BossBar.Overlay style, int durationSeconds) {
-        BossBar bossBar = BossBar.bossBar(message, 1.0f, color, style);
-        player.showBossBar(bossBar);
+        showTemporaryBossBarToAll(java.util.List.of(player), message, color, style, durationSeconds);
+    }
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                player.hideBossBar(bossBar);
+    // For onDisable: the scheduled hide tasks die with the plugin, so without
+    // this any bar still on screen would stay there until the player relogs.
+    public void hideAllBossBars() {
+        java.util.List<BossBar> bars = new java.util.ArrayList<>(temporaryBossBars);
+        bars.addAll(countdownBossBars.values());
+        temporaryBossBars.clear();
+        countdownBossBars.clear();
+        for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+            for (BossBar bar : bars) {
+                player.hideBossBar(bar);
             }
-        }.runTaskLater(plugin, Math.max(1, durationSeconds) * 20L);
+        }
     }
 
     // Adventure's BossBar natively supports multiple viewers on one shared
@@ -319,14 +326,19 @@ public class NotificationManager {
     private void showTemporaryBossBarToAll(java.util.Collection<? extends Player> targets, Component message,
                                             BossBar.Color color, BossBar.Overlay style, int durationSeconds) {
         BossBar bossBar = BossBar.bossBar(message, 1.0f, color, style);
-        for (Player player : targets) {
+        // Snapshot the recipients: `targets` may be the live online-players
+        // view, and the hide task must hide exactly who was shown the bar.
+        java.util.List<Player> shownTo = java.util.List.copyOf(targets);
+        for (Player player : shownTo) {
             player.showBossBar(bossBar);
         }
+        temporaryBossBars.add(bossBar);
 
         new BukkitRunnable() {
             @Override
             public void run() {
-                for (Player player : targets) {
+                temporaryBossBars.remove(bossBar);
+                for (Player player : shownTo) {
                     player.hideBossBar(bossBar);
                 }
             }

@@ -105,6 +105,15 @@ public class DimensionToggle extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Player-facing state that would otherwise outlive the plugin: open
+        // menus (no longer click-protected once disabled) and boss bars
+        // (their scheduled hide tasks are cancelled with the plugin).
+        if (guiManager != null) {
+            guiManager.closeAllMenus();
+        }
+        if (notificationManager != null) {
+            notificationManager.hideAllBossBars();
+        }
         if (scheduleManager != null) {
             scheduleManager.stop();
         }

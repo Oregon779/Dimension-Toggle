@@ -17,7 +17,7 @@ public abstract class PluginTestBase {
 
     @BeforeEach
     void setUpServer() {
-        server = MockBukkit.mock();
+        server = MockBukkit.mock(new TestServerMock());
         // Order matters: the plugin treats Bukkit.getWorlds().get(0) as the
         // main world when sending players back to spawn.
         overworld = world("world", World.Environment.NORMAL);
