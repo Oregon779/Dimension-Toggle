@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,8 +27,20 @@ public class MessageManager {
             Map.entry('r', "reset")
     );
 
+    // Parsed Components are immutable, so identical input can share one.
+    // The open editor menus re-render every button once per second (names +
+    // lore, dozens of lines per viewer) from mostly unchanged text; countdown
+    // lines do change every second, hence a bounded LRU instead of a plain map.
+    private static final int PARSE_CACHE_SIZE = 1024;
+
     private final DimensionToggle plugin;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private final Map<String, Component> parseCache = new LinkedHashMap<>(256, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Component> eldest) {
+            return size() > PARSE_CACHE_SIZE;
+        }
+    };
 
     public MessageManager(DimensionToggle plugin) {
         this.plugin = plugin;
@@ -37,7 +50,25 @@ public class MessageManager {
         if (raw == null) {
             return Component.empty();
         }
-        return miniMessage.deserialize(toMiniMessageFormat(raw));
+        synchronized (parseCache) {
+            Component cached = parseCache.get(raw);
+            if (cached != null) {
+                return cached;
+            }
+        }
+        Component parsed = miniMessage.deserialize(toMiniMessageFormat(raw));
+        synchronized (parseCache) {
+            parseCache.put(raw, parsed);
+        }
+        return parsed;
+    }
+
+    // Keys are the final text, so edited messages never hit stale entries;
+    // this only drops what the old texts were holding on to.
+    public void clearCache() {
+        synchronized (parseCache) {
+            parseCache.clear();
+        }
     }
 
     private String toMiniMessageFormat(String input) {

@@ -41,7 +41,7 @@ public final class MaintenanceGuiBuilder {
                     List.of(GuiItems.sub(cfg.getString(base + "status-active-lore"), Map.of("seconds", String.valueOf(remaining)))), true));
         } else {
             inventory.setItem(13, GuiItems.build(plugin, Material.GRAY_DYE, null,
-                    cfg.getString(base + "status-idle"), List.of(cfg.getString(base + "status-idle-lore"))));
+                    cfg.getString(base + "status-idle"), GuiItems.line(cfg.getString(base + "status-idle-lore"))));
         }
 
         if (pending) {

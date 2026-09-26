@@ -21,7 +21,9 @@ public class PeakPlayerManager {
     }
 
     public void start() {
-        task = Bukkit.getScheduler().runTaskTimer(plugin, this::checkAll, 20L * 10, 20L * 10);
+        // Odd start offset so this doesn't land on the same tick as the per-second
+        // schedule/GUI tasks or the per-minute mob cleanup.
+        task = Bukkit.getScheduler().runTaskTimer(plugin, this::checkAll, 207L, 20L * 10);
     }
 
     public void stop() {

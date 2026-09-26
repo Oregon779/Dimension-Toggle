@@ -7,11 +7,14 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class DimensionManager {
 
@@ -196,35 +199,61 @@ public class DimensionManager {
         return players;
     }
 
-    public void teleportPlayersOutOf(ToggleDimension dimension) {
-        Location spawn = Bukkit.getWorlds().get(0).getSpawnLocation();
-        for (Player player : getPlayersInDimension(dimension)) {
-            player.teleportAsync(spawn);
-        }
-    }
+    // Lockdown/maintenance/schedule can hit a dimension holding a large part
+    // of a 300-player server. Teleporting (or running the configured command,
+    // typically a sync /spawn teleport) for all of them in one tick is a
+    // noticeable spike, so anything beyond the first batch is spread over the
+    // following ticks. Up to REMOVALS_PER_TICK players still leave instantly.
+    private static final int REMOVALS_PER_TICK = 20;
 
     public void removePlayersFromDimension(ToggleDimension dimension, String actionCommand) {
         List<Player> players = getPlayersInDimension(dimension);
-
-        if (actionCommand != null && !actionCommand.isBlank()) {
-            String command = actionCommand.startsWith("/") ? actionCommand.substring(1) : actionCommand;
-            for (Player player : players) {
-                Bukkit.dispatchCommand(player, command);
-            }
+        if (players.isEmpty()) {
             return;
         }
+        String command = actionCommand == null || actionCommand.isBlank() ? null
+                : actionCommand.startsWith("/") ? actionCommand.substring(1) : actionCommand;
+        Location spawn = command == null ? Bukkit.getWorlds().get(0).getSpawnLocation() : null;
 
-        Location spawn = Bukkit.getWorlds().get(0).getSpawnLocation();
-        for (Player player : players) {
-            player.teleportAsync(spawn);
+        // UUIDs, not Player objects, for the players still waiting their turn.
+        Iterator<UUID> queue = players.stream().map(Player::getUniqueId).toList().iterator();
+        if (removeBatch(queue, dimension, command, spawn)) {
+            return;
         }
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (removeBatch(queue, dimension, command, spawn)) {
+                    cancel();
+                }
+            }
+        }.runTaskTimer(plugin, 1L, 1L);
     }
 
+    // Returns true once the queue is empty.
+    private boolean removeBatch(Iterator<UUID> queue, ToggleDimension dimension, String command, Location spawn) {
+        for (int i = 0; i < REMOVALS_PER_TICK && queue.hasNext(); i++) {
+            Player player = Bukkit.getPlayer(queue.next());
+            // Logged out or already left on their own in the meantime.
+            if (player == null || player.getWorld().getEnvironment() != dimension.getEnvironment()) {
+                continue;
+            }
+            if (command != null) {
+                Bukkit.dispatchCommand(player, command);
+            } else {
+                player.teleportAsync(spawn);
+            }
+        }
+        return !queue.hasNext();
+    }
+
+    // Called from the portal listener (with a player limit active) and the
+    // editor refresh; getPlayerCount() avoids copying the player list.
     public int countPlayersInDimension(ToggleDimension dimension) {
         int count = 0;
         for (World world : Bukkit.getWorlds()) {
             if (world.getEnvironment() == dimension.getEnvironment()) {
-                count += world.getPlayers().size();
+                count += world.getPlayerCount();
             }
         }
         return count;

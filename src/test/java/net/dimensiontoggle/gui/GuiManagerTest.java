@@ -112,4 +112,17 @@ class GuiManagerTest extends PluginTestBase {
         assertNotSame(main, top());
         assertEquals(InventoryType.CRAFTING, admin.getOpenInventory().getType());
     }
+
+    @Test
+    void menusStillBuildWhenAnOlderGuiConfigLacksSingleLoreLines() {
+        // Simulates a gui config from before these keys existed: the update
+        // merge only adds missing top-level sections, not nested keys.
+        var nether = plugin.getGuiConfigManager().getNether();
+        nether.set("playerlist.head-lore", null);
+        nether.set("maintenance.status-idle-lore", null);
+        admin.teleport(new org.bukkit.Location(this.nether, 0, 64, 0));
+
+        assertEquals(54, PlayerListGuiBuilder.build(plugin, ToggleDimension.NETHER).getSize());
+        MaintenanceGuiBuilder.build(plugin, ToggleDimension.NETHER);
+    }
 }

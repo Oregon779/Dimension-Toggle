@@ -44,7 +44,9 @@ class LogicFixesTest extends PluginTestBase {
 
         // 0 -> 5 minutes
         assertEquals(5, plugin.getMobManagementManager().cycleCleanupMinutes(ToggleDimension.NETHER, EntityType.BLAZE));
-        server.getScheduler().performTicks(20L * 60 * 5);
+        // Cleanup runs once a minute after a small start offset: 6 minutes of
+        // ticks cover the 5 runs a 5-minute interval needs.
+        server.getScheduler().performTicks(20L * 60 * 6);
 
         assertTrue(loose.isDead() || !loose.isValid(), "unridden blaze should be cleaned up");
         assertFalse(ridden.isDead(), "ridden mount must not be removed from under its rider");

@@ -55,7 +55,8 @@ public class DashboardStatsManager {
                 continue;
             }
 
-            loadedChunksCache.put(dimension, world.getLoadedChunks().length);
+            // getChunkCount(): no array copy of every loaded chunk (thousands at 300 players).
+            loadedChunksCache.put(dimension, world.getChunkCount());
 
             Map<EntityType, Integer> counts = new HashMap<>();
             for (Entity entity : world.getEntities()) {

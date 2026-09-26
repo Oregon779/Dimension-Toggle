@@ -38,10 +38,12 @@ public class SpawnerToggleManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onSpawnerSpawn(SpawnerSpawnEvent event) {
-        if (event.getLocation().getWorld().getEnvironment() != World.Environment.NETHER) {
+        // Fires for every spawner spawn server-wide (mob farms!) - check the
+        // flag first so the default "enabled" case costs one boolean read.
+        if (netherEnabled) {
             return;
         }
-        if (!netherEnabled) {
+        if (event.getLocation().getWorld().getEnvironment() == World.Environment.NETHER) {
             event.setCancelled(true);
         }
     }

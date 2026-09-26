@@ -155,6 +155,13 @@ public final class GuiItems {
         return item.getItemMeta().getPersistentDataContainer().get(actionKey(plugin), PersistentDataType.STRING);
     }
 
+    // A single configured lore line. List.of(null) throws, and a key missing
+    // from an older user gui config (the update merge only adds top-level
+    // sections) must mean "no lore" - not a menu that fails on every refresh.
+    public static List<String> line(String raw) {
+        return raw == null ? List.of() : List.of(raw);
+    }
+
     public static String sub(String raw, Map<String, String> placeholders) {
         if (raw == null) {
             return "";

@@ -118,7 +118,9 @@ public class MobManagementManager implements Listener {
     }
 
     public void start() {
-        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tickCleanup, 20L * 60, 20L * 60);
+        // Offset start (see PeakPlayerManager) so the entity scan never shares a
+        // tick with the other repeating tasks.
+        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tickCleanup, 1211L, 20L * 60);
     }
 
     public void stop() {

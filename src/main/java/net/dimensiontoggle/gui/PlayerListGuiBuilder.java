@@ -32,7 +32,7 @@ public final class PlayerListGuiBuilder {
                 break;
             }
             inventory.setItem(slot, GuiItems.buildPlayerHead(plugin, player, "PLIST_TP_" + player.getUniqueId(),
-                    "&f" + player.getName(), List.of(headLore)));
+                    "&f" + player.getName(), GuiItems.line(headLore)));
             slot++;
         }
 

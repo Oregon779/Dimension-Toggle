@@ -152,6 +152,7 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
         try {
             plugin.getConfigManager().reloadAll();
             plugin.getGuiConfigManager().reload();
+            plugin.getMessageManager().clearCache();
             // The only task that reads its settings (enabled, interval) once
             // at start - re-apply them so edits take effect without a restart.
             plugin.getUpdateChecker().start();
