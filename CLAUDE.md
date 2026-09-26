@@ -18,7 +18,20 @@ mvn clean package
 ```
 
 Produces `target/DimensionToggle-<version>.jar` (shaded/relocated by
-maven-shade-plugin). No test suite exists (`src/test` is absent).
+maven-shade-plugin). `mvn test` runs the JUnit 5 + MockBukkit suite in
+`src/test` (use `-o` once dependencies are in `~/.m2`).
+
+**Tests**: `MockBukkit-v1.21` is pinned to `3.133.2` on purpose - it is
+the line built against paper-api 1.21.1 (newer 4.x targets newer Paper and
+a different package). `PluginTestBase` boots a mock server with
+`world`/`world_nether`/`world_the_end` (in that order - `getWorlds().get(0)`
+is treated as the main world), loads the plugin and stops the update
+checker so no test hits Modrinth. MockBukkit 3.x leaves a few APIs
+unimplemented; fill gaps in the test doubles rather than bending production
+code: `TestServerMock` (Component inventory titles, `getTPS`) and
+`TestPlayerMock` (a `teleportAsync` that actually teleports - create
+players via `PluginTestBase.addPlayer`). An `UnimplementedOperationException`
+shows up as a *skipped* test, so check the skip count, not just failures.
 
 **Network limitation in Claude Code sandboxes**: `repo.papermc.io` is
 blocked by the outbound network policy, which breaks resolution of
@@ -64,7 +77,17 @@ Package layout under `net.dimensiontoggle`:
   or GUI click (`/dt limit`, dragging the world-border size, etc.), never
   clobbers the user's own comments/formatting/ordering in the file.
   `GuiConfigManager` is the equivalent loader for the three
-  `gui/*/config.yml` files.
+  `gui/*/config.yml` files. Note `ConfigUpdater.update()` only adds missing
+  *top-level* sections (nested keys only for the explicit
+  `NESTED_PATHS_TO_CHECK`), so code must tolerate a nested key being absent
+  from an older user file (e.g. `GuiItems.line()` instead of `List.of()`).
+- **`io`** - `IoExecutor` (one daemon thread, so writes land in submission
+  order; `drain()` before re-reading, `shutdown()` in `onDisable`) and
+  `AtomicFiles` (temp file + atomic move). Every file write - data.yml
+  (coalesced via `ConfigManager.saveData()`), config edits
+  (`persistConfigEdit`), log lines - goes through both: never write files
+  on the main thread, never write a file in place. `onDisable` drains the
+  queue and then calls `saveDataSync()`.
 - **`manager`** - one manager per feature area (`DimensionManager`,
   `MaintenanceManager`, `ScheduleManager`, `NotificationManager`,
   `SoundManager`, `MessageManager`, `LogManager`, `MobManagementManager`,
@@ -90,7 +113,12 @@ Package layout under `net.dimensiontoggle`:
   `*GuiBuilder.build(plugin, ...)` returning a fresh `Inventory`;
   `GuiManager` tracks which menu a player currently has open in
   `openMenus` and re-`build()`s it once/second via `refreshAll()` so live
-  values (countdowns, player counts, dashboard stats) stay current.
+  values (countdowns, player counts, dashboard stats) stay current. Bukkit
+  forbids opening/closing inventories inside `InventoryClickEvent`, so
+  click handlers change state immediately but route any menu switch or
+  redraw through `afterClick()` (next tick, only if the same menu is still
+  open). `closeAllMenus()` runs in `onDisable` - menus left open after
+  disable are no longer click-protected.
 
 **Everything user-visible is config-driven, not hardcoded in Java.** GUI
 titles/item names/lore live in `gui/main|nether|end/config.yml`; command
@@ -114,6 +142,12 @@ maintenance, schedule - resolves the parsed `Component`/`Sound`/`BossBar`
 `NotificationManager` / `SoundManager` / `MessageManager`. Never loop
 calling the single-target `notify()` / `play()` / `send()` per player for
 a broadcast path - add a bulk variant instead, matching the existing ones.
+Related: `MessageManager.parse()` caches Components (bounded LRU keyed by
+the final string), and `DimensionManager.removePlayersFromDimension()`
+moves players out 20 per tick (tracking UUIDs, re-checking each one) so a
+lockdown on a full dimension isn't a single-tick spike. Repeating tasks use
+staggered start offsets (20/23/207/1211 ticks) so they don't pile onto the
+same tick - keep new ones off those.
 
 **Dimension-scoped code should stay uniform over `ToggleDimension.values()`**
 rather than branching on which dimension it is, except where Nether and

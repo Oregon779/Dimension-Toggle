@@ -995,3 +995,64 @@ Adventure-Component-API; `JavaPlugin#getDescription()` durch
   Slots) mit einer leeren Pufferzeile zwischen Nether/Emblem/End und
   Lockdown/Close, komplett ohne Glas-Füllung - die Icons stehen frei.
   Titel: `DT Toggle | Admin Editor`.
+
+---
+
+## Nachträge zu Version 3.1.0 (Teil 2) - Stabilitäts- und Lastpass (300 Spieler)
+
+### Bugfixes
+- **Zeitplan-Uhrzeiten ohne Anführungszeichen** (`close-time: 22:00`)
+  wurden vom YAML-Parser als Zahl (1320) gelesen, `8:00` gar nicht
+  akzeptiert - der Zeitplan lief dann still nie. Beides funktioniert jetzt,
+  ungültige Werte werden einmalig in der Konsole gemeldet.
+- **Zeitplan hebt keinen Lockdown mehr auf**: eine geplante Öffnung wird
+  während eines aktiven Lockdowns übersprungen (und geloggt).
+- **Wartungsdauer**: riesige Werte (`/dt maintenance nether 99999999999`)
+  warfen einen internen Fehler bzw. liefen über - werden jetzt sauber als
+  ungültig abgelehnt.
+- **data.yml / config.yml absturzsicher**: Schreiben über temporäre Datei +
+  atomares Umbenennen. Eine unlesbare data.yml wird als
+  `data.yml.corrupt-<Zeitstempel>` gesichert statt still überschrieben
+  (vorher: nach einem Absturz beim Speichern waren alle Dimensionen wieder
+  offen, Lockdown weg).
+- **Editor-GUI**: Menüwechsel nicht mehr innerhalb des Klick-Events (von
+  Bukkit verboten, führt zu Geister-Items); Drag in Menüs wird blockiert;
+  beim Deaktivieren/Reload werden offene Menüs geschlossen (vorher konnten
+  GUI-Items wie Spawner/Elytren herausgenommen werden) und Bossbars
+  ausgeblendet.
+- **Eigene Wartungszeit (Amboss)** nutzt jetzt einen echten Amboss - beim
+  alten Pseudo-Amboss kam die eingetippte Zeit serverseitig nie an.
+- **Mob-Cleanup** entfernt keine Reittiere mehr, auf denen ein Spieler
+  sitzt (Strider über Lava!).
+- **PvP-Schalter** bleibt nach einem Neustart erhalten.
+- **Soft-Lock mit `broadcast-scope: "dimension"`** benachrichtigt jetzt die
+  Spieler in der Dimension (vorher niemanden).
+- **Portale**: Listener respektiert von anderen Plugins bereits
+  abgebrochene Events; die Sperr-Nachricht kommt beim Stehen im Portal nur
+  noch alle 2 Sekunden statt ständig. End-Gateways haben eine eigene
+  Nachricht (`gateway-blocked`) statt "End deaktiviert".
+- **Spielerliste / Wartungsmenü** warfen bei älteren GUI-Configs ohne
+  einzelne Lore-Zeile jede Sekunde eine Exception.
+- **Update-Checker**: ein HTTP-Client statt eines neuen pro Prüfung (Thread-
+  Leck), keine Doppel-Meldung bei gleichzeitiger Prüfung, `/dt reload`
+  übernimmt geänderte Update-Checker-Einstellungen.
+- Neue Nachrichten in `messages.yml` (DE+EN): `gateway-blocked`,
+  `players-only` (Konsole bei `/dt editor`).
+
+### Performance
+- Alle Datei-Schreibvorgänge (data.yml, Config-Änderungen aus GUI und
+  `/dt limit`, Log) laufen auf einem eigenen IO-Thread statt im Main-Thread,
+  in fester Reihenfolge; schnelle data.yml-Änderungen werden zu einem
+  Schreibvorgang zusammengefasst.
+- Lockdown/Wartung/Zeitplan bringen Spieler mit 20 pro Tick aus der
+  Dimension (bis 20 Spieler weiterhin sofort) statt alle im selben Tick.
+- MiniMessage-Ergebnisse werden gecacht (Editor rendert jede Sekunde neu).
+- Spielerzählung/Dashboard ohne Listen-/Array-Kopien
+  (`getPlayerCount`/`getChunkCount`), Mob-Cleanup mit einem Entity-Durchlauf
+  pro Welt, versetzte Startzeiten der Wiederholungs-Tasks.
+
+### Tests
+Neu: automatisierte Tests mit JUnit 5 + MockBukkit (`mvn test`, 64 Tests):
+Zeit-/Dauer-Parsing, Zeitplan (Lag, Neustart, Lockdown), Persistenz
+(atomar, korrupte Datei, Reihenfolge, Flush beim Beenden), GUI (Klick,
+Drag, Schließen beim Deaktivieren), Portal-Listener, Commands, Batch-Teleport.
