@@ -82,6 +82,7 @@ public class DimensionToggle extends JavaPlugin {
 
         registerCommand();
         registerListeners();
+        pvpIntegrationManager.applyStoredState();
         scheduleManager.start();
         updateChecker.start();
         peakPlayerManager.start();
@@ -114,11 +115,14 @@ public class DimensionToggle extends JavaPlugin {
         if (notificationManager != null) {
             notificationManager.hideAllBossBars();
         }
+        if (maintenanceManager != null) {
+            maintenanceManager.shutdown();
+        }
         if (scheduleManager != null) {
             scheduleManager.stop();
         }
         if (updateChecker != null) {
-            updateChecker.stop();
+            updateChecker.shutdown();
         }
         if (peakPlayerManager != null) {
             peakPlayerManager.stop();
@@ -161,6 +165,7 @@ public class DimensionToggle extends JavaPlugin {
         getServer().getPluginManager().registerEvents(guiManager, this);
         getServer().getPluginManager().registerEvents(mobManagementManager, this);
         getServer().getPluginManager().registerEvents(spawnerToggleManager, this);
+        getServer().getPluginManager().registerEvents(pvpIntegrationManager, this);
     }
 
     public static DimensionToggle getInstance() {

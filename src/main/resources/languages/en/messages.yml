@@ -33,6 +33,8 @@ dimension-disabled: "&c&l✘ &f%dimension% &chas been disabled."
 portal-blocked: "&c&l✘ &cAccess to &f%dimension% &cis currently disabled."
 portal-locked: "&6&l⚠ &f%dimension% &6is locked &7- no new players can enter right now."
 dimension-full: "&6&l⚠ &f%dimension% &6is currently full &7(%limit% players). Try again later."
+gateway-blocked: "&c&l✘ &cEnd Gateways are currently disabled."
+players-only: "&c&l✘ &cThis can only be used by a player in-game."
 
 status-header: "<gradient:#A78BFA:#7C3AED>━━━━━</gradient> <gradient:#A78BFA:#7C3AED><bold>Dimension Toggle</bold></gradient> <gradient:#A78BFA:#7C3AED>━━━━━</gradient>"
 status-nether: " &7Nether  &8» %status% &8(&7%players% players&8)"

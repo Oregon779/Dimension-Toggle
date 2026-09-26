@@ -6,15 +6,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MobManagementManager implements Listener {
 
@@ -28,8 +30,8 @@ public class MobManagementManager implements Listener {
             EntityType.ENDERMAN, EntityType.SHULKER, EntityType.ENDER_DRAGON
     );
 
-    private static final java.util.Set<EntityType> NETHER_MOBS_SET = java.util.EnumSet.copyOf(NETHER_MOBS);
-    private static final java.util.Set<EntityType> END_MOBS_SET = java.util.EnumSet.copyOf(END_MOBS);
+    private static final Set<EntityType> NETHER_MOBS_SET = EnumSet.copyOf(NETHER_MOBS);
+    private static final Set<EntityType> END_MOBS_SET = EnumSet.copyOf(END_MOBS);
 
     public static final int[] CLEANUP_PRESETS_MINUTES = {0, 5, 10, 30, 60};
 
@@ -129,6 +131,7 @@ public class MobManagementManager implements Listener {
     private void tickCleanup() {
         for (ToggleDimension dimension : ToggleDimension.values()) {
             Map<EntityType, Integer> map = minutesSinceCleanup.computeIfAbsent(dimension, d -> new EnumMap<>(EntityType.class));
+            Set<EntityType> due = EnumSet.noneOf(EntityType.class);
             for (EntityType type : mobsFor(dimension)) {
                 int interval = getCleanupMinutes(dimension, type);
                 if (interval <= 0) {
@@ -136,30 +139,44 @@ public class MobManagementManager implements Listener {
                 }
                 int elapsed = map.getOrDefault(type, 0) + 1;
                 if (elapsed >= interval) {
-                    removeAll(dimension, type);
+                    due.add(type);
                     map.put(type, 0);
                 } else {
                     map.put(type, elapsed);
                 }
             }
+            if (!due.isEmpty()) {
+                removeAll(dimension, due);
+            }
         }
     }
 
-    private void removeAll(ToggleDimension dimension, EntityType type) {
+    // One pass over each world's entity list for all types that are due,
+    // instead of one full scan per type (Nether has 11 managed types, and
+    // with many players loading chunks the entity list gets long).
+    private void removeAll(ToggleDimension dimension, Set<EntityType> types) {
         for (World world : Bukkit.getWorlds()) {
             if (world.getEnvironment() != dimension.getEnvironment()) {
                 continue;
             }
-            List<Entity> toRemove = new ArrayList<>();
+            // getEntities() returns a copy, so removing while iterating is safe.
             for (Entity entity : world.getEntities()) {
-                if (entity.getType() == type) {
-                    toRemove.add(entity);
+                if (types.contains(entity.getType()) && !carriesPlayer(entity)) {
+                    entity.remove();
                 }
             }
-            for (Entity entity : toRemove) {
-                entity.remove();
+        }
+    }
+
+    // A strider someone is riding over a lava lake must not vanish from
+    // under them.
+    private static boolean carriesPlayer(Entity entity) {
+        for (Entity passenger : entity.getPassengers()) {
+            if (passenger instanceof Player) {
+                return true;
             }
         }
+        return false;
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -170,7 +187,7 @@ public class MobManagementManager implements Listener {
         if (dimension == null) {
             return;
         }
-        java.util.Set<EntityType> managedMobs = dimension == ToggleDimension.NETHER ? NETHER_MOBS_SET : END_MOBS_SET;
+        Set<EntityType> managedMobs = dimension == ToggleDimension.NETHER ? NETHER_MOBS_SET : END_MOBS_SET;
         if (!managedMobs.contains(event.getEntityType())) {
             return;
         }

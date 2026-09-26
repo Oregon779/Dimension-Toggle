@@ -29,6 +29,8 @@ dimension-disabled: "&c&l✘ &f%dimension% &cwurde erfolgreich deaktiviert."
 portal-blocked: "&c&l✘ &cDer Zugang zu &f%dimension% &cist derzeit deaktiviert."
 portal-locked: "&6&l⚠ &f%dimension% &6ist gesperrt &7- es können keine neuen Spieler mehr rein."
 dimension-full: "&6&l⚠ &f%dimension% &6ist derzeit voll &7(%limit% Spieler). Versuche es später erneut."
+gateway-blocked: "&c&l✘ &cEnd-Gateways sind derzeit deaktiviert."
+players-only: "&c&l✘ &cDas kann nur ein Spieler im Spiel verwenden."
 
 status-header: "<gradient:#A78BFA:#7C3AED>━━━━━</gradient> <gradient:#A78BFA:#7C3AED><bold>Dimension Toggle</bold></gradient> <gradient:#A78BFA:#7C3AED>━━━━━</gradient>"
 status-nether: " &7Nether  &8» %status% &8(&7%players% Spieler&8)"

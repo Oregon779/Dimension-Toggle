@@ -152,6 +152,9 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
         try {
             plugin.getConfigManager().reloadAll();
             plugin.getGuiConfigManager().reload();
+            // The only task that reads its settings (enabled, interval) once
+            // at start - re-apply them so edits take effect without a restart.
+            plugin.getUpdateChecker().start();
             messages.send(sender, "reload-success");
         } catch (Exception ex) {
             Map<String, String> placeholders = new HashMap<>();
@@ -300,7 +303,7 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
             return;
         }
         if (!(sender instanceof org.bukkit.entity.Player player)) {
-            plugin.getMessageManager().send(sender, "invalid-usage");
+            plugin.getMessageManager().send(sender, "players-only");
             return;
         }
         plugin.getGuiManager().openMain(player);

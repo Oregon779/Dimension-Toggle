@@ -50,6 +50,10 @@ public class MaintenanceManager {
         updateBossBar(dimension, bossBarKey, total, total);
         plugin.getLogManager().log(initiator, "MAINTENANCE SCHEDULED", dimension, formatSeconds(total) + " countdown");
 
+        // The countdown can run for hours; keep only the name for the final
+        // log line instead of pinning the initiator's Player object in memory
+        // long after they may have logged out.
+        String initiatorName = initiator == null ? null : initiator.getName();
         AtomicInteger secondsLeft = new AtomicInteger(totalSeconds);
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
@@ -60,7 +64,7 @@ public class MaintenanceManager {
 
             if (current <= 0) {
                 plugin.getNotificationManager().removeCountdownBossBar(bossBarKey, bossBarTargets(dimension));
-                execute(dimension, initiator);
+                execute(dimension, initiatorName);
                 BukkitTask self = activeCountdowns.remove(dimension);
                 remainingSeconds.remove(dimension);
                 if (self != null) {
@@ -111,7 +115,15 @@ public class MaintenanceManager {
         return CancelResult.NOTHING_TO_DO;
     }
 
-    private void execute(ToggleDimension dimension, CommandSender initiator) {
+    // For onDisable: stop running countdowns quietly (no "cancelled" broadcast
+    // to players - the server is stopping or the plugin reloading).
+    public void shutdown() {
+        activeCountdowns.values().forEach(BukkitTask::cancel);
+        activeCountdowns.clear();
+        remainingSeconds.clear();
+    }
+
+    private void execute(ToggleDimension dimension, String initiatorName) {
         String actionCommand = plugin.getConfigManager().getConfig().getString("maintenance.action-command", "");
         boolean kickToSpawn = plugin.getConfigManager().getConfig().getBoolean("maintenance.kick-to-spawn", true);
 
@@ -124,9 +136,9 @@ public class MaintenanceManager {
             plugin.getDimensionManager().removePlayersFromDimension(dimension, actionCommand);
         }
 
-        plugin.getDimensionManager().setEnabledSilently(dimension, false, initiator);
+        plugin.getDimensionManager().setEnabledSilently(dimension, false, null);
         broadcast(dimension, "executed", Map.of(), true);
-        plugin.getLogManager().log(initiator, "MAINTENANCE EXECUTED", dimension, "Dimension disabled");
+        plugin.getLogManager().logByName(initiatorName, "MAINTENANCE EXECUTED", dimension, "Dimension disabled");
     }
 
     private void updateBossBar(ToggleDimension dimension, String bossBarKey, int secondsLeft, int totalSeconds) {

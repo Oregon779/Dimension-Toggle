@@ -65,20 +65,21 @@ public class DimensionManager {
         placeholders.put("dimension", messages.getDimensionName(dimension.getKey()));
         messages.send(actor, newLockedState ? "softlock-enabled" : "softlock-disabled", placeholders);
 
+        // "server" = everyone, "dimension" = only players inside it (as
+        // documented in config.yml - "dimension" used to notify nobody).
         String scope = plugin.getConfigManager().getConfig().getString("softlock.broadcast-scope", "server");
-        if ("server".equalsIgnoreCase(scope)) {
-            // Was: messages.send() re-parsed the identical text with fresh
-            // MiniMessage/regex work for every online player (250x at 250
-            // players). The text and placeholders are the same for everyone
-            // here, so parse it into a Component exactly once and reuse it.
+        java.util.Collection<? extends Player> audience = "dimension".equalsIgnoreCase(scope)
+                ? getPlayersInDimension(dimension)
+                : "server".equalsIgnoreCase(scope) ? Bukkit.getOnlinePlayers() : List.of();
+        if (!audience.isEmpty()) {
+            // Parse once, reuse for every recipient.
             String path = newLockedState ? "softlock-enabled" : "softlock-disabled";
             net.kyori.adventure.text.Component broadcastMessage =
                     messages.parseWithPlaceholders(messages.getPrefix() + messages.get(path), placeholders);
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (player.equals(actor)) {
-                    continue;
+            for (Player player : audience) {
+                if (!player.equals(actor)) {
+                    player.sendMessage(broadcastMessage);
                 }
-                player.sendMessage(broadcastMessage);
             }
         }
 

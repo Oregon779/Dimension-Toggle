@@ -26,6 +26,12 @@ public class UpdateChecker implements Listener {
     private final DimensionToggle plugin;
     private BukkitTask task;
 
+    // One client for the plugin's lifetime: every HttpClient owns its own
+    // selector thread + connection pool, and the old code built a new one
+    // per check and never closed it.
+    private volatile HttpClient client;
+    private volatile boolean shutDown;
+
     private volatile String latestKnownVersion = null;
 
     private volatile int versionsBehind = -1;
@@ -62,9 +68,34 @@ public class UpdateChecker implements Listener {
         }
     }
 
-    private void check(String slug) {
+    // onDisable only: also aborts an in-flight request instead of letting it
+    // run (up to the 10s timeout) after the plugin is gone.
+    public void shutdown() {
+        stop();
+        shutDown = true;
+        HttpClient current = client;
+        client = null;
+        if (current != null) {
+            current.shutdownNow();
+        }
+    }
+
+    private HttpClient client() {
+        HttpClient current = client;
+        if (current == null) {
+            current = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+            client = current;
+        }
+        return current;
+    }
+
+    // synchronized: the periodic check and a manual /dt update-check could
+    // otherwise run at the same time and both announce the same version.
+    private synchronized void check(String slug) {
+        if (shutDown) {
+            return;
+        }
         try {
-            HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://api.modrinth.com/v2/project/" + slug + "/version"))
                     .timeout(Duration.ofSeconds(10))
@@ -72,7 +103,7 @@ public class UpdateChecker implements Listener {
                     .GET()
                     .build();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = client().send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 plugin.getLogger().warning("Update checker: Modrinth responded with status " + response.statusCode()
                         + " for project '" + slug + "'.");
