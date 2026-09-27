@@ -2,8 +2,8 @@
 #   DimensionToggle - Messages (English)
 # =========================================
 # This file covers command feedback and UI text only. Use %placeholder%
-# where noted. Only legacy & color codes are used here (no MiniMessage
-# tags) - keeps things simple and consistent to edit.
+# where noted. Classic & color codes, &#RRGGBB hex colors and MiniMessage
+# tags (e.g. <gradient:...>) all work and can be mixed freely.
 #
 # The broadcast texts for activating/deactivating dimensions, maintenance,
 # schedule, and lockdown are NOT here - they live directly in config.yml

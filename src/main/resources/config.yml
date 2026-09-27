@@ -18,8 +18,10 @@
 # per-language instead, in:
 #   plugins/DimensionToggle/languages/<language>/messages.yml
 #
-# Missing options are added automatically on plugin updates. Existing
-# values you changed are never overwritten, even in nested sections.
+# Missing top-level sections are added automatically (at the end of this
+# file) on plugin updates. Existing values you changed are never
+# overwritten. New options inside a section you already have are not added
+# - compare with the default config of the new version when updating.
 # =====================================================================
 
 # Language used for general command feedback. Must match a folder under

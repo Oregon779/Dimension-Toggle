@@ -1,7 +1,70 @@
 # DimensionToggle
 
-Paper-Plugin zum Aktivieren/Deaktivieren von Nether und End, inklusive
-Wartungsmodus, Zeitplan, Spieler-Limits, Lockdown und Logging.
+Paper-Plugin zum Aktivieren/Deaktivieren von Nether und End – mit
+Wartungsmodus, Zeitplan, Soft-Lock, Lockdown, Spielerlimits, Mob-Management,
+World Border, PvP-/Keep-Inventory-/Elytra-Schaltern, Logging und einem
+kompletten Klick-Editor im Spiel (`/dt editor`).
+
+**📖 Komplette Anleitung: [WIKI.md](WIKI.md)** – alle Features, Commands,
+Permissions, Config-Optionen, der Editor und eine FAQ.
+
+## Auf einen Blick
+
+- **Voraussetzungen:** Paper 1.21.x (getestet gegen 1.21.1), Java 21, kein Folia
+- **Installation:** Jar in `plugins/` legen, Server starten
+- **Bedienung:** `/dt editor` (Klick-Editor) oder die Commands unten
+- **Sprachen:** Deutsch und Englisch (`language` in der `config.yml`)
+
+## Commands
+
+| Command | Beschreibung | Permission |
+|---|---|---|
+| `/dt editor` | Klick-Editor öffnen | `dimensiontoggle.admin` |
+| `/dt status` | Status + Spielerzahl je Dimension | `dimensiontoggle.status` |
+| `/dt nether <on\|off>` / `/dt end <on\|off>` | Dimension aktivieren/deaktivieren | `dimensiontoggle.admin` |
+| `/dt softlock <nether\|end>` | Soft-Lock umschalten (niemand Neues rein) | `dimensiontoggle.admin` |
+| `/dt lockdown` | Alle Dimensionen sofort zu – nochmal = aufheben | `dimensiontoggle.admin` |
+| `/dt limit <nether\|end> <zahl>` | Spielerlimit setzen (ohne Reload) | `dimensiontoggle.admin` |
+| `/dt maintenance <nether\|end> <zeit>` | Wartungs-Countdown, z.B. `10m`, `1h30m` | `dimensiontoggle.admin` |
+| `/dt maintenance <nether\|end> cancel` | Countdown abbrechen / Wartung beenden | `dimensiontoggle.admin` |
+| `/dt reload` | Configs, Sprachdatei und GUI-Texte neu laden | `dimensiontoggle.admin` |
+| `/dt checkupdate` | Sofort auf Modrinth nach Updates suchen | `dimensiontoggle.admin` |
+| `/dt help` | Zeigt die Commands, die man nutzen darf | – |
+
+Aliase: `/dt`, `/dimtoggle`. Details: [WIKI.md → Commands](WIKI.md#4-commands).
+
+## Permissions
+
+| Permission | Standard | Bedeutung |
+|---|---|---|
+| `dimensiontoggle.admin` | OP | Alle Verwaltungs-Commands, Editor, Update-Hinweise |
+| `dimensiontoggle.status` | alle | `/dt status` |
+| `dimensiontoggle.bypass` | OP | Ignoriert Sperre, Soft-Lock, Limit, Gateway- und Elytra-Sperre |
+| `dimensiontoggle.bypass.limit.nether` | OP | Nur das Nether-Limit ignorieren |
+| `dimensiontoggle.bypass.limit.end` | OP | Nur das End-Limit ignorieren |
+
+## Bauen
+
+```
+mvn clean package     # Jar: target/DimensionToggle-<version>.jar
+mvn test              # automatisierte Tests (JUnit 5 + MockBukkit)
+```
+
+In IntelliJ: Maven-Fenster → **DimensionToggle → Lifecycle → package**.
+Benötigt Java 21 und Zugriff auf `repo.papermc.io`.
+
+## Update auf dem Server
+
+Server stoppen → **nur** die alte `.jar` aus `plugins/` löschen (den Ordner
+`plugins/DimensionToggle/` mit deinen Einstellungen behalten) → neue `.jar`
+hineinlegen → Server starten. Neue Hauptabschnitte der Configs werden
+automatisch ergänzt, deine Werte bleiben unverändert. Neue Optionen innerhalb
+bestehender Abschnitte bitte von Hand übernehmen – siehe
+[WIKI.md → Config-Updates](WIKI.md#config-updates).
+
+---
+
+# Versionsverlauf
 
 ## Version 1.2.0 - Änderungen gegenüber 1.1.0
 
@@ -15,140 +78,16 @@ Wartungsmodus, Zeitplan, Spieler-Limits, Lockdown und Logging.
 - `/dt limit <nether|end> <zahl>` - Spieler-Limit sofort ändern, ohne Reload
 - `/dt status` zeigt jetzt auch, wie viele Spieler sich je Dimension aufhalten
 
----
+**Action-Command statt Teleport:** In `config.yml` bei `maintenance`,
+`schedule` und `lockdown` gibt es `action-command`. Trägst du dort z.B.
+`spawn` ein, wird für jeden betroffenen Spieler `/spawn` ausgeführt, statt ihn
+zum Weltspawn zu teleportieren. Leer lassen = Teleport zum Spawn der Hauptwelt.
 
-## Teil 1: Bauen mit IntelliJ
-
-1. ZIP entpacken
-2. IntelliJ → **Open** → den Ordner `DimensionToggle` auswählen (der mit `pom.xml`)
-3. Warten, bis Maven rechts unten fertig geladen hat
-4. Rechts im Maven-Fenster: **DimensionToggle → Lifecycle → package** doppelklicken
-5. Fertiges Jar liegt danach unter `target/DimensionToggle-1.2.0.jar`
-
-(Ausführliche Schritt-für-Schritt-Anleitung inkl. JDK-Installation hatte ich
-dir bereits weiter oben im Chat geschickt - die gilt unverändert.)
-
----
-
-## Teil 2: Update einspielen - zwei Wege
-
-### Weg A: Bestehendes IntelliJ-Projekt aktualisieren (empfohlen)
-
-Du musst **kein neues Projekt** anlegen. Ersetze einfach die alten Dateien
-durch die neuen:
-
-1. Entpacke die neue ZIP-Datei irgendwo (z.B. auf den Desktop), sodass du
-   wieder einen Ordner `DimensionToggle` mit `pom.xml`, `src/`, usw. hast
-2. Schließe IntelliJ (oder zumindest das alte Projekt)
-3. Lösche deinen **alten** Projektordner komplett (den, den du beim letzten
-   Mal geöffnet hattest) - oder verschiebe ihn zur Sicherheit erstmal nur um,
-   z.B. in `DimensionToggle-ALT`
-4. Kopiere den neu entpackten Ordner an die Stelle, wo vorher der alte lag
-5. Öffne IntelliJ neu → **Open** → wähle den (neuen) Ordner `DimensionToggle`
-6. Maven neu laden lassen (passiert meist automatisch; falls nicht:
-   Rechtsklick auf `pom.xml` → **Maven → Reload Project**)
-7. Bauen wie gewohnt: Maven-Fenster → **Lifecycle → package**
-
-**Wichtig:** Das *IntelliJ-Projekt* (der Quellcode) und der *Minecraft-Server*
-sind zwei getrennte Dinge. Wenn du das IntelliJ-Projekt ersetzt, hat das
-noch KEINE Auswirkung auf deinen laufenden Server - dafür ist Schritt 3
-unten nötig.
-
-### Weg B: Ganz neues Projekt daneben anlegen
-
-Wenn du beide Versionen parallel behalten willst (z.B. zum Vergleichen):
-
-1. Neue ZIP an einen anderen Ort entpacken, z.B. `DimensionToggle-v1.2`
-2. In IntelliJ: **File → Open** → diesen neuen Ordner auswählen → IntelliJ
-   öffnet ihn als eigenständiges, zweites Projekt (ggf. in neuem Fenster)
-3. Dein altes Projekt bleibt davon komplett unberührt
-
-Für die meisten ist **Weg A einfacher**, weil man sich nicht um zwei
-Ordner kümmern muss.
-
----
-
-## Teil 3: Neue Version auf den Server bringen
-
-Das ist der eigentliche Update-Schritt und funktioniert bei **beiden** Wegen
-oben identisch:
-
-1. Baue das Projekt (`mvn package` bzw. Maven-Lifecycle → package)
-2. Du bekommst eine neue Datei: `target/DimensionToggle-1.2.0.jar`
-3. Stoppe deinen Minecraft-Server (`/stop` in der Konsole, oder Server-Fenster schließen)
-4. Gehe in den `plugins`-Ordner deines Servers
-5. **Lösche** die alte Datei, z.B. `DimensionToggle-1.1.0.jar`
-   (lösche NUR die `.jar`-Datei, NICHT den Ordner `DimensionToggle` daneben -
-   darin liegen deine `config.yml`, `messages.yml` und `data.yml`!)
-6. Kopiere die neue `DimensionToggle-1.2.0.jar` in den `plugins`-Ordner
-7. Starte den Server wieder
-
-Beim Start passiert automatisch Folgendes:
-
-- Deine bestehende `config.yml` und `messages.yml` im Ordner
-  `plugins/DimensionToggle/` werden erkannt
-- Alle neuen Optionen (in diesem Fall z.B. die "notify"-Einstellungen für
-  Wartung/Zeitplan/Lockdown) werden ans Ende der jeweiligen Datei ergänzt
-- Deine bisherigen Einstellungen bleiben dabei zu 100% unverändert
-
-Du musst also **nichts** von Hand in der Config nachtragen - nur die neuen
-Optionen unten in der Datei nach Belieben anpassen, falls gewünscht.
-
-### Kurz gesagt
-
-> Server stoppen → alte .jar im plugins-Ordner löschen → neue .jar
-> reinlegen → Server starten. Fertig. Die Config-Ordner (`data.yml`,
-> `config.yml`, `messages.yml`, `logs/`) fasst du dabei nie an.
-
----
-
-## Commands
-
-| Command                                    | Beschreibung                                  | Permission               |
-|---------------------------------------------|------------------------------------------------|----------------------------|
-| `/dt nether on` / `off`                    | Nether aktivieren/deaktivieren                | `dimensiontoggle.admin`    |
-| `/dt end on` / `off`                       | End aktivieren/deaktivieren                   | `dimensiontoggle.admin`    |
-| `/dt status`                                | Status + Spielerzahl je Dimension             | `dimensiontoggle.status`   |
-| `/dt reload`                                | Lädt config.yml/messages.yml neu              | `dimensiontoggle.admin`    |
-| `/dt maintenance <nether\|end> <minuten>`   | Startet Wartungs-Countdown                    | `dimensiontoggle.admin`    |
-| `/dt maintenance <nether\|end> cancel`      | Bricht laufenden Countdown ab                 | `dimensiontoggle.admin`    |
-| `/dt lockdown`                              | Deaktiviert sofort alle Dimensionen           | `dimensiontoggle.admin`    |
-| `/dt limit <nether\|end> <zahl>`            | Setzt Spieler-Limit sofort (ohne Reload)      | `dimensiontoggle.admin`    |
-| `/dt help`                                  | Zeigt alle Commands mit Beschreibung          | `dimensiontoggle.admin`    |
-
-Alias: `/dimtoggle`
-
-## Permissions
-
-- `dimensiontoggle.admin` (default: op) — Zugriff auf alle Commands
-- `dimensiontoggle.status` (default: true) — Zugriff auf `/dt status`
-- `dimensiontoggle.bypass` (default: op) — Ignoriert deaktivierte Dimensionen
-  und Spieler-Limits
-
-## Action-Command statt Teleport (neu)
-
-In `config.yml` bei `maintenance`, `schedule` und `lockdown` gibt es jetzt
-`action-command`. Trägst du dort z.B. `spawn` ein, wird bei Wartungsende,
-automatischem Schließen oder Lockdown für jeden betroffenen Spieler der
-Command `/spawn` ausgeführt, statt ihn fest zum Weltspawn zu teleportieren.
-Leer lassen = klassischer Teleport zum Spawn der Hauptwelt.
-
-## Benachrichtigungskanäle (neu)
-
-Bei `maintenance.notify`, `schedule.notify` und `lockdown.notify` kannst du
-`chat`, `actionbar`, `bossbar` und `title` einzeln an-/ausschalten. Die
-zugehörigen Texte stehen in `messages.yml` (z.B. `maintenance-warning-chat`,
-`maintenance-warning-actionbar`, `maintenance-warning-title` +
-`maintenance-warning-subtitle`).
-
-## Hinweis zum Testen dieser Version
-
-In der Sandbox, in der dieses Plugin erstellt wurde, gab es keinen Zugriff
-auf das PaperMC-Maven-Repository. Die Update-Logik (`ConfigUpdater`,
-`ConfigValueWriter`) sowie die Farb-Konvertierung wurden isoliert mit einem
-echten JDK kompiliert und gegen echte Beispieldateien getestet. Der übrige
-Code wurde manuell sorgfältig geprüft. Falls beim `mvn clean package` ein
-Fehler auftaucht, schick mir die Meldung, dann fixe ich es sofort.
+**Benachrichtigungskanäle:** *(überholt seit 1.3.0 – die Texte stehen jetzt in
+der `config.yml` und ein einzelnes Feld `notification` wählt den Kanal, siehe
+[WIKI.md → Benachrichtigungen](WIKI.md#benachrichtigungen).)* In 1.2.0 ließen
+sich `chat`, `actionbar`, `bossbar` und `title` über `maintenance.notify`,
+`schedule.notify` und `lockdown.notify` einzeln schalten.
 
 ---
 
@@ -1036,6 +975,10 @@ Adventure-Component-API; `JavaPlugin#getDescription()` durch
 - **Update-Checker**: ein HTTP-Client statt eines neuen pro Prüfung (Thread-
   Leck), keine Doppel-Meldung bei gleichzeitiger Prüfung, `/dt reload`
   übernimmt geänderte Update-Checker-Einstellungen.
+- **World Border**: Der Preset „Maximum“ (60.000.000) und das Maximum beim
+  Verstellen lagen über dem, was Paper akzeptiert (59.999.968) - der Button
+  tat nichts außer einer Konsolen-Warnung. Begrenzt jetzt auf das echte
+  Server-Maximum.
 - Neue Nachrichten in `messages.yml` (DE+EN): `gateway-blocked`,
   `players-only` (Konsole bei `/dt editor`).
 
@@ -1050,6 +993,13 @@ Adventure-Component-API; `JavaPlugin#getDescription()` durch
 - Spielerzählung/Dashboard ohne Listen-/Array-Kopien
   (`getPlayerCount`/`getChunkCount`), Mob-Cleanup mit einem Entity-Durchlauf
   pro Welt, versetzte Startzeiten der Wiederholungs-Tasks.
+
+### Dokumentation
+Neue [WIKI.md](WIKI.md) mit allen Features, Commands, Permissions,
+Config-Optionen, Editor-Bedienung und FAQ. Der veraltete Anfangsteil dieser
+README (Stand 1.2.0) wurde durch eine aktuelle Kurzfassung ersetzt; veraltete
+Kommentare in den Standard-Dateien (`config.yml`-Kopf, `messages.yml`-Kopf)
+wurden korrigiert.
 
 ### Tests
 Neu: automatisierte Tests mit JUnit 5 + MockBukkit (`mvn test`, 64 Tests):

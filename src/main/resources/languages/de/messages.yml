@@ -1,8 +1,9 @@
 # =========================================
 #   DimensionToggle - Nachrichten (Deutsch)
 # =========================================
-# Diese Datei deckt nur Command-Rückmeldungen und UI-Texte ab. Es wird
-# bewusst nur mit Legacy-&-Farbcodes gearbeitet (keine MiniMessage-Tags).
+# Diese Datei deckt nur Command-Rückmeldungen und UI-Texte ab. Klassische
+# &-Farbcodes, &#RRGGBB-Hexfarben und MiniMessage-Tags (z.B. <gradient:...>)
+# funktionieren alle und dürfen gemischt werden.
 #
 # Die Broadcast-Texte fürs Aktivieren/Deaktivieren, Wartung, Zeitplan und
 # Lockdown stehen NICHT hier - die liegen direkt in der config.yml (immer

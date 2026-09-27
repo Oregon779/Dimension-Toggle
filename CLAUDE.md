@@ -11,6 +11,12 @@ limits, mob management, world border control, PvP/keep-inventory/elytra
 toggles, and a full click-based in-game GUI editor (`/dt editor`). See
 `README.md` for the full feature/version history.
 
+**User-facing docs live in `WIKI.md`** (German, one file: commands,
+permissions, every config key, editor behavior, FAQ, known limitations).
+Whenever a change alters a command, permission, config key, default, GUI
+button or visible behavior, update `WIKI.md` in the same commit - and add
+the changelog entry to `README.md`.
+
 ## Build
 
 ```

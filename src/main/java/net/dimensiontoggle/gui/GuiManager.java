@@ -493,7 +493,7 @@ public class GuiManager implements Listener {
             default -> 0;
         };
 
-        long updated = Math.min(60_000_000, Math.max(1, current + delta));
+        long updated = clampBorderSize(world, current + delta);
         if (updated == current) {
             return;
         }
@@ -510,12 +510,20 @@ public class GuiManager implements Listener {
         if (world == null) {
             return;
         }
-        long clamped = Math.min(60_000_000, Math.max(1, size));
+        long clamped = clampBorderSize(world, size);
         try {
             world.getWorldBorder().setSize(clamped);
         } catch (IllegalArgumentException e) {
             plugin.getLogger().warning("Could not set world border size to " + clamped + ": " + e.getMessage());
         }
+    }
+
+    // Paper rejects sizes above WorldBorder#getMaxSize() (59,999,968 - not
+    // the round 60,000,000 the "maximum" preset shows), so clamp to what the
+    // server actually accepts instead of a hard-coded number.
+    private static long clampBorderSize(World world, long size) {
+        long max = (long) world.getWorldBorder().getMaxSize();
+        return Math.min(max, Math.max(1, size));
     }
 
     private void centerWorldBorder(ToggleDimension dimension) {
