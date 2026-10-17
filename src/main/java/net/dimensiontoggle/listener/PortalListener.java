@@ -1,11 +1,13 @@
 package net.dimensiontoggle.listener;
 
+import com.destroystokyo.paper.event.entity.EntityTeleportEndGatewayEvent;
 import net.dimensiontoggle.DimensionToggle;
 import net.dimensiontoggle.manager.MessageManager;
 import net.dimensiontoggle.model.ToggleDimension;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -59,13 +61,15 @@ public class PortalListener implements Listener {
         }
     }
 
-    // A player sitting in a boat, minecart or on a mount never triggers
-    // PlayerPortalEvent: the *vehicle* travels and takes its passengers
-    // along, which fires EntityPortalEvent for the vehicle instead. Without
-    // this handler, riding into a portal walked straight past every lock.
+    // Two ways past PlayerPortalEvent, both firing EntityPortalEvent instead:
+    // - A player in a boat, minecart or on a mount: the *vehicle* travels and
+    //   takes its passengers along.
+    // - An ender pearl: it flies through the portal and pulls its thrower
+    //   after it once it lands. Cancelled here, it stays on this side and
+    //   lands in front of the portal like at a wall.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onVehiclePortal(EntityPortalEvent event) {
-        List<Player> riders = playerPassengers(event.getEntity());
+    public void onEntityPortal(EntityPortalEvent event) {
+        List<Player> riders = travellers(event.getEntity());
         if (riders.isEmpty()) {
             return;
         }
@@ -81,17 +85,7 @@ public class PortalListener implements Listener {
 
         // End -> End can only be a gateway jump.
         if (fromEnvironment == World.Environment.THE_END && targetEnvironment == World.Environment.THE_END) {
-            if (!gatewaysBlocked()) {
-                return;
-            }
-            boolean blocked = false;
-            for (Player rider : riders) {
-                if (!rider.hasPermission("dimensiontoggle.bypass")) {
-                    blocked = true;
-                    notice(rider, ToggleDimension.END, "gateway-blocked", null);
-                }
-            }
-            if (blocked) {
+            if (gatewayDenied(riders)) {
                 event.setCancelled(true);
             }
             return;
@@ -123,6 +117,54 @@ public class PortalListener implements Listener {
         }
     }
 
+    // Paper reports entities going through an End gateway with its own event.
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onEntityGateway(EntityTeleportEndGatewayEvent event) {
+        if (gatewayDenied(travellers(event.getEntity()))) {
+            event.setCancelled(true);
+        }
+    }
+
+    // Safety net for a pearl that got through anyway (another plugin moved
+    // it, a portal we didn't see): its thrower still doesn't land in a
+    // closed dimension. The pearl is used up then.
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPearlLanding(PlayerTeleportEvent event) {
+        if (event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
+            return;
+        }
+        World from = event.getFrom().getWorld();
+        World to = event.getTo().getWorld();
+        // Leaving a dimension is always allowed - only entering is checked.
+        if (from == null || to == null || from.getEnvironment() == to.getEnvironment()) {
+            return;
+        }
+        ToggleDimension dimension = ToggleDimension.fromEnvironment(to.getEnvironment());
+        if (dimension == null) {
+            return;
+        }
+        Denial denial = checkAccess(event.getPlayer(), dimension);
+        if (denial != null) {
+            event.setCancelled(true);
+            notice(event.getPlayer(), dimension, denial.messageKey(), denial.limit());
+        }
+    }
+
+    // True (and the travellers told) if a gateway jump has to be stopped.
+    private boolean gatewayDenied(List<Player> travellers) {
+        if (travellers.isEmpty() || !gatewaysBlocked()) {
+            return false;
+        }
+        boolean blocked = false;
+        for (Player traveller : travellers) {
+            if (!traveller.hasPermission("dimensiontoggle.bypass")) {
+                blocked = true;
+                notice(traveller, ToggleDimension.END, "gateway-blocked", null);
+            }
+        }
+        return blocked;
+    }
+
     private record Denial(String messageKey, String limit) {
     }
 
@@ -150,9 +192,14 @@ public class PortalListener implements Listener {
         return null;
     }
 
-    private static List<Player> playerPassengers(Entity vehicle) {
+    // The players an entity takes along through a portal: the thrower of an
+    // ender pearl, or everyone riding a vehicle/mount.
+    private static List<Player> travellers(Entity entity) {
+        if (entity instanceof EnderPearl pearl) {
+            return pearl.getShooter() instanceof Player thrower ? List.of(thrower) : List.of();
+        }
         List<Player> players = new ArrayList<>();
-        collectPlayers(vehicle, players);
+        collectPlayers(entity, players);
         return players;
     }
 
@@ -167,7 +214,7 @@ public class PortalListener implements Listener {
     }
 
     // Fallback when the server hasn't resolved a destination yet: look at
-    // the portal block the vehicle is standing in.
+    // the portal block the entity is in.
     private static World.Environment guessTargetEnvironment(Location from) {
         Material block = from.getBlock().getType();
         World.Environment current = from.getWorld().getEnvironment();

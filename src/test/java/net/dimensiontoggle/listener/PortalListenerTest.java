@@ -1,5 +1,6 @@
 package net.dimensiontoggle.listener;
 
+import com.destroystokyo.paper.event.entity.EntityTeleportEndGatewayEvent;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import net.dimensiontoggle.PluginTestBase;
 import net.dimensiontoggle.model.ToggleDimension;
@@ -7,6 +8,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Pig;
 import org.bukkit.event.entity.EntityPortalEvent;
@@ -231,5 +233,83 @@ class PortalListenerTest extends PluginTestBase {
         assertTrue(ridePortal(end, end, player).isCancelled());
         plugin.getConfigManager().getConfig().set("block-end-gateways", false);
         assertFalse(ridePortal(end, end, player).isCancelled());
+    }
+
+    private EnderPearl pearl(World in, PlayerMock thrower) {
+        EnderPearl pearl = in.spawn(in.getSpawnLocation(), EnderPearl.class);
+        pearl.setShooter(thrower);
+        return pearl;
+    }
+
+    private EntityPortalEvent pearlThroughPortal(World from, World to, PlayerMock thrower) {
+        EntityPortalEvent event = new EntityPortalEvent(pearl(from, thrower), from.getSpawnLocation(),
+                to.getSpawnLocation());
+        server.getPluginManager().callEvent(event);
+        return event;
+    }
+
+    @Test
+    void enderPearlIsStoppedAtADisabledPortal() {
+        plugin.getDimensionManager().setEnabledSilently(ToggleDimension.NETHER, false, null);
+
+        assertTrue(pearlThroughPortal(overworld, nether, player).isCancelled(), "the pearl must not pull its thrower in");
+        assertNotNull(player.nextComponentMessage());
+        assertFalse(pearlThroughPortal(nether, overworld, player).isCancelled(), "leaving is always allowed");
+    }
+
+    @Test
+    void enderPearlFollowsTheSameRulesAsWalkingThrough() {
+        plugin.getDimensionManager().setLocked(ToggleDimension.END, true, null);
+        assertTrue(pearlThroughPortal(overworld, end, player).isCancelled());
+
+        plugin.getDimensionManager().setLocked(ToggleDimension.END, false, null);
+        plugin.getConfigManager().getConfig().set("limits.end.enabled", true);
+        plugin.getConfigManager().getConfig().set("limits.end.max-players", 0);
+        assertTrue(pearlThroughPortal(overworld, end, player).isCancelled());
+
+        PlayerMock staff = server.addPlayer("Staff");
+        staff.addAttachment(plugin, "dimensiontoggle.bypass", true);
+        assertFalse(pearlThroughPortal(overworld, end, staff).isCancelled());
+    }
+
+    @Test
+    void pearlsWithoutAPlayerThrowerAreNotOurBusiness() {
+        plugin.getDimensionManager().setEnabledSilently(ToggleDimension.NETHER, false, null);
+        EntityPortalEvent event = new EntityPortalEvent(overworld.spawn(overworld.getSpawnLocation(), EnderPearl.class),
+                overworld.getSpawnLocation(), nether.getSpawnLocation());
+        server.getPluginManager().callEvent(event);
+
+        assertFalse(event.isCancelled());
+    }
+
+    private PlayerTeleportEvent pearlLanding(World from, World to) {
+        PlayerTeleportEvent event = new PlayerTeleportEvent(player, from.getSpawnLocation(), to.getSpawnLocation(),
+                TeleportCause.ENDER_PEARL);
+        server.getPluginManager().callEvent(event);
+        return event;
+    }
+
+    @Test
+    void aPearlThatGotThroughStillDoesNotTeleportIntoAClosedDimension() {
+        plugin.getDimensionManager().setEnabledSilently(ToggleDimension.NETHER, false, null);
+
+        assertTrue(pearlLanding(overworld, nether).isCancelled());
+        assertNotNull(player.nextComponentMessage());
+        assertFalse(pearlLanding(nether, overworld).isCancelled(), "leaving is always allowed");
+        assertFalse(pearlLanding(overworld, overworld).isCancelled(), "a normal pearl throw");
+    }
+
+    @Test
+    void enderPearlThroughABlockedEndGatewayIsStopped() {
+        EntityTeleportEndGatewayEvent event = new EntityTeleportEndGatewayEvent(pearl(end, player),
+                end.getSpawnLocation(), end.getSpawnLocation().add(1000, 0, 0), null);
+        server.getPluginManager().callEvent(event);
+        assertTrue(event.isCancelled());
+
+        plugin.getConfigManager().getConfig().set("block-end-gateways", false);
+        EntityTeleportEndGatewayEvent allowed = new EntityTeleportEndGatewayEvent(pearl(end, player),
+                end.getSpawnLocation(), end.getSpawnLocation().add(1000, 0, 0), null);
+        server.getPluginManager().callEvent(allowed);
+        assertFalse(allowed.isCancelled());
     }
 }

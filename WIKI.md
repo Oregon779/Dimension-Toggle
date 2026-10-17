@@ -210,7 +210,14 @@ alle 2 Sekunden.
 Geprüft werden **Netherportale, Endportale und End-Gateways** – auch wenn
 der Spieler in einem Boot, einer Lore oder auf einem Tier sitzt. Sitzt ein
 Spieler ohne Zugang im Fahrzeug, bleibt das ganze Fahrzeug stehen; mehrere
-Mitfahrer zählen gemeinsam fürs Spielerlimit. Andere Teleports (siehe [Bekannte Einschränkungen](#11-bekannte-einschränkungen))
+Mitfahrer zählen gemeinsam fürs Spielerlimit.
+
+**Enderperlen** werden genauso geprüft: Eine Perle, die in ein gesperrtes
+Portal (oder ein gesperrtes End-Gateway) geworfen wird, fliegt nicht hindurch,
+sondern landet davor wie an einer Wand – der Spieler bekommt dieselbe Meldung
+wie beim Durchlaufen. Kommt eine Perle trotzdem auf die andere Seite (z.B.
+durch ein anderes Plugin), wird der Spieler beim Landen nicht in die gesperrte
+Dimension teleportiert; die Perle ist dann verbraucht. Andere Teleports (siehe [Bekannte Einschränkungen](#11-bekannte-einschränkungen))
 nicht.
 
 ---
@@ -317,6 +324,8 @@ schedule:
 - `block-end-gateways: true` sperrt Teleports durch End-Gateways –
   **unabhängig** davon, ob das End selbst offen ist (z.B. um die äußeren Inseln
   zu sperren, während die Hauptinsel offen ist).
+- Gilt auch für Enderperlen, die durch ein Gateway geworfen werden, und für
+  Spieler in Fahrzeugen.
 - Spieler mit `dimensiontoggle.bypass` sind ausgenommen.
 - Umschaltbar im End-Control-Panel (schreibt direkt in die `config.yml`).
 
@@ -838,7 +847,7 @@ testen oder die Permission entziehen:
 `/lp user <name> permission set dimensiontoggle.bypass false`.
 
 **Spieler kommen per `/home`, `/tp` oder `/warp` in eine gesperrte Dimension.**
-Das Plugin sperrt Portale und End-Gateways, keine Teleports anderer Plugins
+Das Plugin sperrt Portale und End-Gateways (auch per Fahrzeug und Enderperle), keine Teleports anderer Plugins
 (siehe [Bekannte Einschränkungen](#11-bekannte-einschränkungen)). Homes/Warps
 in Nether/End ggf. im jeweiligen Plugin einschränken.
 
@@ -900,7 +909,8 @@ klicken. Items und Mobs können sich inzwischen auch bewegt haben.
 
 ## 11. Bekannte Einschränkungen
 
-- Nur **Portale** (Nether-/Endportal) und **End-Gateways** werden geprüft.
+- Nur **Portale** (Nether-/Endportal) und **End-Gateways** werden geprüft
+  (zu Fuß, im Fahrzeug und per Enderperle).
   Teleports per Command oder durch andere Plugins, Einloggen an einer Position
   in einer gesperrten Dimension und Respawn per Seelenanker werden nicht blockiert.
 - Das Aufheben des Lockdowns aktiviert **beide** Dimensionen, auch wenn eine

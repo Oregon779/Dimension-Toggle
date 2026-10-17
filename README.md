@@ -1080,6 +1080,12 @@ Spielverhalten verändert, ist standardmäßig **aus**.
 - **Portale mit Fahrzeug**: Wer in einem Boot, einer Lore oder auf einem
   Tier saß, kam durch gesperrte Portale (es wird dann nur ein Event für das
   Fahrzeug ausgelöst). Wird jetzt genauso geprüft wie zu Fuß.
+- **Enderperlen durch Portale**: Seit Minecraft 1.21.2 fliegen Enderperlen
+  durch Portale und ziehen den Werfer hinterher - so kam man in deaktivierte,
+  soft-gelockte oder volle Dimensionen und durch gesperrte End-Gateways. Die
+  Perle prallt jetzt am gesperrten Portal ab (landet davor) und der Spieler
+  bekommt die normale Portal-Meldung; zusätzlich wird ein Perlen-Teleport in
+  eine gesperrte Dimension beim Landen blockiert.
 - **Lockdown/Wartung/Zeitplan holen wirklich alle raus**: Der
   `action-command` lief immer als der Spieler - fehlte die Permission oder
   brach eine Teleport-Verzögerung ab, blieb der Spieler drin. Neu:
