@@ -1,7 +1,7 @@
 package net.dimensiontoggle.command;
 
-import be.seeseemelk.mockbukkit.command.ConsoleCommandSenderMock;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
+import org.mockbukkit.mockbukkit.command.ConsoleCommandSenderMock;
+import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import net.dimensiontoggle.PluginTestBase;
 import net.dimensiontoggle.model.ToggleDimension;
 import net.kyori.adventure.text.Component;

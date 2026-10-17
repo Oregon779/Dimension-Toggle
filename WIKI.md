@@ -55,8 +55,8 @@ anpassbar, mit klassischen `&`-Farbcodes, Hex-Farben und MiniMessage
 
 **Voraussetzungen**
 
-- **Paper** 1.21.x (entwickelt und getestet gegen 1.21.1). Spigot/CraftBukkit wird nicht unterstützt, das Plugin nutzt die Paper-API.
-- **Java 21**
+- **Paper 26.2** (oder Purpur auf Basis von 26.2). Spigot/CraftBukkit wird nicht unterstützt, das Plugin nutzt die Paper-API.
+- **Java 25** (benötigt Paper 26 sowieso)
 - Kein **Folia** (nicht unterstützt)
 - Optional: **PvPManager** – nur nötig, damit der PvP-Schalter im Editor freigeschaltet ist
 
@@ -309,9 +309,9 @@ schedule:
 
 | Schalter | Dimension | Wirkung | Wo gespeichert |
 |---|---|---|---|
-| **Keep Inventory** | beide | Gamerule `keepInventory` der Welt(en) dieser Dimension. | In der Welt (Minecraft) |
-| **Mob Spawning** | beide | Gamerule `doMobSpawning` – natürliches Spawnen an/aus. Spawner sind davon nicht betroffen. | In der Welt (Minecraft) |
-| **PvP** | beide | PvP in der Dimension an/aus. Nur aktiv, wenn das Plugin **PvPManager** installiert ist, sonst ist der Button grau. | `data.yml` (wird beim Start wieder gesetzt) |
+| **Keep Inventory** | beide | Gamerule `keep_inventory` der Welt(en) dieser Dimension. | In der Welt (Minecraft) |
+| **Mob Spawning** | beide | Gamerule `spawn_mobs` – natürliches Spawnen an/aus. Spawner sind davon nicht betroffen. | In der Welt (Minecraft) |
+| **PvP** | beide | Gamerule `pvp` der Welt(en) dieser Dimension. Nur aktiv, wenn das Plugin **PvPManager** installiert ist, sonst ist der Button grau. | In der Welt (Minecraft) |
 | **Elytra-Flug** | nur End | Verhindert das Starten eines Elytra-Gleitflugs im End. Bypass ausgenommen. | `data.yml` |
 | **Spawner** | nur Nether | Blockiert alle Spawns aus Monster-Spawnern im Nether. | `data.yml` |
 
@@ -564,7 +564,7 @@ Felder eines Blocks unter `nether.activate` usw.:
 | `bossbar-color` | `PINK`, `BLUE`, `RED`, `GREEN`, `YELLOW`, `PURPLE`, `WHITE` |
 | `bossbar-style` | `PROGRESS`, `NOTCHED_6`, `NOTCHED_10`, `NOTCHED_12`, `NOTCHED_20` |
 | `bossbar-duration` | Anzeigedauer der Bossbar in Sekunden |
-| `sound`, `sound-volume`, `sound-pitch` | Sound als Bukkit-Name, z.B. `ENTITY_PLAYER_LEVELUP` |
+| `sound`, `sound-volume`, `sound-pitch` | Sound als klassischer Name (`ENTITY_PLAYER_LEVELUP`) oder Minecraft-Key (`entity.player.levelup`) |
 
 ### Farben und Formatierung
 
@@ -626,7 +626,6 @@ der Server läuft:
 | `peak-players.<dimension>` | Spieler-Rekord |
 | `mob-management.<dimension>.<MOB>.enabled` / `.cleanup-minutes` | Mob-Management |
 | `nether.spawners-enabled`, `end.elytra-fly-enabled` | Schalter |
-| `pvp.<dimension>` | PvP-Einstellung (nur wenn im Editor geändert) |
 
 Gespeichert wird absturzsicher im Hintergrund. Ist die Datei trotzdem einmal
 unlesbar, benennt das Plugin sie in `data.yml.corrupt-<Datum>-<Uhrzeit>` um,
@@ -723,7 +722,7 @@ Laufende Countdowns werden nicht gespeichert – nach dem Neustart neu starten.
 mvn clean package
 ```
 
-Ergebnis: `target/DimensionToggle-<version>.jar`. Benötigt Java 21 und Zugriff
+Ergebnis: `target/DimensionToggle-<version>.jar`. Benötigt Java 25 und Zugriff
 auf das PaperMC-Maven-Repository (`repo.papermc.io`).
 
 **Tests**

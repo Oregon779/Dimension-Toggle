@@ -4,8 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-DimensionToggle is a Paper/Spigot Minecraft plugin (Java 21, Paper API
-`1.21.1-R0.1-SNAPSHOT`) that lets server admins enable/disable the Nether and
+DimensionToggle is a Paper Minecraft plugin (Java 25, Paper API
+`26.2.build.124-stable`, plugin.yml `api-version: '26.2'`) that lets server admins enable/disable the Nether and
 End, with maintenance windows, scheduling, lockdown, soft-lock, player
 limits, mob management, world border control, PvP/keep-inventory/elytra
 toggles, and a full click-based in-game GUI editor (`/dt editor`). See
@@ -62,8 +62,12 @@ getestet, bevor das nächste kommt. Jedes Werkzeug bekommt eine **eigene
 Permission** (z.B. `dimensiontoggle.lagmap`); `dimensiontoggle.admin`
 enthält alle als Children.
 
-Erledigt (3.3.0-dev1): Fahrzeuge an Portalen geprüft, Entfernen aus
-Dimensionen mit `%player%`-Konsolen-Commands + 5s-Sicherheitsnetz.
+Erledigt (3.3.0-dev1): Umstieg auf Paper 26.2 / Java 25 (Nutzer-Server
+läuft auf 26.2; 1.21.x wird nicht mehr unterstützt); Fahrzeuge an Portalen
+geprüft; Entfernen aus Dimensionen mit `%player%`-Konsolen-Commands +
+5s-Sicherheitsnetz.
+Ebenfalls gewünscht: **PlaceholderAPI-Support** (Nutzer hat PlaceholderAPI
+2.11.6 und VaultAPI 1.7 als Jars bereitgestellt; Vault vorerst nicht nötig).
 
 Reihenfolge / Stand:
 1. **`/lagmap`** (als Nächstes) – `/lagmap` und `/dt lagmap`; GUI (Klick =
@@ -96,44 +100,57 @@ Produces `target/DimensionToggle-<version>.jar` (shaded/relocated by
 maven-shade-plugin). `mvn test` runs the JUnit 5 + MockBukkit suite in
 `src/test` (use `-o` once dependencies are in `~/.m2`).
 
-**Tests**: `MockBukkit-v1.21` is pinned to `3.133.2` on purpose - it is
-the line built against paper-api 1.21.1 (newer 4.x targets newer Paper and
-a different package). `PluginTestBase` boots a mock server with
+**Tests**: `org.mockbukkit.mockbukkit:mockbukkit-v26.2` (4.x, JUnit 6) -
+MockBukkit publishes one artifact per Minecraft version, keep it on the
+line matching paper-api. `PluginTestBase` boots a mock server with
 `world`/`world_nether`/`world_the_end` (in that order - `getWorlds().get(0)`
 is treated as the main world), loads the plugin and stops the update
-checker so no test hits Modrinth. MockBukkit 3.x leaves a few APIs
+checker so no test hits Modrinth. MockBukkit leaves a few APIs
 unimplemented; fill gaps in the test doubles rather than bending production
-code: `TestServerMock` (Component inventory titles, `getTPS`) and
+code: `TestServerMock` (`getTPS`) and
 `TestPlayerMock` (a `teleportAsync` that actually teleports - create
 players via `PluginTestBase.addPlayer`). An `UnimplementedOperationException`
 shows up as a *skipped* test, so check the skip count, not just failures.
+
+**Java 25 in the sandbox**: Paper 26.x is compiled for Java 25 (class
+version 69); the image ships Java 21. Install and select it first:
+
+```
+apt-get install -y openjdk-25-jdk-headless
+export JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64 PATH=$JAVA_HOME/bin:$PATH
+```
 
 **Network limitation in Claude Code sandboxes**: `repo.papermc.io` is
 blocked by the outbound network policy, which breaks resolution of
 `io.papermc.paper:paper-api`, `com.mojang:brigadier`, and
 `net.md-5:bungeecord-chat` — none of the three are mirrored on Maven
-Central, so a plain `mvn package` fails on all three even though every
-other dependency resolves fine from Central through the sandbox proxy.
+Central (everything else, MockBukkit included, resolves from Central).
 
 Workaround: ask the user to download the jar+pom for each blocked artifact
-directly from `repo.papermc.io` in their own browser (unaffected by the
-sandbox's policy) and upload them here, then install locally:
+directly from `repo.papermc.io` in their own browser and upload them here,
+then install each with
+`mvn install:install-file -Dfile=<jar> -DpomFile=<pom>`.
+Since 26.x the versions are plain releases (no SNAPSHOT timestamps), so the
+URLs work directly - for the current versions:
 
 ```
-mvn install:install-file -Dfile=<jar> -DpomFile=<pom> \
-  -DgroupId=<groupId> -DartifactId=<artifactId> -Dversion=<version> -Dpackaging=jar
+https://repo.papermc.io/repository/maven-public/io/papermc/paper/paper-api/26.2.build.124-stable/paper-api-26.2.build.124-stable.jar (+ .pom)
+https://repo.papermc.io/repository/maven-public/com/mojang/brigadier/1.3.10/brigadier-1.3.10.jar (+ .pom)
+https://repo.papermc.io/repository/maven-public/net/md-5/bungeecord-chat/1.21-R0.2-deprecated+build.21/bungeecord-chat-1.21-R0.2-deprecated+build.21.jar (+ .pom)
 ```
 
-`paper-api` is a SNAPSHOT, so the literal `...-SNAPSHOT.jar` URL 404s on a
-plain browser GET — have the user fetch
-`.../paper-api/<version>/maven-metadata.xml` first to read the real
-timestamped filename (`<snapshot><timestamp>/<buildNumber></snapshot>`),
-download that, then install it under the plain `-SNAPSHOT` version string
-so the project's own dependency declaration resolves against it.
-`brigadier` and `bungeecord-chat` use plain (non-SNAPSHOT) versions, so
-their jar/pom URLs work directly. Once installed into `~/.m2`, all three
-persist for the rest of that sandbox container's life - no need to redo
-this on every build within the same session, only in a fresh container.
+(brigadier/bungeecord versions are the ones the paper-api pom asks for.)
+Once installed into `~/.m2` they persist for the rest of that container's
+life - only a fresh container needs them again.
+
+**Paper 26 API notes** (things that changed vs. 1.21 and are used here):
+gamerules live in `org.bukkit.GameRules` (`KEEP_INVENTORY`, `SPAWN_MOBS`,
+`PVP` - PvP is a gamerule now, `World#setPVP` is deprecated); sounds come
+from `Registry.SOUNDS` (`Sound.valueOf` is gone - `SoundManager` maps the
+classic config names like `ENTITY_PLAYER_LEVELUP` onto registry keys);
+anvils are opened via `MenuType.ANVIL.builder()` (`openAnvil` is
+deprecated). Compile with `-Dmaven.compiler.showDeprecation=true` and keep
+it warning-free.
 
 ## Architecture
 

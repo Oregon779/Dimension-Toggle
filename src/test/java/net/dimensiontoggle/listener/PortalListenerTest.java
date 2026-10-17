@@ -1,6 +1,6 @@
 package net.dimensiontoggle.listener;
 
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
+import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import net.dimensiontoggle.PluginTestBase;
 import net.dimensiontoggle.model.ToggleDimension;
 import net.kyori.adventure.text.Component;

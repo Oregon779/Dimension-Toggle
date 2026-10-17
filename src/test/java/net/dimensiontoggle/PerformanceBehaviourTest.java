@@ -1,6 +1,6 @@
 package net.dimensiontoggle;
 
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
+import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import net.dimensiontoggle.manager.DimensionManager;
 import net.dimensiontoggle.model.ToggleDimension;
 import org.bukkit.Location;

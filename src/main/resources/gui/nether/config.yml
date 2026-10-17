@@ -76,7 +76,7 @@ control-panel:
     name-off: "<gray>✖ Mob Spawning: Off"
     lore:
       - "<gray>Whether ANY mob can spawn at all"
-      - "<gray>in the Nether (vanilla doMobSpawning)."
+      - "<gray>in the Nether (gamerule spawn_mobs)."
       - ""
       - "<gold>➤ <gray>Click to toggle"
 
@@ -150,6 +150,8 @@ maintenance:
   status-active-lore: "<gray>Nether closes in <white>%seconds%s"
   status-idle: "<gray>No Countdown Running"
   status-idle-lore: "<gray>Pick a preset below to start one."
+  # Title of the anvil that opens for the custom time
+  custom-title: "<aqua><bold>Custom Time <dark_gray>| <gray>e.g. 1h30m"
   custom-button:
     name: "<aqua><bold>Custom Time"
     lore:

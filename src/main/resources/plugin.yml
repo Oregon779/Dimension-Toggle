@@ -1,7 +1,7 @@
 name: DimensionToggle
 version: '${project.version}'
 main: net.dimensiontoggle.DimensionToggle
-api-version: '1.21'
+api-version: '26.2'
 author: Stone Plugins
 description: Enable or disable the Nether and End on your server - with scheduling, maintenance windows, player limits, and lockdowns.
 folia-supported: false

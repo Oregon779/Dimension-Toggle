@@ -1,10 +1,18 @@
 package net.dimensiontoggle.manager;
 
 import net.dimensiontoggle.DimensionToggle;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Level;
 
 public class SoundManager {
@@ -123,12 +131,9 @@ public class SoundManager {
         if (soundName == null || soundName.isBlank()) {
             return;
         }
-        try {
-            Sound sound = Sound.valueOf(soundName.toUpperCase());
+        Sound sound = resolveSound(path, soundName);
+        if (sound != null) {
             player.playSound(player.getLocation(), sound, volume, pitch);
-        } catch (IllegalArgumentException ex) {
-            plugin.getLogger().log(Level.WARNING,
-                    "Invalid sound in the configuration ('" + path + "'): " + soundName);
         }
     }
 
@@ -141,16 +146,55 @@ public class SoundManager {
         if (soundName == null || soundName.isBlank()) {
             return;
         }
-        Sound sound;
-        try {
-            sound = Sound.valueOf(soundName.toUpperCase());
-        } catch (IllegalArgumentException ex) {
-            plugin.getLogger().log(Level.WARNING,
-                    "Invalid sound in the configuration ('" + path + "'): " + soundName);
+        Sound sound = resolveSound(path, soundName);
+        if (sound == null) {
             return;
         }
         for (Player player : targets) {
             player.playSound(player.getLocation(), sound, volume, pitch);
         }
+    }
+
+    // Sound.valueOf() is gone in Paper 26 (sounds live in a registry now).
+    // Configs keep working with the classic names (ENTITY_PLAYER_LEVELUP) and
+    // may also use Minecraft keys (entity.player.levelup / minecraft:...).
+    private Map<String, Sound> soundsByLegacyName;
+    private final Map<String, Optional<Sound>> resolvedSounds = new HashMap<>();
+    private final Set<String> warnedSounds = new HashSet<>();
+
+    private Sound resolveSound(String path, String soundName) {
+        String name = soundName.trim();
+        Sound sound = resolvedSounds.computeIfAbsent(name, this::lookupSound).orElse(null);
+        if (sound == null && warnedSounds.add(name)) {
+            plugin.getLogger().log(Level.WARNING,
+                    "Invalid sound in the configuration ('" + path + "'): " + soundName);
+        }
+        return sound;
+    }
+
+    private Optional<Sound> lookupSound(String name) {
+        if (name.indexOf('.') >= 0 || name.indexOf(':') >= 0) {
+            NamespacedKey key = NamespacedKey.fromString(name.toLowerCase(Locale.ROOT));
+            return Optional.ofNullable(key == null ? null : Registry.SOUNDS.get(key));
+        }
+        if (soundsByLegacyName == null) {
+            Map<String, Sound> byName = new HashMap<>();
+            Registry.SOUNDS.keyStream().forEach(key -> {
+                Sound sound = Registry.SOUNDS.get(key);
+                if (sound != null) {
+                    // entity.player.levelup -> ENTITY_PLAYER_LEVELUP, exactly how
+                    // the old enum constants were named.
+                    byName.put(key.getKey().replace('.', '_').toUpperCase(Locale.ROOT), sound);
+                }
+            });
+            soundsByLegacyName = byName;
+        }
+        return Optional.ofNullable(soundsByLegacyName.get(name.toUpperCase(Locale.ROOT)));
+    }
+
+    // Config edits (/dt reload) may introduce new names; forget old lookups.
+    public void clearCache() {
+        resolvedSounds.clear();
+        warnedSounds.clear();
     }
 }

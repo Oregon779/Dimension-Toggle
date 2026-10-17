@@ -1,6 +1,6 @@
 package net.dimensiontoggle;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
+import org.mockbukkit.mockbukkit.MockBukkit;
 import net.dimensiontoggle.model.ToggleDimension;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;

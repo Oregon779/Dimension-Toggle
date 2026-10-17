@@ -10,7 +10,7 @@ Permissions, Config-Optionen, der Editor und eine FAQ.
 
 ## Auf einen Blick
 
-- **Voraussetzungen:** Paper 1.21.x (getestet gegen 1.21.1), Java 21, kein Folia
+- **Voraussetzungen:** Paper 26.2 (oder Purpur), Java 25, kein Folia
 - **Installation:** Jar in `plugins/` legen, Server starten
 - **Bedienung:** `/dt editor` (Klick-Editor) oder die Commands unten
 - **Sprachen:** Deutsch und Englisch (`language` in der `config.yml`)
@@ -51,7 +51,7 @@ mvn test              # automatisierte Tests (JUnit 5 + MockBukkit)
 ```
 
 In IntelliJ: Maven-Fenster → **DimensionToggle → Lifecycle → package**.
-Benötigt Java 21 und Zugriff auf `repo.papermc.io`.
+Benötigt Java 25 und Zugriff auf `repo.papermc.io`.
 
 ## Update auf dem Server
 
@@ -1010,6 +1010,18 @@ Drag, Schließen beim Deaktivieren), Portal-Listener, Commands, Batch-Teleport.
 ---
 
 ## Version 3.3.0 (in Entwicklung)
+
+### Umstieg auf Minecraft 26.2
+- Läuft jetzt auf **Paper 26.2** und benötigt **Java 25** (`api-version: '26.2'`).
+  Ältere Server (1.21.x) werden ab dieser Version nicht mehr unterstützt.
+- **PvP** nutzt die neue Gamerule `pvp`, die Minecraft selbst in der Welt
+  speichert. Ein in `data.yml` gespeicherter PvP-Wert aus älteren Versionen
+  wird beim ersten Start einmal übernommen und dann entfernt.
+- **Sounds** in der Config: die klassischen Namen (`ENTITY_PLAYER_LEVELUP`)
+  funktionieren weiter, zusätzlich Minecraft-Keys (`entity.player.levelup`).
+- Der Amboss für die eigene Wartungszeit hat wieder einen eigenen Titel
+  (`maintenance.custom-title` in den GUI-Configs).
+- Keine veralteten Paper-APIs mehr im Code; Tests laufen mit MockBukkit 4.
 
 ### Bugfixes
 - **Portale mit Fahrzeug**: Wer in einem Boot, einer Lore oder auf einem

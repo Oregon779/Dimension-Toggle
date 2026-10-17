@@ -1,8 +1,9 @@
 package net.dimensiontoggle;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
+import org.mockbukkit.mockbukkit.MockBukkit;
+import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import net.dimensiontoggle.model.ToggleDimension;
+import org.bukkit.GameRules;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Entity;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -17,20 +19,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class LogicFixesTest extends PluginTestBase {
 
     @Test
-    void pvpToggleSurvivesARestart() {
-        assertTrue(nether.getPVP());
+    void pvpToggleUsesTheWorldGamerule() {
+        assertTrue(plugin.getPvpIntegrationManager().isPvpEnabled(ToggleDimension.NETHER));
         assertFalse(plugin.getPvpIntegrationManager().toggle(ToggleDimension.NETHER));
-        assertFalse(nether.getPVP());
 
+        // The world itself stores it now - nothing of ours needed on restart.
+        assertEquals(Boolean.FALSE, nether.getGameRuleValue(GameRules.PVP));
+        assertNotEquals(Boolean.FALSE, end.getGameRuleValue(GameRules.PVP), "other dimensions untouched");
+        assertFalse(plugin.getConfigManager().getData().contains("pvp"));
+    }
+
+    @Test
+    void pvpValueFromOlderVersionsIsMigratedIntoTheGameruleOnce() {
         server.getPluginManager().disablePlugin(plugin);
-        // World#setPVP isn't saved with the world - simulate the restart
-        // resetting it to the server default.
-        nether.setPVP(true);
+        // data.yml as written by 3.2.0 and earlier
+        org.bukkit.configuration.file.YamlConfiguration old =
+                org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(new java.io.File(plugin.getDataFolder(), "data.yml"));
+        old.set("pvp.nether", false);
+        try {
+            old.save(new java.io.File(plugin.getDataFolder(), "data.yml"));
+        } catch (java.io.IOException e) {
+            throw new AssertionError(e);
+        }
+
         DimensionToggle reloaded = MockBukkit.load(DimensionToggle.class);
         reloaded.getUpdateChecker().stop();
 
-        assertFalse(nether.getPVP());
-        assertTrue(end.getPVP(), "untouched dimensions keep the server's own setting");
+        assertEquals(Boolean.FALSE, nether.getGameRuleValue(GameRules.PVP));
+        assertFalse(reloaded.getConfigManager().getData().contains("pvp.nether"), "migrated value is dropped");
     }
 
     @Test

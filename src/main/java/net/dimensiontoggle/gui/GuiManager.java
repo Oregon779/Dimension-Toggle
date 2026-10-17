@@ -112,9 +112,16 @@ public class GuiManager implements Listener {
     // A real anvil menu: an inventory created via Bukkit.createInventory(ANVIL)
     // only looks like an anvil to the client - the server ignores rename input
     // for it, so PrepareAnvilEvent/getRenameText never see what was typed.
+    // MenuType (Paper 26) also lets the anvil carry the configured title again.
     private void openMaintenanceCustom(Player player, ToggleDimension dimension) {
-        InventoryView view = player.openAnvil(null, true);
-        if (view == null) {
+        String rawTitle = plugin.getGuiConfigManager().getFor(dimension)
+                .getString("maintenance.custom-title", "<aqua><bold>Custom Time");
+        AnvilView view = org.bukkit.inventory.MenuType.ANVIL.builder()
+                .title(plugin.getMessageManager().parse(rawTitle))
+                .checkReachable(false)
+                .build(player);
+        player.openInventory(view);
+        if (player.getOpenInventory() != view) {
             return;
         }
         ItemStack hint = new ItemStack(Material.PAPER);

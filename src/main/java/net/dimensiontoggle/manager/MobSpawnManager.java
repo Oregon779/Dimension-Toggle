@@ -3,7 +3,7 @@ package net.dimensiontoggle.manager;
 import net.dimensiontoggle.DimensionToggle;
 import net.dimensiontoggle.model.ToggleDimension;
 import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
+import org.bukkit.GameRules;
 import org.bukkit.World;
 
 public class MobSpawnManager {
@@ -17,7 +17,7 @@ public class MobSpawnManager {
     public boolean isEnabled(ToggleDimension dimension) {
         for (World world : Bukkit.getWorlds()) {
             if (world.getEnvironment() == dimension.getEnvironment()) {
-                Boolean value = world.getGameRuleValue(GameRule.DO_MOB_SPAWNING);
+                Boolean value = world.getGameRuleValue(GameRules.SPAWN_MOBS);
                 return value == null || value;
             }
         }
@@ -27,7 +27,7 @@ public class MobSpawnManager {
     public void setEnabled(ToggleDimension dimension, boolean enabled) {
         for (World world : Bukkit.getWorlds()) {
             if (world.getEnvironment() == dimension.getEnvironment()) {
-                world.setGameRule(GameRule.DO_MOB_SPAWNING, enabled);
+                world.setGameRule(GameRules.SPAWN_MOBS, enabled);
             }
         }
     }
