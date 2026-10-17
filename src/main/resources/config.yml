@@ -350,3 +350,98 @@ logging:
 update-checker:
   enabled: true
   check-interval-minutes: 60
+
+# =====================================================================
+#   OVERWORLD & PERFORMANCE
+# =====================================================================
+# Everything below is managed in /dt editor -> Overworld. Features that
+# change how the game behaves are OFF by default - switch them on there or
+# here. The lag tools (/lagmap, /dt redstone, /dt chunkloaders) work on all
+# worlds and are always available.
+
+# /lagmap - the busiest chunks of all worlds
+lagmap:
+  # How many chunks are shown (max 14 in the menu)
+  top: 10
+  # Lag score = sum of (count x weight). Higher weight = counts more.
+  weights:
+    mob: 3
+    item: 1
+    other-entity: 1
+    hopper: 4
+    block-entity: 1
+
+# Freezes big animal farms: animals of one type in one chunk lose their AI
+# and collision once there are at least "group-size" of them. A player
+# hitting one wakes that animal up again (so killing/collecting works).
+# Named, tamed and leashed animals are never touched.
+# Turn this off BEFORE removing the plugin - frozen animals stay frozen.
+farm-limiter:
+  enabled: false
+  group-size: 20
+  check-interval-seconds: 30
+
+# Max animals/villagers of ONE type per chunk. Beyond that, breeding and
+# spawning (eggs, spawners, natural) are blocked. Commands/plugins are
+# never blocked.
+entity-cap:
+  enabled: false
+  max-per-chunk: 40
+
+# Villagers that haven't moved for "idle-minutes" (trading halls) lose their
+# AI. Trading keeps working; they are restocked twice per Minecraft day.
+# Hitting one gives its AI back.
+villager-optimizer:
+  enabled: false
+  idle-minutes: 5
+
+# Removes items lying on the ground, with chat warnings beforehand.
+item-cleaner:
+  enabled: false
+  interval-minutes: 10
+  # Seconds before the cleanup at which a warning is shown
+  warnings: [60, 30, 10]
+  # Only items that have been lying there at least this long
+  min-age-seconds: 60
+  include-xp-orbs: false
+
+# Lowers the view distance of AFK players and restores it as soon as they
+# move, look around, chat or use a command.
+# Bypass permission: dimensiontoggle.afk.bypass
+afk-view:
+  enabled: false
+  afk-minutes: 5
+  view-distance: 2
+  # Simulation distance while AFK. -1 = unchanged, so AFK farms keep running.
+  simulation-distance: -1
+  notify-player: true
+
+# Counts redstone power changes and piston moves per chunk (20 s window).
+redstone-meter:
+  enabled: true
+  # Updates per second in one chunk that trigger a staff warning
+  # (permission dimensiontoggle.performance.notify). 0 = no warnings.
+  alert-per-second: 100
+
+# Watches the server load (MSPT = milliseconds per tick, 50 = limit for
+# 20 TPS). Above "activate-mspt" for 60 s it turns on AFK view reduction and
+# the farm limiter (stricter values below) - even if they are switched off -
+# until the load stays below "recover-mspt" for 120 s.
+auto-performance:
+  enabled: false
+  activate-mspt: 45
+  recover-mspt: 35
+  afk-minutes: 2
+  farm-group-size: 10
+
+# A small read-only website with TPS, MSPT, memory, worlds and the busiest
+# chunks. /dt web shows the link. Needs a free port (on rented servers this
+# usually has to be added as an extra port in your host's panel).
+web:
+  enabled: false
+  port: 8105
+  bind-address: "0.0.0.0"
+  # Address shown by /dt web, e.g. "http://play.example.net:8105"
+  public-url: ""
+  # Without the secret token from /dt web the page can't be opened.
+  require-token: true

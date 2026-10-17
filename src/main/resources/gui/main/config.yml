@@ -26,6 +26,16 @@ emblem:
   lore:
     - "<dark_gray>A plugin by Stone Plugins"
 
+overworld-head:
+  name: "<gradient:#86EFAC:#16A34A><bold>Overworld</bold></gradient> <dark_gray>& <gray>Performance"
+  lore:
+    - "<gray>TPS: <white>%tps% <dark_gray>| <gray>MSPT: <white>%mspt%"
+    - ""
+    - "<gray>Mob spawning, farm limiter, AFK view,"
+    - "<gray>lagmap, redstone, chunk loaders …"
+    - ""
+    - "<gold>➤ <gray>Click to open"
+
 lockdown-button:
   name-active: "<gradient:#F87171:#DC2626><bold>⚠ Lift Lockdown</bold></gradient>"
   name-inactive: "<gray><bold>Lockdown"

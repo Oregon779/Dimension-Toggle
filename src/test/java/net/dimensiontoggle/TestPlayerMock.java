@@ -20,4 +20,39 @@ public class TestPlayerMock extends PlayerMock {
     public CompletableFuture<Boolean> teleportAsync(Location location, TeleportCause cause, TeleportFlag... flags) {
         return CompletableFuture.completedFuture(teleport(location, cause));
     }
+
+    // Per-player view/simulation distance (unimplemented in MockBukkit).
+    private int viewDistance = 10;
+    private int sendViewDistance = 10;
+    private int simulationDistance = 10;
+
+    @Override
+    public int getViewDistance() {
+        return viewDistance;
+    }
+
+    @Override
+    public void setViewDistance(int viewDistance) {
+        this.viewDistance = viewDistance;
+    }
+
+    @Override
+    public int getSendViewDistance() {
+        return sendViewDistance;
+    }
+
+    @Override
+    public void setSendViewDistance(int sendViewDistance) {
+        this.sendViewDistance = sendViewDistance;
+    }
+
+    @Override
+    public int getSimulationDistance() {
+        return simulationDistance;
+    }
+
+    @Override
+    public void setSimulationDistance(int simulationDistance) {
+        this.simulationDistance = simulationDistance;
+    }
 }

@@ -3,7 +3,11 @@
 Paper-Plugin zum Aktivieren/Deaktivieren von Nether und End – mit
 Wartungsmodus, Zeitplan, Soft-Lock, Lockdown, Spielerlimits, Mob-Management,
 World Border, PvP-/Keep-Inventory-/Elytra-Schaltern, Logging und einem
-kompletten Klick-Editor im Spiel (`/dt editor`).
+kompletten Klick-Editor im Spiel (`/dt editor`). Dazu eine Overworld- und
+Performance-Ebene: Farm-Limiter, Entity-Cap, Villager-Optimierer,
+Item-Aufräumer, AFK-Sichtweite, Auto-Performance-Modus, `/lagmap`,
+Redstone-Meter, Chunk-Loader-Melder, Performance-Website, PlaceholderAPI und
+bStats.
 
 **📖 Komplette Anleitung: [WIKI.md](WIKI.md)** – alle Features, Commands,
 Permissions, Config-Optionen, der Editor und eine FAQ.
@@ -29,6 +33,10 @@ Permissions, Config-Optionen, der Editor und eine FAQ.
 | `/dt maintenance <nether\|end> cancel` | Countdown abbrechen / Wartung beenden | `dimensiontoggle.admin` |
 | `/dt reload` | Configs, Sprachdatei und GUI-Texte neu laden | `dimensiontoggle.admin` |
 | `/dt checkupdate` | Sofort auf Modrinth nach Updates suchen | `dimensiontoggle.admin` |
+| `/dt lagmap [chat]` / `/lagmap` | Vollste Chunks aller Welten (Klick = Teleport) | `dimensiontoggle.lagmap` |
+| `/dt redstone [chat]` | Chunks mit dem schnellsten Redstone | `dimensiontoggle.redstone` |
+| `/dt chunkloaders [chat]` | Chunks, die ohne Spieler geladen sind | `dimensiontoggle.chunkloaders` |
+| `/dt web [reset-token]` | Link zur Performance-Website | `dimensiontoggle.performance` |
 | `/dt help` | Zeigt die Commands, die man nutzen darf | – |
 
 Aliase: `/dt`, `/dimtoggle`. Details: [WIKI.md → Commands](WIKI.md#4-commands).
@@ -42,6 +50,10 @@ Aliase: `/dt`, `/dimtoggle`. Details: [WIKI.md → Commands](WIKI.md#4-commands)
 | `dimensiontoggle.bypass` | OP | Ignoriert Sperre, Soft-Lock, Limit, Gateway- und Elytra-Sperre |
 | `dimensiontoggle.bypass.limit.nether` | OP | Nur das Nether-Limit ignorieren |
 | `dimensiontoggle.bypass.limit.end` | OP | Nur das End-Limit ignorieren |
+| `dimensiontoggle.lagmap` / `.redstone` / `.chunkloaders` | OP | Die jeweiligen Lag-Werkzeuge |
+| `dimensiontoggle.performance` | OP | `/dt web` |
+| `dimensiontoggle.performance.notify` | OP | Redstone- und Auto-Performance-Warnungen |
+| `dimensiontoggle.afk.bypass` | niemand | Sichtweite wird bei AFK nie gesenkt |
 
 ## Bauen
 
@@ -1022,6 +1034,35 @@ Drag, Schließen beim Deaktivieren), Portal-Listener, Commands, Batch-Teleport.
 - Der Amboss für die eigene Wartungszeit hat wieder einen eigenen Titel
   (`maintenance.custom-title` in den GUI-Configs).
 - Keine veralteten Paper-APIs mehr im Code; Tests laufen mit MockBukkit 4.
+
+### Neu: Overworld & Performance
+Neuer Bereich im Editor (Grasblock im Hauptmenü). Alles, was das
+Spielverhalten verändert, ist standardmäßig **aus**.
+- **Mob-Kontrolle für die Overworld**: Gamerule `spawn_mobs` und
+  Mob-Management für 28 Overworld-Mobs (wie bei Nether/End).
+- **Farm-Limiter**: große Tiergruppen (Standard ab 20 einer Art pro Chunk)
+  verlieren KI und Kollision, bis ein Spieler eines der Tiere schlägt.
+- **Entity-Cap**: max. Tiere/Dorfbewohner eines Typs pro Chunk (Standard 40),
+  darüber kein Züchten/Spawnen mehr.
+- **Villager-Optimierer**: stillstehende Dorfbewohner (Handelshallen)
+  verlieren ihre KI, Handel funktioniert weiter, Auffüllen 2× pro Tag.
+- **Item-Aufräumer**: entfernt liegende Items mit Chat-Warnungen.
+- **AFK-Sichtweite**: Sichtweite (optional Simulationsdistanz) von
+  AFK-Spielern wird gesenkt und bei Aktivität sofort wiederhergestellt.
+- **Auto-Performance-Modus**: bei anhaltend hoher MSPT laufen AFK-Sichtweite
+  und Farm-Limiter automatisch (strenger), bis die Last wieder sinkt.
+- **`/lagmap`** (auch `/dt lagmap`): Top 10 der vollsten Chunks aller Welten
+  mit Entities, Mobs, Items, Hoppern und Block-Entities, sortierbar,
+  Klick = Teleport, doppelter Shift-Klick = aufräumen. Auch als Chat-Liste.
+- **Redstone-Meter** (`/dt redstone`): schnellste Redstone-Chunks, optionale
+  Staff-Warnung.
+- **Chunk-Loader-Melder** (`/dt chunkloaders`): Chunks, die ohne Spieler in
+  der Nähe tickend geladen sind, mit Grund (/forceload, Plugin, Enderperle).
+- **Performance-Website** (`/dt web`): TPS, MSPT, RAM, CPU, Welten,
+  vollste Chunks und Verlauf der letzten Stunde im Browser, geschützt durch
+  einen geheimen Token. Standardmäßig aus (braucht einen freien Port).
+- **PlaceholderAPI**: `%dimensiontoggle_nether_status%` u.v.m.
+- **bStats**-Unterstützung.
 
 ### Bugfixes
 - **Portale mit Fahrzeug**: Wer in einem Boot, einer Lore oder auf einem

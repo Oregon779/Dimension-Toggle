@@ -23,10 +23,29 @@ import net.dimensiontoggle.manager.SoundManager;
 import net.dimensiontoggle.manager.SpawnerToggleManager;
 import net.dimensiontoggle.manager.UpdateChecker;
 import net.dimensiontoggle.model.ToggleDimension;
+import net.dimensiontoggle.performance.AfkViewManager;
+import net.dimensiontoggle.performance.AutoPerformanceManager;
+import net.dimensiontoggle.performance.ChunkLoaderDetector;
+import net.dimensiontoggle.performance.ChunkReports;
+import net.dimensiontoggle.performance.EntityCapListener;
+import net.dimensiontoggle.performance.FarmLimiter;
+import net.dimensiontoggle.performance.FreezeListener;
+import net.dimensiontoggle.performance.ItemCleaner;
+import net.dimensiontoggle.performance.LagMapScanner;
+import net.dimensiontoggle.performance.PerformanceMonitor;
+import net.dimensiontoggle.performance.RedstoneMeter;
+import net.dimensiontoggle.performance.VillagerOptimizer;
+import net.dimensiontoggle.performance.web.PerformanceWebServer;
+import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class DimensionToggle extends JavaPlugin {
+
+    // bStats plugin id from https://bstats.org/what-is-my-plugin-id
+    // (register the plugin there once). 0 = metrics are not sent.
+    static final int BSTATS_PLUGIN_ID = 0;
 
     private static DimensionToggle instance;
 
@@ -50,6 +69,17 @@ public class DimensionToggle extends JavaPlugin {
     private PvpIntegrationManager pvpIntegrationManager;
     private SpawnerToggleManager spawnerToggleManager;
     private DashboardStatsManager dashboardStatsManager;
+    private PerformanceMonitor performanceMonitor;
+    private LagMapScanner lagMapScanner;
+    private RedstoneMeter redstoneMeter;
+    private ChunkLoaderDetector chunkLoaderDetector;
+    private ChunkReports chunkReports;
+    private FarmLimiter farmLimiter;
+    private VillagerOptimizer villagerOptimizer;
+    private ItemCleaner itemCleaner;
+    private AfkViewManager afkViewManager;
+    private AutoPerformanceManager autoPerformanceManager;
+    private PerformanceWebServer performanceWebServer;
 
     @Override
     public void onEnable() {
@@ -76,6 +106,17 @@ public class DimensionToggle extends JavaPlugin {
         this.pvpIntegrationManager = new PvpIntegrationManager(this);
         this.spawnerToggleManager = new SpawnerToggleManager(this);
         this.dashboardStatsManager = new DashboardStatsManager(this);
+        this.performanceMonitor = new PerformanceMonitor(this);
+        this.lagMapScanner = new LagMapScanner(this);
+        this.redstoneMeter = new RedstoneMeter(this);
+        this.chunkLoaderDetector = new ChunkLoaderDetector(this);
+        this.chunkReports = new ChunkReports(this);
+        this.autoPerformanceManager = new AutoPerformanceManager(this);
+        this.farmLimiter = new FarmLimiter(this);
+        this.villagerOptimizer = new VillagerOptimizer(this);
+        this.itemCleaner = new ItemCleaner(this);
+        this.afkViewManager = new AfkViewManager(this);
+        this.performanceWebServer = new PerformanceWebServer(this);
         this.guiConfigManager = new GuiConfigManager(this);
         this.guiConfigManager.loadAll();
         this.guiManager = new GuiManager(this);
@@ -89,11 +130,59 @@ public class DimensionToggle extends JavaPlugin {
         mobManagementManager.start();
         dashboardStatsManager.start();
         guiManager.start();
+        startPerformanceFeatures();
+        hookPlaceholderApi();
+        startMetrics();
 
         getLogger().info("Config loaded (" + safeLanguage() + "), Nether "
                 + (dimensionManager.isEnabled(ToggleDimension.NETHER) ? "enabled" : "disabled")
                 + " / End " + (dimensionManager.isEnabled(ToggleDimension.END) ? "enabled" : "disabled")
                 + " - commands, listeners, GUI and update checker ready.");
+    }
+
+    // Also used by /dt reload so changed settings take effect immediately.
+    public void startPerformanceFeatures() {
+        performanceMonitor.start();
+        redstoneMeter.start();
+        autoPerformanceManager.start();
+        farmLimiter.start();
+        villagerOptimizer.start();
+        itemCleaner.start();
+        afkViewManager.start();
+        performanceWebServer.start();
+    }
+
+    private void stopPerformanceFeatures() {
+        performanceWebServer.stop();
+        afkViewManager.stop();
+        itemCleaner.stop();
+        villagerOptimizer.stop();
+        farmLimiter.stop();
+        autoPerformanceManager.stop();
+        redstoneMeter.stop();
+        performanceMonitor.stop();
+    }
+
+    private void hookPlaceholderApi() {
+        if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new net.dimensiontoggle.hook.PlaceholderHook(this).register();
+            getLogger().info("PlaceholderAPI found - %dimensiontoggle_...% placeholders registered.");
+        }
+    }
+
+    private void startMetrics() {
+        if (BSTATS_PLUGIN_ID <= 0) {
+            return;
+        }
+        Metrics metrics = new Metrics(this, BSTATS_PLUGIN_ID);
+        metrics.addCustomChart(new SimplePie("language", this::safeLanguage));
+        metrics.addCustomChart(new SimplePie("nether_enabled",
+                () -> String.valueOf(dimensionManager.isEnabled(ToggleDimension.NETHER))));
+        metrics.addCustomChart(new SimplePie("end_enabled",
+                () -> String.valueOf(dimensionManager.isEnabled(ToggleDimension.END))));
+        metrics.addCustomChart(new SimplePie("farm_limiter", () -> String.valueOf(farmLimiter.isConfiguredOn())));
+        metrics.addCustomChart(new SimplePie("afk_view", () -> String.valueOf(afkViewManager.isConfiguredOn())));
+        metrics.addCustomChart(new SimplePie("web_dashboard", () -> String.valueOf(performanceWebServer.isRunning())));
     }
 
     private String safeLanguage() {
@@ -136,6 +225,9 @@ public class DimensionToggle extends JavaPlugin {
         if (guiManager != null) {
             guiManager.stop();
         }
+        if (performanceMonitor != null) {
+            stopPerformanceFeatures();
+        }
         // Let queued writes (log lines, config edits, data.yml) finish first,
         // then write the final state synchronously so nothing is lost.
         if (ioExecutor != null) {
@@ -153,6 +245,12 @@ public class DimensionToggle extends JavaPlugin {
             DimensionToggleCommand executor = new DimensionToggleCommand(this);
             command.setExecutor(executor);
             command.setTabCompleter(executor);
+            // /lagmap is a shortcut for /dt lagmap - same code, same checks.
+            PluginCommand lagmap = getCommand("lagmap");
+            if (lagmap != null) {
+                lagmap.setExecutor(executor.prefixed("lagmap"));
+                lagmap.setTabCompleter(executor.prefixed("lagmap"));
+            }
         } else {
             getLogger().warning("Could not register the 'dimensiontoggle' command. Check plugin.yml!");
         }
@@ -166,6 +264,10 @@ public class DimensionToggle extends JavaPlugin {
         getServer().getPluginManager().registerEvents(mobManagementManager, this);
         getServer().getPluginManager().registerEvents(spawnerToggleManager, this);
         getServer().getPluginManager().registerEvents(pvpIntegrationManager, this);
+        getServer().getPluginManager().registerEvents(redstoneMeter, this);
+        getServer().getPluginManager().registerEvents(afkViewManager, this);
+        getServer().getPluginManager().registerEvents(new FreezeListener(this), this);
+        getServer().getPluginManager().registerEvents(new EntityCapListener(this), this);
     }
 
     public static DimensionToggle getInstance() {
@@ -250,5 +352,49 @@ public class DimensionToggle extends JavaPlugin {
 
     public DashboardStatsManager getDashboardStatsManager() {
         return dashboardStatsManager;
+    }
+
+    public PerformanceMonitor getPerformanceMonitor() {
+        return performanceMonitor;
+    }
+
+    public LagMapScanner getLagMapScanner() {
+        return lagMapScanner;
+    }
+
+    public RedstoneMeter getRedstoneMeter() {
+        return redstoneMeter;
+    }
+
+    public ChunkLoaderDetector getChunkLoaderDetector() {
+        return chunkLoaderDetector;
+    }
+
+    public ChunkReports getChunkReports() {
+        return chunkReports;
+    }
+
+    public FarmLimiter getFarmLimiter() {
+        return farmLimiter;
+    }
+
+    public VillagerOptimizer getVillagerOptimizer() {
+        return villagerOptimizer;
+    }
+
+    public ItemCleaner getItemCleaner() {
+        return itemCleaner;
+    }
+
+    public AfkViewManager getAfkViewManager() {
+        return afkViewManager;
+    }
+
+    public AutoPerformanceManager getAutoPerformanceManager() {
+        return autoPerformanceManager;
+    }
+
+    public PerformanceWebServer getPerformanceWebServer() {
+        return performanceWebServer;
     }
 }

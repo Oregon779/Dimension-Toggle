@@ -4,6 +4,8 @@ import net.dimensiontoggle.DimensionToggle;
 import net.dimensiontoggle.config.ConfigValueWriter;
 import net.dimensiontoggle.manager.MaintenanceManager;
 import net.dimensiontoggle.model.ToggleDimension;
+import net.dimensiontoggle.model.WorldScope;
+import net.dimensiontoggle.performance.LagMapScanner;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
@@ -31,7 +33,17 @@ import java.util.UUID;
 
 public class GuiManager implements Listener {
 
-    private enum MenuType { MAIN, DIMENSION, PLAYERLIST, MAINTENANCE, MAINTENANCE_CUSTOM, SCHEDULE, MOBMANAGEMENT, WORLDBORDER }
+    private enum MenuType {
+        MAIN, DIMENSION, PLAYERLIST, MAINTENANCE, MAINTENANCE_CUSTOM, SCHEDULE, MOBMANAGEMENT, WORLDBORDER,
+        OVERWORLD, OVERWORLD_MOBS, REPORT_LAG, REPORT_REDSTONE, REPORT_LOADERS
+    }
+
+    // Shift-click cleanup in the lag map needs a second shift-click on the
+    // same chunk within this time.
+    private static final long CLEANUP_CONFIRM_MILLIS = 5000;
+
+    private record PendingCleanup(String chunkId, long until) {
+    }
 
     // `inventory` is the exact top inventory this menu was opened with. Every
     // refresh/click checks it against what the player is actually looking at,
@@ -42,6 +54,8 @@ public class GuiManager implements Listener {
 
     private final DimensionToggle plugin;
     private final Map<UUID, OpenMenu> openMenus = new HashMap<>();
+    private final Map<UUID, LagMapScanner.Sort> lagSort = new HashMap<>();
+    private final Map<UUID, PendingCleanup> pendingCleanup = new HashMap<>();
     private BukkitTask refreshTask;
 
     public GuiManager(DimensionToggle plugin) {
@@ -84,26 +98,47 @@ public class GuiManager implements Listener {
         open(player, MenuType.MAIN, null);
     }
 
+    public void openLagmap(Player player) {
+        plugin.getLagMapScanner().invalidate();
+        open(player, MenuType.REPORT_LAG, null);
+    }
+
+    public void openRedstone(Player player) {
+        open(player, MenuType.REPORT_REDSTONE, null);
+    }
+
+    public void openChunkLoaders(Player player) {
+        open(player, MenuType.REPORT_LOADERS, null);
+    }
+
     private void open(Player player, MenuType type, ToggleDimension dimension) {
         if (type == MenuType.MAINTENANCE_CUSTOM) {
             openMaintenanceCustom(player, dimension);
             return;
         }
-        Inventory inventory = build(type, dimension);
+        Inventory inventory = build(type, dimension, player.getUniqueId());
         player.openInventory(inventory);
         // After openInventory: opening fires the close event for the previous
         // menu, which removes its entry.
         openMenus.put(player.getUniqueId(), new OpenMenu(type, dimension, inventory));
     }
 
-    private Inventory build(MenuType type, ToggleDimension dimension) {
+    private Inventory build(MenuType type, ToggleDimension dimension, UUID viewer) {
         return switch (type) {
             case MAIN -> MainGuiBuilder.build(plugin);
             case DIMENSION -> DimensionGuiBuilder.build(plugin, dimension);
             case PLAYERLIST -> PlayerListGuiBuilder.build(plugin, dimension);
             case MAINTENANCE -> MaintenanceGuiBuilder.build(plugin, dimension);
             case SCHEDULE -> ScheduleGuiBuilder.build(plugin, dimension);
-            case MOBMANAGEMENT -> MobManagementGuiBuilder.build(plugin, dimension);
+            case MOBMANAGEMENT -> MobManagementGuiBuilder.build(plugin, WorldScope.of(dimension));
+            case OVERWORLD -> OverworldGuiBuilder.build(plugin);
+            case OVERWORLD_MOBS -> MobManagementGuiBuilder.build(plugin, WorldScope.OVERWORLD);
+            case REPORT_LAG -> ChunkReportGuiBuilder.build(plugin, ChunkReportGuiBuilder.Mode.LAG,
+                    lagSort.getOrDefault(viewer, LagMapScanner.Sort.SCORE), pendingChunk(viewer));
+            case REPORT_REDSTONE -> ChunkReportGuiBuilder.build(plugin, ChunkReportGuiBuilder.Mode.REDSTONE,
+                    LagMapScanner.Sort.SCORE, null);
+            case REPORT_LOADERS -> ChunkReportGuiBuilder.build(plugin, ChunkReportGuiBuilder.Mode.LOADERS,
+                    LagMapScanner.Sort.SCORE, null);
             case WORLDBORDER -> WorldBorderGuiBuilder.build(plugin, dimension);
             case MAINTENANCE_CUSTOM -> throw new IllegalArgumentException("Anvil menu is not built from a builder");
         };
@@ -140,12 +175,22 @@ public class GuiManager implements Listener {
     // Menus showing live data (countdowns, player counts, dashboard) - the
     // others only change when clicked and are refreshed right after that.
     private static final java.util.Set<MenuType> LIVE_MENUS = java.util.EnumSet.of(
-            MenuType.MAIN, MenuType.DIMENSION, MenuType.PLAYERLIST, MenuType.MAINTENANCE, MenuType.MOBMANAGEMENT);
+            MenuType.MAIN, MenuType.DIMENSION, MenuType.PLAYERLIST, MenuType.MAINTENANCE, MenuType.MOBMANAGEMENT,
+            MenuType.OVERWORLD, MenuType.OVERWORLD_MOBS);
 
-    private void refreshInPlace(OpenMenu menu) {
+    private void refreshInPlace(OpenMenu menu, UUID viewer) {
         if (menu.type() != MenuType.MAINTENANCE_CUSTOM) {
-            menu.inventory().setContents(build(menu.type(), menu.dimension()).getContents());
+            menu.inventory().setContents(build(menu.type(), menu.dimension(), viewer).getContents());
         }
+    }
+
+    private String pendingChunk(UUID viewer) {
+        PendingCleanup pending = pendingCleanup.get(viewer);
+        if (pending == null || pending.until() < System.currentTimeMillis()) {
+            pendingCleanup.remove(viewer);
+            return null;
+        }
+        return pending.chunkId();
     }
 
     private void refreshAll() {
@@ -157,7 +202,7 @@ public class GuiManager implements Listener {
                 continue;
             }
             if (LIVE_MENUS.contains(menu.type())) {
-                refreshInPlace(menu);
+                refreshInPlace(menu, entry.getKey());
             }
         }
     }
@@ -180,7 +225,7 @@ public class GuiManager implements Listener {
     }
 
     private void refresh(Player player, OpenMenu menu) {
-        afterClick(player, menu, () -> refreshInPlace(menu));
+        afterClick(player, menu, () -> refreshInPlace(menu, player.getUniqueId()));
     }
 
     @EventHandler
@@ -197,6 +242,12 @@ public class GuiManager implements Listener {
             event.getInventory().clear();
         }
         openMenus.remove(player.getUniqueId());
+    }
+
+    @EventHandler
+    public void onQuit(org.bukkit.event.player.PlayerQuitEvent event) {
+        lagSort.remove(event.getPlayer().getUniqueId());
+        pendingCleanup.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
@@ -295,6 +346,7 @@ public class GuiManager implements Listener {
         switch (action) {
             case "MAIN_OPEN_NETHER" -> navigate(player, menu, MenuType.DIMENSION, ToggleDimension.NETHER);
             case "MAIN_OPEN_END" -> navigate(player, menu, MenuType.DIMENSION, ToggleDimension.END);
+            case "MAIN_OPEN_OVERWORLD" -> navigate(player, menu, MenuType.OVERWORLD, null);
             case "MAIN_LOCKDOWN" -> {
                 plugin.getDimensionManager().toggleLockdownWithBroadcast(player);
                 refresh(player, menu);
@@ -344,8 +396,71 @@ public class GuiManager implements Listener {
             }
             case "DIM_BACK" -> navigate(player, menu, MenuType.MAIN, null);
 
-            case "PLIST_BACK", "MAINT_BACK", "SCHED_BACK", "MOB_BACK", "WB_BACK" ->
+            case "MOB_BACK" -> navigate(player, menu,
+                    menu.type() == MenuType.OVERWORLD_MOBS ? MenuType.OVERWORLD : MenuType.DIMENSION, dim);
+            case "PLIST_BACK", "MAINT_BACK", "SCHED_BACK", "WB_BACK" ->
                     navigate(player, menu, MenuType.DIMENSION, dim);
+
+            case "OW_BACK" -> navigate(player, menu, MenuType.MAIN, null);
+            case "OW_MOBMANAGEMENT" -> navigate(player, menu, MenuType.OVERWORLD_MOBS, null);
+            case "OW_MOBSPAWN" -> {
+                plugin.getMobSpawnManager().toggle(WorldScope.OVERWORLD);
+                refresh(player, menu);
+            }
+            case "OW_FARMLIMITER" -> {
+                boolean on = toggleConfigFlag(player, "farm-limiter", "enabled", false);
+                if (on) {
+                    plugin.getFarmLimiter().start();
+                } else if (!plugin.getFarmLimiter().isActive()) {
+                    plugin.getFarmLimiter().unfreezeAll();
+                }
+                refresh(player, menu);
+            }
+            case "OW_ENTITYCAP" -> {
+                toggleConfigFlag(player, "entity-cap", "enabled", false);
+                refresh(player, menu);
+            }
+            case "OW_VILLAGER" -> {
+                if (!toggleConfigFlag(player, "villager-optimizer", "enabled", false)) {
+                    plugin.getVillagerOptimizer().unfreezeAll();
+                }
+                refresh(player, menu);
+            }
+            case "OW_ITEMCLEANER" -> {
+                toggleConfigFlag(player, "item-cleaner", "enabled", false);
+                plugin.getItemCleaner().start();
+                refresh(player, menu);
+            }
+            case "OW_AFKVIEW" -> {
+                if (!toggleConfigFlag(player, "afk-view", "enabled", false) && !plugin.getAfkViewManager().isActive()) {
+                    plugin.getAfkViewManager().restoreAll();
+                }
+                refresh(player, menu);
+            }
+            case "OW_AUTOPERF" -> {
+                toggleConfigFlag(player, "auto-performance", "enabled", false);
+                refresh(player, menu);
+            }
+            case "OW_LAGMAP" -> {
+                plugin.getLagMapScanner().invalidate();
+                navigate(player, menu, MenuType.REPORT_LAG, null);
+            }
+            case "OW_REDSTONE" -> navigate(player, menu, MenuType.REPORT_REDSTONE, null);
+            case "OW_CHUNKLOADERS" -> navigate(player, menu, MenuType.REPORT_LOADERS, null);
+            case "OW_WEB" -> afterClick(player, menu, () -> {
+                player.closeInventory();
+                player.performCommand("dt web");
+            });
+
+            case "CR_BACK" -> navigate(player, menu, MenuType.OVERWORLD, null);
+            case "CR_REFRESH" -> {
+                plugin.getLagMapScanner().invalidate();
+                refresh(player, menu);
+            }
+            case "CR_SORT" -> {
+                lagSort.merge(player.getUniqueId(), LagMapScanner.Sort.SCORE.next(), (old, ignored) -> old.next());
+                refresh(player, menu);
+            }
 
             case "MAINT_CANCEL" -> {
                 plugin.getMaintenanceManager().cancel(dim, player);
@@ -373,7 +488,9 @@ public class GuiManager implements Listener {
 
     private void handlePrefixedAction(Player player, OpenMenu menu, String action, ClickType click) {
         ToggleDimension dim = menu.dimension();
-        if (action.startsWith("PLIST_TP_")) {
+        if (action.startsWith("CR_TP|")) {
+            handleReportEntry(player, menu, action.substring("CR_TP|".length()), click);
+        } else if (action.startsWith("PLIST_TP_")) {
             teleportToPlayer(player, menu, action.substring("PLIST_TP_".length()));
         } else if (action.startsWith("MAINT_START_")) {
             startMaintenance(player, dim, action.substring("MAINT_START_".length()));
@@ -385,7 +502,8 @@ public class GuiManager implements Listener {
             setScheduleTime(dim, "close-time", action.substring("SCHED_CLOSE_".length()));
             refresh(player, menu);
         } else if (action.startsWith("MOB_TOGGLE_")) {
-            handleMobToggle(dim, action.substring("MOB_TOGGLE_".length()), click);
+            handleMobToggle(menu.type() == MenuType.OVERWORLD_MOBS ? WorldScope.OVERWORLD : WorldScope.of(dim),
+                    action.substring("MOB_TOGGLE_".length()), click);
             refresh(player, menu);
         } else if (action.equals("WB_ADJUST")) {
             adjustWorldBorder(dim, click);
@@ -398,6 +516,56 @@ public class GuiManager implements Listener {
             }
             refresh(player, menu);
         }
+    }
+
+    // Flips a feature's "enabled" flag in memory and in config.yml (keeping
+    // the file's comments). Returns the new value.
+    private boolean toggleConfigFlag(Player player, String section, String key, boolean def) {
+        String path = section + "." + key;
+        boolean value = !plugin.getConfigManager().getConfig().getBoolean(path, def);
+        plugin.getConfigManager().getConfig().set(path, value);
+        plugin.getConfigManager().persistConfigEdit(path,
+                file -> ConfigValueWriter.setNestedValue(file, String.valueOf(value), section, key));
+        plugin.getLogManager().log(player, value ? "FEATURE ON" : "FEATURE OFF", null, section);
+        return value;
+    }
+
+    // Report entries: click = teleport there. In the lag map, shift-click
+    // cleans the chunk - but only after a second shift-click to confirm.
+    private void handleReportEntry(Player player, OpenMenu menu, String chunkId, ClickType click) {
+        String[] parts = chunkId.split("\\|");
+        if (parts.length != 3) {
+            return;
+        }
+        int x;
+        int z;
+        try {
+            x = Integer.parseInt(parts[1]);
+            z = Integer.parseInt(parts[2]);
+        } catch (NumberFormatException e) {
+            return;
+        }
+        String world = parts[0];
+        if (menu.type() == MenuType.REPORT_LAG && click.isShiftClick()) {
+            if (chunkId.equals(pendingChunk(player.getUniqueId()))) {
+                pendingCleanup.remove(player.getUniqueId());
+                LagMapScanner.CleanupResult result = plugin.getLagMapScanner().cleanup(world, x, z);
+                plugin.getMessageManager().send(player, "lagmap-cleaned", Map.of(
+                        "items", String.valueOf(result.items()), "mobs", String.valueOf(result.mobs()),
+                        "world", world, "x", String.valueOf(x), "z", String.valueOf(z)));
+                plugin.getLogManager().log(player, "LAGMAP CLEANUP", null, world + " " + x + "," + z
+                        + " (" + result.items() + " items, " + result.mobs() + " mobs)");
+            } else {
+                pendingCleanup.put(player.getUniqueId(),
+                        new PendingCleanup(chunkId, System.currentTimeMillis() + CLEANUP_CONFIRM_MILLIS));
+            }
+            refresh(player, menu);
+            return;
+        }
+        afterClick(player, menu, () -> {
+            player.closeInventory();
+            player.performCommand("dt tpchunk " + world + " " + x + " " + z);
+        });
     }
 
     private void adjustLimit(ToggleDimension dimension, ClickType click) {
@@ -470,7 +638,7 @@ public class GuiManager implements Listener {
                 file -> ConfigValueWriter.setNestedValue(file, "\"" + time + "\"", "schedule", dimension.getKey(), key));
     }
 
-    private void handleMobToggle(ToggleDimension dimension, String entityTypeName, ClickType click) {
+    private void handleMobToggle(WorldScope dimension, String entityTypeName, ClickType click) {
         EntityType type;
         try {
             type = EntityType.valueOf(entityTypeName);

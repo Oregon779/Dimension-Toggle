@@ -104,3 +104,58 @@ update-available: "&5&l⚠ &d[DimensionToggle] &fA new version is available: &a%
 update-versions-behind: "%count% version(s)"
 update-versions-behind-unknown: "an unknown number of versions"
 update-check-triggered: "&5&l⚠ &dChecking Modrinth for updates now... &7watch the console for the result."
+
+# ---------- OVERWORLD & PERFORMANCE ----------
+help-lagmap: "&d/dt lagmap [chat] &8» &7Busiest chunks of all worlds &8(also /lagmap)"
+help-redstone: "&d/dt redstone [chat] &8» &7Chunks with the fastest redstone"
+help-chunkloaders: "&d/dt chunkloaders [chat] &8» &7Chunks loaded without a player nearby"
+help-web: "&d/dt web &8» &7Link to the live performance website"
+
+chunk-hover: "&7Click to teleport there"
+teleported-chunk: "&a&l✔ &7Teleported to chunk &f%x%, %z% &7in &f%world%&7."
+world-not-found: "&c&l✘ &7World &f%world% &7not found."
+
+sort-score: "lag score"
+sort-entities: "entities"
+sort-mobs: "mobs"
+sort-items: "items"
+sort-block-entities: "block entities"
+
+lagmap-header: "&6&lLagmap &8» &7Top %count% chunks, sorted by &f%sort%"
+lagmap-line: " &7#%rank% &f%world% &8(&7%x%, %z%&8) &8| &6%score% &8| &7Entities &f%entities% &7Mobs &f%mobs% &7Items &f%items% &7Hoppers &f%hoppers% &7Blocks &f%blocks%"
+lagmap-empty: " &7No loaded chunks with entities or block entities."
+lagmap-cleaned: "&a&l✔ &7Removed &f%items% &7items and &f%mobs% &7mobs in chunk &f%x%, %z% &7(%world%)."
+
+redstone-header: "&c&lRedstone &8» &7Fastest chunks in the last %window% seconds"
+redstone-line: " &7#%rank% &f%world% &8(&7%x%, %z%&8) &8| &c%rate% updates/s"
+redstone-empty: " &7No redstone activity measured yet (the window is 20 seconds)."
+redstone-alert: "&c&l⚠ &7Fast redstone in &f%world% &8(&7%x%, %z%&8)&7: &c%rate% updates/s &8[click: teleport]"
+
+chunkloaders-header: "&e&lChunk loaders &8» &f%count% &7chunks are loaded without a player nearby"
+chunkloaders-line: " &7#%rank% &f%world% &8(&7%x%, %z%&8) &8| &7%reason% &8| &f%entities% &7entities"
+chunkloaders-empty: " &7No chunks are loaded without a player nearby."
+reason-force-loaded: "/forceload"
+reason-plugin: "plugin: %plugins%"
+reason-ender-pearl: "ender pearl"
+reason-unknown: "unknown (portal, entity, ...)"
+
+web-link: "&a&l✔ &7Performance website: &f&n%url% &8(click to open)"
+web-disabled: "&c&l✘ &7The performance website is off &8(config.yml → web.enabled: true, then /dt reload)."
+web-token-reset: "&a&l✔ &7New website token created - old links no longer work."
+
+item-cleaner-warning: "&e&l⚠ &7Items on the ground will be removed in &f%seconds% &7seconds!"
+item-cleaner-done: "&a&l✔ &7Removed &f%count% &7items from the ground."
+
+afk-view-reduced: "&7You're AFK - your view distance was lowered to save performance."
+afk-view-restored: "&7Welcome back - your view distance is back to normal."
+
+entity-cap-reached: "&c&l✘ &7Too many &f%mob% &7in this chunk &8(max %max%)&7 - they can't breed here."
+
+auto-performance-activated: "&6&l⚠ &7Server under load &8(&c%mspt% ms/tick&8)&7 - auto performance mode &6ON&7."
+auto-performance-deactivated: "&a&l✔ &7Server load back to normal &8(&a%mspt% ms/tick&8)&7 - auto performance mode &aOFF&7."
+
+# Text for %dimensiontoggle_nether_status% / %dimensiontoggle_end_status% (PlaceholderAPI)
+placeholder-enabled: "&aOpen"
+placeholder-disabled: "&cClosed"
+placeholder-locked: "&6Soft-locked"
+placeholder-maintenance: "&6Maintenance"

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 public abstract class PluginTestBase {
 
     protected ServerMock server;
+    protected TestServerMock testServer;
     protected DimensionToggle plugin;
     protected WorldMock overworld;
     protected WorldMock nether;
@@ -18,7 +19,8 @@ public abstract class PluginTestBase {
 
     @BeforeEach
     void setUpServer() {
-        server = MockBukkit.mock(new TestServerMock());
+        testServer = new TestServerMock();
+        server = MockBukkit.mock(testServer);
         // Order matters: the plugin treats Bukkit.getWorlds().get(0) as the
         // main world when sending players back to spawn.
         overworld = world("world", World.Environment.NORMAL);
@@ -43,8 +45,9 @@ public abstract class PluginTestBase {
     }
 
     private WorldMock world(String name, World.Environment environment) {
-        WorldMock world = server.addSimpleWorld(name);
+        WorldMock world = new TestWorldMock(name);
         world.setEnvironment(environment);
+        server.addWorld(world);
         return world;
     }
 }

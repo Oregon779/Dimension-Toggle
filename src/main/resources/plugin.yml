@@ -3,19 +3,29 @@ version: '${project.version}'
 main: net.dimensiontoggle.DimensionToggle
 api-version: '26.2'
 author: Stone Plugins
-description: Enable or disable the Nether and End on your server - with scheduling, maintenance windows, player limits, and lockdowns.
+description: Enable or disable the Nether and End on your server - with scheduling, maintenance windows, player limits, lockdowns and performance tools.
 folia-supported: false
+softdepend: [PlaceholderAPI, PvPManager]
 
 commands:
   dimensiontoggle:
     description: Main command for DimensionToggle
-    usage: /dt <editor|status|nether|end|softlock|lockdown|limit|maintenance|help|reload|checkupdate> [on|off|time|cancel]
+    usage: /dt <editor|status|nether|end|softlock|lockdown|limit|maintenance|lagmap|redstone|chunkloaders|web|help|reload|checkupdate>
     aliases: [dt, dimtoggle]
+  lagmap:
+    description: Shows the busiest chunks of all worlds (same as /dt lagmap)
+    usage: /lagmap [chat [score|entities|mobs|items|blocks]]
 
 permissions:
   dimensiontoggle.admin:
-    description: Access to all DimensionToggle commands
+    description: Access to all DimensionToggle commands, the editor and update notices
     default: op
+    children:
+      dimensiontoggle.lagmap: true
+      dimensiontoggle.redstone: true
+      dimensiontoggle.chunkloaders: true
+      dimensiontoggle.performance: true
+      dimensiontoggle.performance.notify: true
   dimensiontoggle.status:
     description: Access to /dt status
     default: true
@@ -31,3 +41,21 @@ permissions:
   dimensiontoggle.bypass.limit.end:
     description: Can enter the End even when its player limit is reached
     default: op
+  dimensiontoggle.lagmap:
+    description: /lagmap and /dt lagmap - busiest chunks, teleport and cleanup
+    default: op
+  dimensiontoggle.redstone:
+    description: /dt redstone - chunks with the fastest redstone
+    default: op
+  dimensiontoggle.chunkloaders:
+    description: /dt chunkloaders - chunks loaded without a player nearby
+    default: op
+  dimensiontoggle.performance:
+    description: /dt web - link to the performance website
+    default: op
+  dimensiontoggle.performance.notify:
+    description: Receives redstone and auto performance warnings in chat
+    default: op
+  dimensiontoggle.afk.bypass:
+    description: View distance is never lowered while AFK
+    default: false

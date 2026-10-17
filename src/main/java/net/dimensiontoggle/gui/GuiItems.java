@@ -2,6 +2,7 @@ package net.dimensiontoggle.gui;
 
 import net.dimensiontoggle.DimensionToggle;
 import net.dimensiontoggle.model.ToggleDimension;
+import net.dimensiontoggle.model.WorldScope;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -107,6 +108,22 @@ public final class GuiItems {
         } catch (IllegalArgumentException ignored) {
             return org.bukkit.Material.PAPER;
         }
+    }
+
+    public static Material fillerFor(WorldScope scope) {
+        return switch (scope) {
+            case OVERWORLD -> Material.GREEN_STAINED_GLASS_PANE;
+            case NETHER -> fillerFor(ToggleDimension.NETHER);
+            case END -> fillerFor(ToggleDimension.END);
+        };
+    }
+
+    public static Material borderFor(WorldScope scope) {
+        return switch (scope) {
+            case OVERWORLD -> Material.LIME_STAINED_GLASS_PANE;
+            case NETHER -> borderFor(ToggleDimension.NETHER);
+            case END -> borderFor(ToggleDimension.END);
+        };
     }
 
     public static Material fillerFor(ToggleDimension dimension) {

@@ -2,7 +2,7 @@ package net.dimensiontoggle.gui;
 
 import net.dimensiontoggle.DimensionToggle;
 import net.dimensiontoggle.manager.MobManagementManager;
-import net.dimensiontoggle.model.ToggleDimension;
+import net.dimensiontoggle.model.WorldScope;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -18,7 +18,7 @@ public final class MobManagementGuiBuilder {
     private MobManagementGuiBuilder() {
     }
 
-    public static Inventory build(DimensionToggle plugin, ToggleDimension dimension) {
+    public static Inventory build(DimensionToggle plugin, WorldScope dimension) {
         FileConfiguration cfg = plugin.getGuiConfigManager().getFor(dimension);
         String base = "mob-management.";
 
@@ -66,7 +66,7 @@ public final class MobManagementGuiBuilder {
         inventory.setItem(49, GuiItems.build(plugin, Material.ARROW, "MOB_BACK",
                 cfg.getString(base + "back-button.name"), cfg.getStringList(base + "back-button.lore")));
 
-        GuiItems.fillBorderAndFiller(inventory, plugin, dimension, 6);
+        GuiItems.fillBorderAndFiller(inventory, plugin, GuiItems.fillerFor(dimension), GuiItems.borderFor(dimension), 6);
 
         return inventory;
     }

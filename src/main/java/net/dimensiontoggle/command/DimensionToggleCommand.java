@@ -4,6 +4,7 @@ import net.dimensiontoggle.DimensionToggle;
 import net.dimensiontoggle.config.ConfigValueWriter;
 import net.dimensiontoggle.manager.MessageManager;
 import net.dimensiontoggle.model.ToggleDimension;
+import net.dimensiontoggle.performance.LagMapScanner;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -30,6 +31,10 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
             new CommandInfo("lockdown", 75, "dimensiontoggle.admin"),
             new CommandInfo("limit", 70, "dimensiontoggle.admin"),
             new CommandInfo("maintenance", 65, "dimensiontoggle.admin"),
+            new CommandInfo("lagmap", 60, "dimensiontoggle.lagmap"),
+            new CommandInfo("redstone", 58, "dimensiontoggle.redstone"),
+            new CommandInfo("chunkloaders", 56, "dimensiontoggle.chunkloaders"),
+            new CommandInfo("web", 54, "dimensiontoggle.performance"),
             new CommandInfo("help", 20, null),
             new CommandInfo("reload", 15, "dimensiontoggle.admin"),
             new CommandInfo("checkupdate", 10, "dimensiontoggle.admin")
@@ -68,6 +73,11 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
             case "help" -> handleHelp(sender);
             case "editor" -> handleEditor(sender);
             case "checkupdate" -> handleCheckUpdate(sender);
+            case "lagmap" -> handleLagmap(sender, args);
+            case "redstone" -> handleReport(sender, args, "dimensiontoggle.redstone", "redstone");
+            case "chunkloaders" -> handleReport(sender, args, "dimensiontoggle.chunkloaders", "chunkloaders");
+            case "web" -> handleWeb(sender, args);
+            case "tpchunk" -> handleTpChunk(sender, args);
             default -> messages.send(sender, "unknown-command");
         }
 
@@ -157,6 +167,8 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
             // The only task that reads its settings (enabled, interval) once
             // at start - re-apply them so edits take effect without a restart.
             plugin.getUpdateChecker().start();
+            plugin.getLagMapScanner().invalidate();
+            plugin.startPerformanceFeatures();
             messages.send(sender, "reload-success");
         } catch (Exception ex) {
             Map<String, String> placeholders = new HashMap<>();
@@ -333,6 +345,149 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
         messages.send(sender, "help-footer");
     }
 
+    private boolean require(CommandSender sender, String permission) {
+        if (sender.hasPermission(permission) || sender.hasPermission("dimensiontoggle.admin")) {
+            return true;
+        }
+        plugin.getMessageManager().send(sender, "no-permission");
+        return false;
+    }
+
+    private static final List<String> SORTS = List.of("score", "entities", "mobs", "items", "blocks");
+
+    private static LagMapScanner.Sort parseSort(String input) {
+        return switch (input.toLowerCase()) {
+            case "entities" -> LagMapScanner.Sort.ENTITIES;
+            case "mobs" -> LagMapScanner.Sort.MOBS;
+            case "items" -> LagMapScanner.Sort.ITEMS;
+            case "blocks" -> LagMapScanner.Sort.BLOCK_ENTITIES;
+            default -> LagMapScanner.Sort.SCORE;
+        };
+    }
+
+    // /dt lagmap          -> menu (players) / list (console)
+    // /dt lagmap chat [sort]
+    private void handleLagmap(CommandSender sender, String[] args) {
+        if (!require(sender, "dimensiontoggle.lagmap")) {
+            return;
+        }
+        boolean chat = args.length >= 2 && args[1].equalsIgnoreCase("chat");
+        if (!chat && sender instanceof org.bukkit.entity.Player player) {
+            plugin.getGuiManager().openLagmap(player);
+            return;
+        }
+        LagMapScanner.Sort sort = args.length >= 3 ? parseSort(args[2]) : LagMapScanner.Sort.SCORE;
+        plugin.getChunkReports().sendLagmap(sender, sort);
+    }
+
+    // /dt redstone | chunkloaders [chat]
+    private void handleReport(CommandSender sender, String[] args, String permission, String report) {
+        if (!require(sender, permission)) {
+            return;
+        }
+        boolean chat = args.length >= 2 && args[1].equalsIgnoreCase("chat");
+        if (!chat && sender instanceof org.bukkit.entity.Player player) {
+            if (report.equals("redstone")) {
+                plugin.getGuiManager().openRedstone(player);
+            } else {
+                plugin.getGuiManager().openChunkLoaders(player);
+            }
+            return;
+        }
+        if (report.equals("redstone")) {
+            plugin.getChunkReports().sendRedstone(sender);
+        } else {
+            plugin.getChunkReports().sendChunkLoaders(sender);
+        }
+    }
+
+    // Target of the clickable chunk lines.
+    private void handleTpChunk(CommandSender sender, String[] args) {
+        if (!(sender.hasPermission("dimensiontoggle.lagmap") || sender.hasPermission("dimensiontoggle.redstone")
+                || sender.hasPermission("dimensiontoggle.chunkloaders") || sender.hasPermission("dimensiontoggle.admin"))) {
+            plugin.getMessageManager().send(sender, "no-permission");
+            return;
+        }
+        if (!(sender instanceof org.bukkit.entity.Player player)) {
+            plugin.getMessageManager().send(sender, "players-only");
+            return;
+        }
+        if (args.length < 4) {
+            plugin.getMessageManager().send(sender, "invalid-usage");
+            return;
+        }
+        int x;
+        int z;
+        try {
+            x = Integer.parseInt(args[2]);
+            z = Integer.parseInt(args[3]);
+        } catch (NumberFormatException e) {
+            plugin.getMessageManager().send(sender, "invalid-usage");
+            return;
+        }
+        if (!plugin.getChunkReports().teleport(player, args[1], x, z)) {
+            plugin.getMessageManager().send(sender, "world-not-found", Map.of("world", args[1]));
+            return;
+        }
+        plugin.getMessageManager().send(sender, "teleported-chunk",
+                Map.of("world", args[1], "x", String.valueOf(x), "z", String.valueOf(z)));
+    }
+
+    // /dt web [reset-token]
+    private void handleWeb(CommandSender sender, String[] args) {
+        if (!require(sender, "dimensiontoggle.performance")) {
+            return;
+        }
+        var web = plugin.getPerformanceWebServer();
+        if (args.length >= 2 && args[1].equalsIgnoreCase("reset-token")) {
+            web.ensureToken(true);
+            plugin.getMessageManager().send(sender, "web-token-reset");
+            plugin.getLogManager().log(sender, "WEB TOKEN RESET", null, null);
+            if (!web.isRunning()) {
+                return;
+            }
+        }
+        if (!web.isRunning()) {
+            plugin.getMessageManager().send(sender, "web-disabled");
+            return;
+        }
+        String url = web.buildLink();
+        MessageManager messages = plugin.getMessageManager();
+        sender.sendMessage(messages.parseWithPlaceholders(messages.getPrefix() + messages.get("web-link"), Map.of("url", url))
+                .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(url)));
+    }
+
+    // Lets /lagmap reuse everything here as if "/dt lagmap" was typed.
+    public PrefixedCommand prefixed(String subcommand) {
+        return new PrefixedCommand(subcommand);
+    }
+
+    public final class PrefixedCommand implements CommandExecutor, TabCompleter {
+
+        private final String subcommand;
+
+        private PrefixedCommand(String subcommand) {
+            this.subcommand = subcommand;
+        }
+
+        private String[] withPrefix(String[] args) {
+            String[] full = new String[args.length + 1];
+            full[0] = subcommand;
+            System.arraycopy(args, 0, full, 1, args.length);
+            return full;
+        }
+
+        @Override
+        public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+            return DimensionToggleCommand.this.onCommand(sender, command, label, withPrefix(args));
+        }
+
+        @Override
+        public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+            return DimensionToggleCommand.this.onTabComplete(sender, command, alias, withPrefix(args));
+        }
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
@@ -354,6 +509,19 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
             return List.of("nether", "end").stream()
                     .filter(s -> s.startsWith(args[1].toLowerCase()))
                     .collect(Collectors.toList());
+        }
+
+        if (args.length == 2 && (args[0].equalsIgnoreCase("lagmap") || args[0].equalsIgnoreCase("redstone")
+                || args[0].equalsIgnoreCase("chunkloaders"))) {
+            return List.of("chat").stream().filter(s -> s.startsWith(args[1].toLowerCase())).collect(Collectors.toList());
+        }
+
+        if (args.length == 3 && args[0].equalsIgnoreCase("lagmap") && args[1].equalsIgnoreCase("chat")) {
+            return SORTS.stream().filter(s -> s.startsWith(args[2].toLowerCase())).collect(Collectors.toList());
+        }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("web")) {
+            return List.of("reset-token").stream().filter(s -> s.startsWith(args[1].toLowerCase())).collect(Collectors.toList());
         }
 
         if (args.length == 3 && args[0].equalsIgnoreCase("maintenance")) {

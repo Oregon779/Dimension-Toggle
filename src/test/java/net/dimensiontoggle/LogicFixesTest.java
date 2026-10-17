@@ -59,7 +59,7 @@ class LogicFixesTest extends PluginTestBase {
         ridden.addPassenger(rider);
 
         // 0 -> 5 minutes
-        assertEquals(5, plugin.getMobManagementManager().cycleCleanupMinutes(ToggleDimension.NETHER, EntityType.BLAZE));
+        assertEquals(5, plugin.getMobManagementManager().cycleCleanupMinutes(net.dimensiontoggle.model.WorldScope.NETHER, EntityType.BLAZE));
         // Cleanup runs once a minute after a small start offset: 6 minutes of
         // ticks cover the 5 runs a 5-minute interval needs.
         server.getScheduler().performTicks(20L * 60 * 6);

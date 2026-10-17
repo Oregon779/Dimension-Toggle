@@ -5,7 +5,7 @@ Mit **DimensionToggle** steuerst du auf deinem Paper-Server, wer wann in den
 tägliche Öffnungszeiten, Notfall-Lockdown, Spielerlimits und vieles mehr –
 per Command oder komplett per Klick im In-Game-Editor.
 
-> Dieses Wiki beschreibt den aktuellen Stand des Plugins (Version 3.2.x / 3.3.0 in Entwicklung).
+> Dieses Wiki beschreibt den aktuellen Stand des Plugins (Version 3.3.0, in Entwicklung).
 > Den Versionsverlauf findest du in der [README](README.md).
 
 ## Inhalt
@@ -40,6 +40,10 @@ per Command oder komplett per Klick im In-Game-Editor.
 | **Mob-Management** | Pro Mob-Typ das Spawnen verbieten und automatische Aufräum-Intervalle setzen. |
 | **World Border** | Größe und Mittelpunkt der Weltgrenze per Klick ändern. |
 | **Dashboard** | Spieler-Rekord, geladene Chunks, häufigste Entities, TPS. |
+| **Overworld & Performance** | Mob-Kontrolle für die Overworld, Farm-Limiter, Entity-Cap, Villager-Optimierer, Item-Aufräumer, AFK-Sichtweite, Auto-Performance-Modus. |
+| **Lag-Werkzeuge** | `/lagmap` (vollste Chunks), Redstone-Meter, Chunk-Loader-Melder – jeweils mit Klick-Teleport. |
+| **Performance-Website** | Live-TPS/MSPT, Speicher, Welten und Verlauf im Browser (`/dt web`). |
+| **Integrationen** | PlaceholderAPI-Platzhalter, bStats. |
 | **In-Game-Editor** | Alles oben per Klick unter `/dt editor`. |
 | **Logging** | Jede Aktion mit Zeit und Verursacher in einer Log-Datei. |
 | **Update-Checker** | Meldet neue Versionen auf Modrinth. |
@@ -120,6 +124,12 @@ Hauptcommand: `/dimensiontoggle` – Aliase: **`/dt`**, `/dimtoggle`.
 | `/dt maintenance <nether\|end> cancel` | Bricht einen laufenden Countdown ab – oder öffnet eine Dimension wieder, die gerade in Wartung ist. | `dimensiontoggle.admin` |
 | `/dt reload` | Lädt `config.yml`, die Sprachdatei und die GUI-Configs neu und übernimmt die Update-Checker-Einstellungen. | `dimensiontoggle.admin` |
 | `/dt checkupdate` | Prüft sofort auf Modrinth nach einer neuen Version (Ergebnis in der Konsole). | `dimensiontoggle.admin` |
+| `/dt lagmap` (= `/lagmap`) | Menü mit den vollsten Chunks aller Welten. Klick = Teleport, Shift-Klick (2×) = aufräumen. | `dimensiontoggle.lagmap` |
+| `/dt lagmap chat [score\|entities\|mobs\|items\|blocks]` | Dieselbe Liste als klickbarer Chat-Text, sortiert nach der gewählten Spalte (geht auch in der Konsole). | `dimensiontoggle.lagmap` |
+| `/dt redstone [chat]` | Chunks mit dem schnellsten Redstone der letzten 20 Sekunden. | `dimensiontoggle.redstone` |
+| `/dt chunkloaders [chat]` | Chunks, die geladen sind, obwohl kein Spieler in der Nähe ist – mit Grund. | `dimensiontoggle.chunkloaders` |
+| `/dt web` | Link zur Performance-Website (anklickbar). | `dimensiontoggle.performance` |
+| `/dt web reset-token` | Neuen geheimen Website-Token erzeugen – alte Links funktionieren dann nicht mehr. | `dimensiontoggle.performance` |
 
 **Zeitangaben** (Wartung): `30s`, `5m`, `1h`, `1h30m`, `2h15m30s`.
 Eine reine Zahl bedeutet Minuten (`10` = 10 Minuten). Die Zeit muss größer als 0 sein.
@@ -138,6 +148,16 @@ Permission hat.
 | `dimensiontoggle.bypass` | OP | Darf in deaktivierte, soft-gelockte und volle Dimensionen, darf gesperrte End-Gateways benutzen und im End mit Elytra fliegen, auch wenn Elytra-Flug aus ist. Enthält beide Limit-Bypässe. |
 | `dimensiontoggle.bypass.limit.nether` | OP | Darf in den Nether, auch wenn das Spielerlimit erreicht ist (Sperre und Soft-Lock gelten aber weiter). |
 | `dimensiontoggle.bypass.limit.end` | OP | Dasselbe fürs End. |
+| `dimensiontoggle.lagmap` | OP | `/lagmap`: vollste Chunks ansehen, hinteleportieren, aufräumen. |
+| `dimensiontoggle.redstone` | OP | `/dt redstone` |
+| `dimensiontoggle.chunkloaders` | OP | `/dt chunkloaders` |
+| `dimensiontoggle.performance` | OP | `/dt web` (Link zur Website) |
+| `dimensiontoggle.performance.notify` | OP | Bekommt Redstone- und Auto-Performance-Warnungen im Chat. |
+| `dimensiontoggle.afk.bypass` | niemand | Sichtweite wird bei AFK nie gesenkt. |
+
+`dimensiontoggle.admin` enthält alle Lag- und Performance-Rechte (außer dem AFK-Bypass).
+Moderatoren kannst du gezielt nur die Lag-Werkzeuge geben, z.B.
+`/lp group mod permission set dimensiontoggle.lagmap true`.
 
 **Beispiele mit LuckPerms**
 
@@ -381,6 +401,135 @@ Im Control Panel → **World Border**:
   bekannt ist.
 - `/dt checkupdate` prüft sofort. Abschalten mit `update-checker.enabled: false`.
 
+### Overworld & Performance
+
+Im Editor über den **Grasblock** im Hauptmenü erreichbar. Die Overworld
+selbst kann nicht gesperrt werden – hier geht es um Mobs und Performance.
+**Alles, was das Spiel verändert, ist standardmäßig aus.**
+
+**Mob-Kontrolle Overworld**
+- *Mob Spawning*: Gamerule `spawn_mobs` der Overworld an/aus.
+- *Mob Management*: wie bei Nether/End, für 28 Overworld-Mobs (Zombie,
+  Skelett, Creeper, Spinne, Höhlenspinne, Enderman, Hexe, Schleim, Phantom,
+  Ertrunkener, Wüstenzombie, Eiswanderer, Plünderer, Zombiedorfbewohner,
+  Silberfischchen, Sumpfskelett, Kuh, Schwein, Schaf, Huhn, Kaninchen,
+  Pferd, Ziege, Tintenfisch, Leuchttintenfisch, Fledermaus, Kabeljau, Lachs):
+  Klick = Spawnen erlauben/verbieten, Shift-Klick = Aufräum-Intervall.
+
+**Farm-Limiter** (`farm-limiter`)
+- Sucht alle 30 s nach großen Tiergruppen: ab `group-size` (Standard 20)
+  Tieren **derselben Art in einem Chunk** werden KI und Kollision dieser Tiere
+  abgeschaltet. Sie stehen dann still und schieben sich nicht gegenseitig.
+- **Schlägt ein Spieler eines der Tiere**, bekommt genau dieses Tier seine KI
+  zurück (Töten/Ernten funktioniert also normal).
+- Benannte, gezähmte, angeleinte und gerittene Tiere werden nie eingefroren.
+- Ausschalten weckt alle eingefrorenen Tiere wieder auf (auch in später
+  geladenen Chunks). **Vor dem Entfernen des Plugins ausschalten** – sonst
+  bleiben eingefrorene Tiere eingefroren.
+- Eingefrorene Tiere laufen nicht von selbst zum Partner – zum Züchten erst
+  einmal schlagen.
+
+**Entity-Cap** (`entity-cap`)
+- Höchstens `max-per-chunk` (Standard 40) Tiere bzw. Dorfbewohner **eines
+  Typs** pro Chunk. Darüber hinaus wird Züchten und Spawnen (Eier, Spawner,
+  natürlich) blockiert; der Züchter bekommt eine Meldung.
+- Spawns per Command oder durch andere Plugins werden nie blockiert.
+
+**Villager-Optimierer** (`villager-optimizer`)
+- Dorfbewohner, die sich `idle-minutes` lang (Standard 5) nicht bewegt haben –
+  typisch für Handelshallen –, verlieren ihre KI. **Handeln funktioniert
+  weiter**, und sie werden zweimal pro Minecraft-Tag automatisch aufgefüllt.
+- Benannte und angeleinte Dorfbewohner bleiben unverändert. Ein Schlag gibt
+  die KI zurück; Ausschalten weckt alle auf.
+
+**Item-Aufräumer** (`item-cleaner`)
+- Alle `interval-minutes` (Standard 10) werden Items entfernt, die mindestens
+  `min-age-seconds` (Standard 60) am Boden liegen – mit Chat-Warnungen vorher
+  (Standard 60/30/10 s). XP-Kugeln nur mit `include-xp-orbs: true`.
+
+**AFK-Sichtweite** (`afk-view`)
+- Nach `afk-minutes` (Standard 5) ohne Aktivität sinkt die Sichtweite des
+  Spielers auf `view-distance` (Standard 2). Bewegen, Umschauen, Chat, Commands
+  oder Klicks stellen sie sofort wieder her.
+- `simulation-distance: -1` (Standard) lässt die Simulationsdistanz in Ruhe –
+  AFK-Farmen laufen weiter. Ein Wert ≥ 2 senkt auch sie (dann stehen Farmen
+  in der Nähe des AFK-Spielers still).
+- Bypass: `dimensiontoggle.afk.bypass`.
+
+**Auto-Performance-Modus** (`auto-performance`)
+- Liegt die Server-Last 60 s lang über `activate-mspt` (Standard 45 ms pro
+  Tick; 50 ms = Grenze für 20 TPS), schaltet sich der Modus ein:
+  AFK-Sichtweite (nach `afk-minutes` = 2) und Farm-Limiter (ab
+  `farm-group-size` = 10) laufen dann **auch wenn sie ausgeschaltet sind**.
+- Bleibt die Last 120 s unter `recover-mspt` (Standard 35), geht alles zurück
+  in den Normalzustand. Staff mit `dimensiontoggle.performance.notify` wird
+  jeweils informiert.
+
+### Lag-Werkzeuge
+
+Alle drei durchsuchen **alle Welten**, zeigen die Treffer im Menü (Klick =
+Teleport in die Chunk-Mitte) oder mit `chat` als klickbare Liste.
+
+**`/lagmap`** – Top 10 der vollsten Chunks mit Entities, Mobs, Items am Boden,
+Hoppern und anderen Block-Entities. Standard-Sortierung ist der **Lag-Score**
+(gewichtete Summe, Gewichte unter `lagmap.weights`; Mobs und Hopper zählen
+mehr). Im Menü per Knopf umsortierbar. **Shift-Klick auf einen Chunk, dann
+nochmal Shift-Klick** innerhalb von 5 s räumt ihn auf: Items, XP und Mobs –
+aber keine benannten, gezähmten oder angeleinten Mobs und keine Dorfbewohner.
+
+**`/dt redstone`** – zählt Redstone-Signaländerungen und Kolbenbewegungen pro
+Chunk in einem 20-Sekunden-Fenster und zeigt die schnellsten Chunks
+(Updates pro Sekunde). Ab `redstone-meter.alert-per-second` (Standard 100)
+bekommt Staff eine klickbare Warnung (höchstens alle 5 Minuten pro Chunk).
+
+**`/dt chunkloaders`** – Chunks, die *tickend* geladen sind, obwohl kein
+Spieler in Sichtweite ist. Als Grund wird angezeigt: `/forceload`,
+ein Plugin (mit Namen), eine Enderperle oder „unbekannt“ (meist Portal- oder
+Entity-Lader).
+
+### Performance-Website
+
+Eine kleine, nur lesende Webseite mit TPS (1/5/15 min), MSPT inkl. Spitze,
+Spielern, Arbeitsspeicher, CPU, Laufzeit, Status von Nether/End, allen Welten
+(Spieler, Chunks, Entities, Block-Entities), den vollsten Chunks und einem
+Diagramm der letzten Stunde. Sprache folgt der Plugin-Sprache.
+
+**Einrichten:**
+1. In der `config.yml` `web.enabled: true` setzen und einen freien `web.port`
+   wählen (Standard 8105).
+2. Bei gemieteten Servern (Pterodactyl o.ä.) den Port im Panel als
+   zusätzlichen Port freigeben.
+3. Optional `web.public-url` setzen, z.B. `"http://play.meinserver.de:8105"` –
+   diese Adresse zeigt `/dt web` an.
+4. `/dt reload`, dann `/dt web` → Link anklicken.
+
+Der Link enthält einen **geheimen Token**; ohne ihn ist die Seite gesperrt
+(`web.require-token: false` macht sie öffentlich). `/dt web reset-token`
+erzeugt einen neuen Token, falls ein Link in falsche Hände geraten ist.
+Die Seite kann nichts verändern – sie zeigt nur an.
+
+### PlaceholderAPI
+
+Ist PlaceholderAPI installiert, gibt es diese Platzhalter (z.B. für
+Scoreboard oder Tablist):
+
+| Platzhalter | Wert |
+|---|---|
+| `%dimensiontoggle_nether_status%` / `_end_status` | Text aus `messages.yml` (`placeholder-enabled/disabled/locked/maintenance`) |
+| `%dimensiontoggle_nether_enabled%` / `_end_enabled` | `true` / `false` |
+| `%dimensiontoggle_nether_locked%` / `_end_locked` | `true` / `false` |
+| `%dimensiontoggle_nether_players%` / `_end_players` | Spieler in der Dimension |
+| `%dimensiontoggle_nether_limit%` / `_end_limit` | Spielerlimit oder `-` |
+| `%dimensiontoggle_nether_maintenance%` / `_end_maintenance` | Sekunden bis zur Wartungs-Schließung (0 = keine) |
+| `%dimensiontoggle_lockdown%` | `true` / `false` |
+| `%dimensiontoggle_tps%` / `%dimensiontoggle_mspt%` | aktuelle TPS / ms pro Tick |
+
+### bStats
+
+Das Plugin unterstützt anonyme Nutzungsstatistiken über bStats (Anzahl
+Server/Spieler, Sprache, welche Features genutzt werden). Abschalten geht wie
+bei jedem Plugin in `plugins/bStats/config.yml`.
+
 ---
 
 ## 8. Der In-Game-Editor
@@ -397,6 +546,13 @@ Hauptmenü
 │               ├── Mob Management   (Spawnen + Aufräumen pro Mob)
 │               └── World Border     (Größe, Presets, Mittelpunkt)
 ├── End ─────► Control Panel (End)   (wie Nether, plus Elytra + Gateways)
+├── Overworld ► Overworld & Performance
+│               ├── Mob Spawning / Mob Management (Overworld)
+│               ├── Farm-Limiter, Entity-Cap, Villager-Optimierer,
+│               │   Item-Aufräumer, AFK-Sichtweite, Auto-Performance (an/aus)
+│               ├── Lagmap · Redstone · Chunk-Loader (Klick = Teleport)
+│               ├── Website (Link im Chat)
+│               └── Server-Performance (TPS, MSPT, RAM, Chunks, Entities)
 ├── Lockdown  (Klick = Lockdown an/aus)
 └── Schließen
 ```
@@ -461,7 +617,8 @@ plugins/DimensionToggle/
 ├── gui/
 │   ├── main/config.yml        Texte des Hauptmenüs
 │   ├── nether/config.yml      Texte aller Nether-Menüs
-│   └── end/config.yml         Texte aller End-Menüs
+│   ├── end/config.yml         Texte aller End-Menüs
+│   └── overworld/config.yml   Overworld-Panel und Lag-Berichte
 └── logs/dimensiontoggle.log   Aktions-Log
 ```
 
@@ -537,6 +694,37 @@ Nach Änderungen an Dateien: `/dt reload`.
 **`logging`** – `enabled` (`true`), `file` (`"logs/dimensiontoggle.log"`).
 
 **`update-checker`** – `enabled` (`true`), `check-interval-minutes` (`60`, mindestens 5).
+
+**Overworld & Performance**
+
+| Schlüssel | Standard | Bedeutung |
+|---|---|---|
+| `lagmap.top` | `10` | Wie viele Chunks `/lagmap` zeigt (Menü max. 14). |
+| `lagmap.weights.mob/item/other-entity/hopper/block-entity` | `3/1/1/4/1` | Gewichte für den Lag-Score. |
+| `farm-limiter.enabled` | `false` | Farm-Limiter an. |
+| `farm-limiter.group-size` | `20` | Ab so vielen Tieren einer Art pro Chunk wird eingefroren. |
+| `farm-limiter.check-interval-seconds` | `30` | Wie oft gesucht wird (min. 5). |
+| `entity-cap.enabled` / `max-per-chunk` | `false` / `40` | Entity-Cap an, Obergrenze pro Typ und Chunk. |
+| `villager-optimizer.enabled` / `idle-minutes` | `false` / `5` | Villager-Optimierer an, Stillstandszeit. |
+| `item-cleaner.enabled` | `false` | Item-Aufräumer an. |
+| `item-cleaner.interval-minutes` | `10` | Abstand zwischen den Aufräumrunden. |
+| `item-cleaner.warnings` | `[60, 30, 10]` | Sekunden vorher, zu denen gewarnt wird. |
+| `item-cleaner.min-age-seconds` | `60` | Nur Items, die mindestens so lange liegen. |
+| `item-cleaner.include-xp-orbs` | `false` | XP-Kugeln auch entfernen. |
+| `afk-view.enabled` | `false` | AFK-Sichtweite an. |
+| `afk-view.afk-minutes` | `5` | Ab wann ein Spieler als AFK gilt. |
+| `afk-view.view-distance` | `2` | Sichtweite während AFK. |
+| `afk-view.simulation-distance` | `-1` | Simulationsdistanz während AFK (-1 = unverändert). |
+| `afk-view.notify-player` | `true` | Spieler bekommt eine Nachricht. |
+| `redstone-meter.enabled` | `true` | Redstone-Messung an. |
+| `redstone-meter.alert-per-second` | `100` | Ab so vielen Updates/s Staff-Warnung (0 = aus). |
+| `auto-performance.enabled` | `false` | Auto-Performance-Modus an. |
+| `auto-performance.activate-mspt` / `recover-mspt` | `45` / `35` | Ein- und Ausschaltschwelle (ms pro Tick). |
+| `auto-performance.afk-minutes` / `farm-group-size` | `2` / `10` | Strengere Werte, solange der Modus aktiv ist. |
+| `web.enabled` | `false` | Website an. |
+| `web.port` / `bind-address` | `8105` / `"0.0.0.0"` | Port und Netzwerkadresse. |
+| `web.public-url` | `""` | Adresse, die `/dt web` anzeigt. |
+| `web.require-token` | `true` | Website nur mit geheimem Token. |
 
 ### Benachrichtigungen
 
@@ -626,6 +814,8 @@ der Server läuft:
 | `peak-players.<dimension>` | Spieler-Rekord |
 | `mob-management.<dimension>.<MOB>.enabled` / `.cleanup-minutes` | Mob-Management |
 | `nether.spawners-enabled`, `end.elytra-fly-enabled` | Schalter |
+| `mob-management.overworld.<MOB>...` | Mob-Management der Overworld |
+| `web.token` | Geheimer Token der Performance-Website |
 
 Gespeichert wird absturzsicher im Hintergrund. Ist die Datei trotzdem einmal
 unlesbar, benennt das Plugin sie in `data.yml.corrupt-<Datum>-<Uhrzeit>` um,
@@ -697,6 +887,21 @@ Das Modrinth-Projekt ist (noch) nicht erreichbar. Mit
 **Wartung war nach einem Neustart weg.**
 Laufende Countdowns werden nicht gespeichert – nach dem Neustart neu starten.
 
+**Die Performance-Website lässt sich nicht öffnen.**
+- Ist `web.enabled: true` und wurde `/dt reload` ausgeführt? In der Konsole
+  steht beim Start „Performance website running on port …“ oder warum es
+  nicht geklappt hat.
+- Ist der Port frei und (bei gemieteten Servern) im Panel freigegeben?
+- Ohne Token kommt „Forbidden“ – den Link aus `/dt web` verwenden.
+
+**Tiere stehen nach dem Entfernen des Plugins still.**
+Der Farm-Limiter (oder Villager-Optimierer) war noch an. Plugin wieder
+einsetzen, Feature ausschalten (weckt alle Tiere auf), dann entfernen.
+
+**`/lagmap` zeigt einen Chunk, aber vor Ort ist nichts.**
+Die Liste wird kurz zwischengespeichert (10 s) – im Menü auf „Refresh“
+klicken. Items und Mobs können sich inzwischen auch bewegt haben.
+
 ---
 
 ## 11. Bekannte Einschränkungen
@@ -709,6 +914,12 @@ Laufende Countdowns werden nicht gespeichert – nach dem Neustart neu starten.
 - Mob-Aufräumen entfernt alle Entities des gewählten Typs, auch benannte oder
   gezähmte (nur gerittene Reittiere werden verschont).
 - Laufende Wartungs-Countdowns überstehen keinen Neustart.
+- Vom Farm-Limiter oder Villager-Optimierer eingefrorene Tiere bleiben
+  eingefroren, wenn das Plugin entfernt wird, ohne die Features vorher
+  auszuschalten.
+- Das Redstone-Meter misst Signaländerungen und Kolben, nicht jede einzelne
+  Block-Aktualisierung (z.B. reine Observer-Ketten ohne Redstone-Staub werden
+  nur über die Kolben/Signale erfasst, die sie auslösen).
 - Config-Updates ergänzen nur neue Hauptabschnitte automatisch.
 - Folia wird nicht unterstützt.
 
@@ -731,9 +942,10 @@ auf das PaperMC-Maven-Repository (`repo.papermc.io`).
 mvn test
 ```
 
-Automatisierte Tests mit JUnit 5 und MockBukkit (`src/test`): Zeit- und
+Automatisierte Tests mit JUnit 6 und MockBukkit (`src/test`): Zeit- und
 Dauer-Parsing, Zeitplan, Persistenz, GUI, Portal-Listener, Commands,
-verteiltes Rausbringen von Spielern.
+verteiltes Rausbringen von Spielern, Lag-Werkzeuge, Optimierer, Website,
+PlaceholderAPI.
 
 **Aufbau** (Paket `net.dimensiontoggle`)
 
@@ -745,7 +957,9 @@ verteiltes Rausbringen von Spielern.
 | `gui` | Editor – jede Aktion steckt als Text im Item, nicht in der Slot-Nummer |
 | `config` | Laden, Update-Merge und kommentarerhaltendes Schreiben der YAML-Dateien |
 | `io` | Hintergrund-Thread und absturzsicheres Schreiben für alle Dateien |
-| `model` | `ToggleDimension` (NETHER/END), Benachrichtigungs-Kanäle |
+| `performance` | Overworld & Performance: Monitor, Lagmap, Redstone-Meter, Chunk-Loader, Optimierer, Website |
+| `hook` | PlaceholderAPI-Erweiterung |
+| `model` | `ToggleDimension` (NETHER/END), `WorldScope` (+ Overworld), Benachrichtigungs-Kanäle |
 
 Mehr Details zur Architektur und den Konventionen stehen in der
 [CLAUDE.md](CLAUDE.md).

@@ -1,0 +1,206 @@
+# =====================================================================
+#   DimensionToggle - Overworld & Performance GUI
+# =====================================================================
+# Every text of the Overworld panel, the Overworld mob list and the lag
+# reports (lag map, redstone, chunk loaders). Placeholders where noted.
+# MiniMessage (gradients, small caps via Unicode) and classic & codes work.
+
+# Words used for %state% below
+state-on: "<gradient:#4ADE80:#16A34A><bold>ON</bold></gradient>"
+state-off: "<gray>OFF"
+auto-active: "<red><bold>ACTIVE NOW</bold>"
+auto-idle: "<gray>waiting"
+
+# ---------- Panel ----------
+panel:
+  title: "<gradient:#86EFAC:#16A34A><bold>ᴏᴠᴇʀᴡᴏʀʟᴅ</bold></gradient> <dark_gray>| <gray>ᴘᴇʀꜰᴏʀᴍᴀɴᴄᴇ"
+
+  mobspawn:
+    name: "<white><bold>Mob Spawning</bold> <dark_gray>» %state%"
+    lore:
+      - "<gray>Whether ANY mob can spawn naturally"
+      - "<gray>in the Overworld (gamerule spawn_mobs)."
+      - ""
+      - "<gold>➤ <gray>Click to toggle"
+
+  mobmanagement:
+    name: "<gradient:#4ADE80:#16A34A><bold>Mob Management</bold></gradient>"
+    lore:
+      - "<gray>Allow/block spawning per mob type"
+      - "<gray>and set automatic cleanups."
+      - ""
+      - "<gold>➤ <gray>Click to open"
+
+  farm-limiter:
+    name: "<white><bold>Farm Limiter</bold> <dark_gray>» %state%"
+    lore:
+      - "<gray>From <white>%size% <gray>animals of one type per"
+      - "<gray>chunk, their AI and collision are"
+      - "<gray>switched off until a player hits one."
+      - ""
+      - "<gold>➤ <gray>Click to toggle"
+
+  entity-cap:
+    name: "<white><bold>Entity Cap</bold> <dark_gray>» %state%"
+    lore:
+      - "<gray>Max <white>%max% <gray>animals/villagers of one"
+      - "<gray>type per chunk - breeding and"
+      - "<gray>spawning stop beyond that."
+      - ""
+      - "<gold>➤ <gray>Click to toggle"
+
+  villager-optimizer:
+    name: "<white><bold>Villager Optimizer</bold> <dark_gray>» %state%"
+    lore:
+      - "<gray>Villagers that stood still for"
+      - "<white>%minutes% min <gray>(trading halls) lose their AI."
+      - "<gray>Trading keeps working, restock 2x/day."
+      - ""
+      - "<gold>➤ <gray>Click to toggle"
+
+  item-cleaner:
+    name: "<white><bold>Item Cleaner</bold> <dark_gray>» %state%"
+    lore:
+      - "<gray>Removes ground items every <white>%minutes% min"
+      - "<gray>with warnings in chat."
+      - "<gray>Next cleanup: <white>%next%"
+      - ""
+      - "<gold>➤ <gray>Click to toggle"
+
+  afk-view:
+    name: "<white><bold>AFK View Distance</bold> <dark_gray>» %state%"
+    lore:
+      - "<gray>After <white>%minutes% min <gray>AFK the view distance"
+      - "<gray>drops to <white>%distance% <gray>chunks."
+      - "<gray>Currently reduced: <white>%count% <gray>players"
+      - ""
+      - "<gold>➤ <gray>Click to toggle"
+
+  auto-performance:
+    name: "<white><bold>Auto Performance</bold> <dark_gray>» %state%"
+    lore:
+      - "<gray>Above <white>%mspt% ms/tick <gray>for 60 s, AFK view"
+      - "<gray>and farm limiter switch on automatically."
+      - "<gray>Status: %active%"
+      - ""
+      - "<gold>➤ <gray>Click to toggle"
+
+  lagmap:
+    name: "<gradient:#FBBF24:#D97706><bold>Lagmap</bold></gradient>"
+    lore:
+      - "<gray>The busiest chunks of all worlds:"
+      - "<gray>entities, mobs, items, hoppers."
+      - ""
+      - "<gold>➤ <gray>Click to open"
+
+  redstone:
+    name: "<gradient:#F87171:#DC2626><bold>Redstone Meter</bold></gradient>"
+    lore:
+      - "<gray>Chunks with the fastest/largest"
+      - "<gray>redstone contraptions."
+      - ""
+      - "<gold>➤ <gray>Click to open"
+
+  chunkloaders:
+    name: "<yellow><bold>Chunk Loaders"
+    lore:
+      - "<gray>Chunks that are loaded although"
+      - "<gray>no player is nearby."
+      - ""
+      - "<gold>➤ <gray>Click to open"
+
+  web:
+    name-on: "<aqua><bold>Performance Website"
+    name-off: "<dark_gray>Performance Website <gray>(off)"
+    lore-on:
+      - "<gray>Live TPS, MSPT, memory and more"
+      - "<gray>in your browser."
+      - ""
+      - "<gold>➤ <gray>Click for the link"
+    lore-off:
+      - "<gray>Switch on in config.yml:"
+      - "<white>web.enabled: true <gray>+ /dt reload"
+
+  dashboard:
+    name: "<gradient:#86EFAC:#16A34A><bold>Server Performance</bold></gradient>"
+    lore:
+      - "<gray>TPS: <white>%tps%"
+      - "<gray>MSPT: <white>%mspt% <dark_gray>(limit 50)"
+      - "<gray>Players: <white>%players%"
+      - "<gray>Memory: <white>%memory%"
+      - "<gray>Loaded chunks: <white>%chunks%"
+      - "<gray>Entities: <white>%entities%"
+      - "<gray>AFK with reduced view: <white>%afk%"
+
+  back-button:
+    name: "<dark_gray>« <gray>Back"
+    lore: "<gray>Return to the main menu"
+
+# ---------- Overworld mob list (same layout as Nether/End) ----------
+mob-management:
+  title: "<gradient:#86EFAC:#16A34A><bold>ᴍᴏʙ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ</bold></gradient> <dark_gray>| <gray>Overworld"
+  mob-name-enabled: "<green>%mob%"
+  mob-name-disabled: "<gray>%mob%"
+  status-spawning-allowed: "<gray>Spawning: <green>allowed"
+  status-spawning-blocked: "<gray>Spawning: <red>blocked"
+  cleanup-off: "<gray>Auto-cleanup: <gray>off"
+  cleanup-active: "<gray>Auto-cleanup: <white>every %minutes%m"
+  cleanup-next: "<gray>Next cleanup in: <gold>%next%m"
+  mob-lore-hint:
+    - ""
+    - "<gold>Click: <gray>toggle spawning"
+    - "<gold>Shift-click: <gray>cycle cleanup interval"
+  back-button:
+    name: "<dark_gray>« <gray>Back"
+    lore: "<gray>Return to the Overworld panel"
+
+# ---------- Lag reports ----------
+reports:
+  back-button:
+    name: "<dark_gray>« <gray>Back"
+    lore: "<gray>Return to the Overworld panel"
+  refresh-button:
+    name: "<yellow><bold>Refresh"
+    lore: "<gray>Measure again now"
+
+  lag:
+    title: "<gradient:#FBBF24:#D97706><bold>ʟᴀɢᴍᴀᴘ</bold></gradient> <dark_gray>| <gray>all worlds"
+    entry-name: "<gold>#%rank% <white>%world% <gray>(%x%, %z%)"
+    entry-lore:
+      - "<gray>Lag score: <gold>%score%"
+      - "<gray>Entities: <white>%entities% <dark_gray>| <gray>Mobs: <white>%mobs%"
+      - "<gray>Items: <white>%items% <dark_gray>| <gray>Hoppers: <white>%hoppers%"
+      - "<gray>Block entities: <white>%blocks%"
+      - ""
+    action-lore:
+      - "<gold>Click: <gray>teleport there"
+      - "<gold>Shift-click: <gray>clean up (items + mobs)"
+    confirm-lore:
+      - "<red><bold>Shift-click again to confirm!"
+      - "<gray>Removes ground items, XP and mobs"
+      - "<gray>(not named, tamed, leashed or villagers)."
+    sort-button:
+      name: "<aqua><bold>Sorted by: <white>%sort%"
+      lore:
+        - "<gold>➤ <gray>Click to change"
+    empty: "<gray>No busy chunks right now"
+
+  redstone:
+    title: "<gradient:#F87171:#DC2626><bold>ʀᴇᴅꜱᴛᴏɴᴇ</bold></gradient> <dark_gray>| <gray>all worlds"
+    entry-name: "<red>#%rank% <white>%world% <gray>(%x%, %z%)"
+    entry-lore:
+      - "<gray>Redstone updates: <red>%rate%/s"
+      - "<dark_gray>(measured over the last %window% s)"
+      - ""
+      - "<gold>Click: <gray>teleport there"
+    empty: "<gray>No redstone activity measured yet"
+
+  loaders:
+    title: "<yellow><bold>ᴄʜᴜɴᴋ ʟᴏᴀᴅᴇʀꜱ</bold> <dark_gray>| <gray>all worlds"
+    entry-name: "<yellow>#%rank% <white>%world% <gray>(%x%, %z%)"
+    entry-lore:
+      - "<gray>Reason: <white>%reason%"
+      - "<gray>Entities: <white>%entities%"
+      - ""
+      - "<gold>Click: <gray>teleport there"
+    empty: "<gray>No chunks loaded without a player nearby"

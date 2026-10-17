@@ -69,8 +69,12 @@ geprüft; Entfernen aus Dimensionen mit `%player%`-Konsolen-Commands +
 Ebenfalls gewünscht: **PlaceholderAPI-Support** (Nutzer hat PlaceholderAPI
 2.11.6 und VaultAPI 1.7 als Jars bereitgestellt; Vault vorerst nicht nötig).
 
-Reihenfolge / Stand:
-1. **`/lagmap`** (als Nächstes) – `/lagmap` und `/dt lagmap`; GUI (Klick =
+**Stand 3.3.0-dev2: alle Punkte unten sind gebaut** (Nutzer wollte alles auf
+einmal ohne weitere Rückfragen). Offen: bStats-Plugin-ID
+(`DimensionToggle.BSTATS_PLUGIN_ID`, 0 = aus) vom Nutzer besorgen.
+
+Ursprüngliche Planung:
+1. **`/lagmap`** – `/lagmap` und `/dt lagmap`; GUI (Klick =
    Teleport) plus `/lagmap chat` (klickbare Liste, auch Konsole); Top 10
    Chunks aller Welten; Spalten: Entities gesamt, Mobs, Items/XP am Boden,
    Hopper/Block-Entities; Standard-Sortierung „Lag-Score“ (gewichtet: Mobs
@@ -107,9 +111,13 @@ line matching paper-api. `PluginTestBase` boots a mock server with
 is treated as the main world), loads the plugin and stops the update
 checker so no test hits Modrinth. MockBukkit leaves a few APIs
 unimplemented; fill gaps in the test doubles rather than bending production
-code: `TestServerMock` (`getTPS`) and
-`TestPlayerMock` (a `teleportAsync` that actually teleports - create
-players via `PluginTestBase.addPlayer`). An `UnimplementedOperationException`
+code: `TestServerMock` (`getTPS`, settable `getAverageTickTime`/
+`getTickTimes` for load tests), `TestWorldMock` (`getTileEntityCount`,
+view/simulation distance) and
+`TestPlayerMock` (a `teleportAsync` that actually teleports, per-player
+view/simulation distance - create players via `PluginTestBase.addPlayer`).
+`ChunkMock.getTileEntities` is unimplemented, so the lag map's block-entity
+part is only testable on a real server (tests use `scan(false)`). An `UnimplementedOperationException`
 shows up as a *skipped* test, so check the skip count, not just failures.
 
 **Java 25 in the sandbox**: Paper 26.x is compiled for Java 25 (class
@@ -140,6 +148,11 @@ https://repo.papermc.io/repository/maven-public/net/md-5/bungeecord-chat/1.21-R0
 ```
 
 (brigadier/bungeecord versions are the ones the paper-api pom asks for.)
+PlaceholderAPI (`me.clip:placeholderapi:2.11.6`, provided scope) isn't on
+Central either; its repo may be blocked too - ask the user for the jar and
+install it with `-DgroupId=me.clip -DartifactId=placeholderapi
+-Dversion=2.11.6 -Dpackaging=jar -DgeneratePom=true`. bStats comes from
+Central and is shaded + relocated to `net.dimensiontoggle.libs.bstats`.
 Once installed into `~/.m2` they persist for the rest of that container's
 life - only a fresh container needs them again.
 
@@ -188,6 +201,25 @@ Package layout under `net.dimensiontoggle`:
   `UpdateChecker`). All are constructed and wired together once in
   `DimensionToggle.onEnable()` and reached from anywhere via
   `plugin.getXManager()` getters - there's no DI framework.
+- **`performance`** - the Overworld & performance layer (3.3.0):
+  `PerformanceMonitor` (5 s main-thread samples, 1 h history, published as
+  an immutable snapshot), `LagMapScanner`, `RedstoneMeter` (event counters
+  per chunk, 20 s windows), `ChunkLoaderDetector`, `ChunkReports` (shared
+  clickable chat lists + `/dt tpchunk`), optimizers `FarmLimiter`,
+  `VillagerOptimizer` (both via `EntityFreezer`: AI off + PDC tag, woken by
+  `FreezeListener` on player hit / chunk load), `EntityCapListener`,
+  `ItemCleaner`, `AfkViewManager`, `AutoPerformanceManager`, and
+  `web.PerformanceWebServer` (JDK `HttpServer`, own thread, token in
+  data.yml, serves only the monitor snapshot - never touch Bukkit API from
+  it; page in `src/main/resources/web/index.html`, excluded from resource
+  filtering). Gameplay-changing optimizers default to OFF and are toggled
+  in the Overworld panel (`OverworldGuiBuilder`); lag reports share
+  `ChunkReportGuiBuilder`. `model.WorldScope` (OVERWORLD/NETHER/END) is
+  used where the Overworld counts too (mob management, spawn gamerule) -
+  `ToggleDimension` stays NETHER/END only, so lockdown etc. never touch the
+  Overworld.
+- **`hook`** - `PlaceholderHook` (PlaceholderAPI, soft-depend; only loaded
+  when the plugin is present).
 - **`listener`** - `PortalListener` blocks entry into a
   disabled/soft-locked/full dimension via `PlayerPortalEvent`, and
   separately blocks End Gateway teleports via `PlayerTeleportEvent`
@@ -238,8 +270,9 @@ Related: `MessageManager.parse()` caches Components (bounded LRU keyed by
 the final string), and `DimensionManager.removePlayersFromDimension()`
 moves players out 20 per tick (tracking UUIDs, re-checking each one) so a
 lockdown on a full dimension isn't a single-tick spike. Repeating tasks use
-staggered start offsets (20/23/207/1211 ticks) so they don't pile onto the
-same tick - keep new ones off those.
+staggered start offsets (20/23/101/207/409/613/811/1211/1217 ticks and the
+redstone window at 407) so they don't pile onto the same tick - keep new
+ones off those.
 
 **Dimension-scoped code should stay uniform over `ToggleDimension.values()`**
 rather than branching on which dimension it is, except where Nether and
