@@ -10,7 +10,7 @@ softdepend: [PlaceholderAPI, PvPManager]
 commands:
   dimensiontoggle:
     description: Main command for DimensionToggle
-    usage: /dt <editor|status|nether|end|softlock|lockdown|limit|maintenance|lagmap|redstone|chunkloaders|web|help|reload|checkupdate>
+    usage: /dt <editor|status|nether|end|softlock|lockdown|limit|maintenance|lagmap|redstone|chunkloaders|help|reload|checkupdate>
     aliases: [dt, dimtoggle]
   lagmap:
     description: Shows the busiest chunks of all worlds (same as /dt lagmap)
@@ -24,7 +24,6 @@ permissions:
       dimensiontoggle.lagmap: true
       dimensiontoggle.redstone: true
       dimensiontoggle.chunkloaders: true
-      dimensiontoggle.performance: true
       dimensiontoggle.performance.notify: true
   dimensiontoggle.status:
     description: Access to /dt status
@@ -49,9 +48,6 @@ permissions:
     default: op
   dimensiontoggle.chunkloaders:
     description: /dt chunkloaders - chunks loaded without a player nearby
-    default: op
-  dimensiontoggle.performance:
-    description: /dt web - link to the performance website
     default: op
   dimensiontoggle.performance.notify:
     description: Receives redstone and auto performance warnings in chat

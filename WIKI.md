@@ -42,7 +42,6 @@ per Command oder komplett per Klick im In-Game-Editor.
 | **Dashboard** | Spieler-Rekord, geladene Chunks, häufigste Entities, TPS. |
 | **Overworld & Performance** | Mob-Kontrolle für die Overworld, Farm-Limiter, Entity-Cap, Villager-Optimierer, Item-Aufräumer, AFK-Sichtweite, Auto-Performance-Modus. |
 | **Lag-Werkzeuge** | `/lagmap` (vollste Chunks), Redstone-Meter, Chunk-Loader-Melder – jeweils mit Klick-Teleport. |
-| **Performance-Website** | Live-TPS/MSPT, Speicher, Welten und Verlauf im Browser (`/dt web`). |
 | **Integrationen** | PlaceholderAPI-Platzhalter, bStats. |
 | **In-Game-Editor** | Alles oben per Klick unter `/dt editor`. |
 | **Logging** | Jede Aktion mit Zeit und Verursacher in einer Log-Datei. |
@@ -127,8 +126,6 @@ Hauptcommand: `/dimensiontoggle` – Aliase: **`/dt`**, `/dimtoggle`.
 | `/dt lagmap chat [score\|entities\|mobs\|items\|blocks]` | Dieselbe Liste als klickbarer Chat-Text, sortiert nach der gewählten Spalte (geht auch in der Konsole). | `dimensiontoggle.lagmap` |
 | `/dt redstone [chat]` | Chunks mit dem schnellsten Redstone der letzten 20 Sekunden. | `dimensiontoggle.redstone` |
 | `/dt chunkloaders [chat]` | Chunks, die geladen sind, obwohl kein Spieler in der Nähe ist – mit Grund. | `dimensiontoggle.chunkloaders` |
-| `/dt web` | Link zur Performance-Website (anklickbar). | `dimensiontoggle.performance` |
-| `/dt web reset-token` | Neuen geheimen Website-Token erzeugen – alte Links funktionieren dann nicht mehr. | `dimensiontoggle.performance` |
 
 **Zeitangaben** (Wartung): `30s`, `5m`, `1h`, `1h30m`, `2h15m30s`.
 Eine reine Zahl bedeutet Minuten (`10` = 10 Minuten). Die Zeit muss größer als 0 sein.
@@ -150,7 +147,6 @@ Permission hat.
 | `dimensiontoggle.lagmap` | OP | `/lagmap`: vollste Chunks ansehen, hinteleportieren, aufräumen. |
 | `dimensiontoggle.redstone` | OP | `/dt redstone` |
 | `dimensiontoggle.chunkloaders` | OP | `/dt chunkloaders` |
-| `dimensiontoggle.performance` | OP | `/dt web` (Link zur Website) |
 | `dimensiontoggle.performance.notify` | OP | Bekommt Redstone- und Auto-Performance-Warnungen im Chat. |
 | `dimensiontoggle.afk.bypass` | niemand | Sichtweite wird bei AFK nie gesenkt. |
 
@@ -486,27 +482,6 @@ Spieler in Sichtweite ist. Als Grund wird angezeigt: `/forceload`,
 ein Plugin (mit Namen), eine Enderperle oder „unbekannt“ (meist Portal- oder
 Entity-Lader).
 
-### Performance-Website
-
-Eine kleine, nur lesende Webseite mit TPS (1/5/15 min), MSPT inkl. Spitze,
-Spielern, Arbeitsspeicher, CPU, Laufzeit, Status von Nether/End, allen Welten
-(Spieler, Chunks, Entities, Block-Entities), den vollsten Chunks und einem
-Diagramm der letzten Stunde. Sprache folgt der Plugin-Sprache.
-
-**Einrichten:**
-1. In der `config.yml` `web.enabled: true` setzen und einen freien `web.port`
-   wählen (Standard 8105).
-2. Bei gemieteten Servern (Pterodactyl o.ä.) den Port im Panel als
-   zusätzlichen Port freigeben.
-3. Optional `web.public-url` setzen, z.B. `"http://play.meinserver.de:8105"` –
-   diese Adresse zeigt `/dt web` an.
-4. `/dt reload`, dann `/dt web` → Link anklicken.
-
-Der Link enthält einen **geheimen Token**; ohne ihn ist die Seite gesperrt
-(`web.require-token: false` macht sie öffentlich). `/dt web reset-token`
-erzeugt einen neuen Token, falls ein Link in falsche Hände geraten ist.
-Die Seite kann nichts verändern – sie zeigt nur an.
-
 ### PlaceholderAPI
 
 Ist PlaceholderAPI installiert, gibt es diese Platzhalter (z.B. für
@@ -550,7 +525,6 @@ Hauptmenü
 │               ├── Farm-Limiter, Entity-Cap, Villager-Optimierer,
 │               │   Item-Aufräumer, AFK-Sichtweite, Auto-Performance (an/aus)
 │               ├── Lagmap · Redstone · Chunk-Loader (Klick = Teleport)
-│               ├── Website (Link im Chat)
 │               └── Server-Performance (TPS, MSPT, RAM, Chunks, Entities)
 ├── Lockdown  (Klick = Lockdown an/aus)
 └── Schließen
@@ -722,10 +696,6 @@ Nach Änderungen an Dateien: `/dt reload`.
 | `auto-performance.enabled` | `false` | Auto-Performance-Modus an. |
 | `auto-performance.activate-mspt` / `recover-mspt` | `45` / `35` | Ein- und Ausschaltschwelle (ms pro Tick). |
 | `auto-performance.afk-minutes` / `farm-group-size` | `2` / `10` | Strengere Werte, solange der Modus aktiv ist. |
-| `web.enabled` | `false` | Website an. |
-| `web.port` / `bind-address` | `8105` / `"0.0.0.0"` | Port und Netzwerkadresse. |
-| `web.public-url` | `""` | Adresse, die `/dt web` anzeigt. |
-| `web.require-token` | `true` | Website nur mit geheimem Token. |
 
 ### Benachrichtigungen
 
@@ -816,7 +786,6 @@ der Server läuft:
 | `mob-management.<dimension>.<MOB>.enabled` / `.cleanup-minutes` | Mob-Management |
 | `nether.spawners-enabled`, `end.elytra-fly-enabled` | Schalter |
 | `mob-management.overworld.<MOB>...` | Mob-Management der Overworld |
-| `web.token` | Geheimer Token der Performance-Website |
 
 Gespeichert wird absturzsicher im Hintergrund. Ist die Datei trotzdem einmal
 unlesbar, benennt das Plugin sie in `data.yml.corrupt-<Datum>-<Uhrzeit>` um,
@@ -919,13 +888,6 @@ Das Modrinth-Projekt ist (noch) nicht erreichbar. Mit
 **Wartung war nach einem Neustart weg.**
 Laufende Countdowns werden nicht gespeichert – nach dem Neustart neu starten.
 
-**Die Performance-Website lässt sich nicht öffnen.**
-- Ist `web.enabled: true` und wurde `/dt reload` ausgeführt? In der Konsole
-  steht beim Start „Performance website running on port …“ oder warum es
-  nicht geklappt hat.
-- Ist der Port frei und (bei gemieteten Servern) im Panel freigegeben?
-- Ohne Token kommt „Forbidden“ – den Link aus `/dt web` verwenden.
-
 **Tiere stehen nach dem Entfernen des Plugins still.**
 Der Farm-Limiter (oder Villager-Optimierer) war noch an. Plugin wieder
 einsetzen, Feature ausschalten (weckt alle Tiere auf), dann entfernen.
@@ -978,7 +940,7 @@ mvn test
 
 Automatisierte Tests mit JUnit 6 und MockBukkit (`src/test`): Zeit- und
 Dauer-Parsing, Zeitplan, Persistenz, GUI, Portal-Listener, Commands,
-verteiltes Rausbringen von Spielern, Lag-Werkzeuge, Optimierer, Website,
+verteiltes Rausbringen von Spielern, Lag-Werkzeuge, Optimierer,
 PlaceholderAPI.
 
 **Aufbau** (Paket `net.dimensiontoggle`)
@@ -991,7 +953,7 @@ PlaceholderAPI.
 | `gui` | Editor – jede Aktion steckt als Text im Item, nicht in der Slot-Nummer |
 | `config` | Laden, automatische Config-Updates (Merge, Migrationen, Backups) und kommentarerhaltendes Schreiben der YAML-Dateien |
 | `io` | Hintergrund-Thread und absturzsicheres Schreiben für alle Dateien |
-| `performance` | Overworld & Performance: Monitor, Lagmap, Redstone-Meter, Chunk-Loader, Optimierer, Website |
+| `performance` | Overworld & Performance: Monitor, Lagmap, Redstone-Meter, Chunk-Loader, Optimierer |
 | `hook` | PlaceholderAPI-Erweiterung |
 | `model` | `ToggleDimension` (NETHER/END), `WorldScope` (+ Overworld), Benachrichtigungs-Kanäle |
 

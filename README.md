@@ -6,7 +6,7 @@ World Border, PvP-/Keep-Inventory-/Elytra-Schaltern, Logging und einem
 kompletten Klick-Editor im Spiel (`/dt editor`). Dazu eine Overworld- und
 Performance-Ebene: Farm-Limiter, Entity-Cap, Villager-Optimierer,
 Item-Aufräumer, AFK-Sichtweite, Auto-Performance-Modus, `/lagmap`,
-Redstone-Meter, Chunk-Loader-Melder, Performance-Website, PlaceholderAPI und
+Redstone-Meter, Chunk-Loader-Melder, PlaceholderAPI und
 bStats.
 
 **📖 Komplette Anleitung: [WIKI.md](WIKI.md)** – alle Features, Commands,
@@ -36,7 +36,6 @@ Permissions, Config-Optionen, der Editor und eine FAQ.
 | `/dt lagmap [chat]` / `/lagmap` | Vollste Chunks aller Welten (Klick = Teleport) | `dimensiontoggle.lagmap` |
 | `/dt redstone [chat]` | Chunks mit dem schnellsten Redstone | `dimensiontoggle.redstone` |
 | `/dt chunkloaders [chat]` | Chunks, die ohne Spieler geladen sind | `dimensiontoggle.chunkloaders` |
-| `/dt web [reset-token]` | Link zur Performance-Website | `dimensiontoggle.performance` |
 | `/dt help` | Zeigt die Commands, die man nutzen darf | – |
 
 Aliase: `/dt`, `/dimtoggle`. Details: [WIKI.md → Commands](WIKI.md#4-commands).
@@ -51,7 +50,6 @@ Aliase: `/dt`, `/dimtoggle`. Details: [WIKI.md → Commands](WIKI.md#4-commands)
 | `dimensiontoggle.bypass.limit.nether` | OP | Nur das Nether-Limit ignorieren |
 | `dimensiontoggle.bypass.limit.end` | OP | Nur das End-Limit ignorieren |
 | `dimensiontoggle.lagmap` / `.redstone` / `.chunkloaders` | OP | Die jeweiligen Lag-Werkzeuge |
-| `dimensiontoggle.performance` | OP | `/dt web` |
 | `dimensiontoggle.performance.notify` | OP | Redstone- und Auto-Performance-Warnungen |
 | `dimensiontoggle.afk.bypass` | niemand | Sichtweite wird bei AFK nie gesenkt |
 
@@ -1059,9 +1057,6 @@ Spielverhalten verändert, ist standardmäßig **aus**.
   Staff-Warnung.
 - **Chunk-Loader-Melder** (`/dt chunkloaders`): Chunks, die ohne Spieler in
   der Nähe tickend geladen sind, mit Grund (/forceload, Plugin, Enderperle).
-- **Performance-Website** (`/dt web`): TPS, MSPT, RAM, CPU, Welten,
-  vollste Chunks und Verlauf der letzten Stunde im Browser, geschützt durch
-  einen geheimen Token. Standardmäßig aus (braucht einen freien Port).
 - **PlaceholderAPI**: `%dimensiontoggle_nether_status%` u.v.m.
 - **bStats**-Unterstützung.
 

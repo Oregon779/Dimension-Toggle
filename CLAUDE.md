@@ -87,7 +87,8 @@ Ursprüngliche Planung:
 4. AFK-Sichtweite (Render-/Simulationsdistanz nach AFK-Intervall).
 5. Redstone-Clock-Meter.
 6. Chunk-Loader-Melder.
-7. Performance-Website per Command (TPS, MSPT, …).
+7. ~~Performance-Website~~ - in dev4 auf Wunsch des Nutzers wieder entfernt
+   (Migrationen räumen `web:`, die Texte und `web.token` aus alten Dateien).
 8. bStats (Plugin-ID vom Nutzer nötig).
 Zusätzlich gewählt: Villager-Optimierung, Entity-Cap pro Chunk,
 Boden-Item-Aufräumer, Auto-Performance-Modus, Hopper-/Block-Entity-Zähler
@@ -213,17 +214,13 @@ Package layout under `net.dimensiontoggle`:
   `DimensionToggle.onEnable()` and reached from anywhere via
   `plugin.getXManager()` getters - there's no DI framework.
 - **`performance`** - the Overworld & performance layer (3.3.0):
-  `PerformanceMonitor` (5 s main-thread samples, 1 h history, published as
-  an immutable snapshot), `LagMapScanner`, `RedstoneMeter` (event counters
+  `PerformanceMonitor` (5 s main-thread samples for the editor dashboard,
+  published as an immutable snapshot), `LagMapScanner`, `RedstoneMeter` (event counters
   per chunk, 20 s windows), `ChunkLoaderDetector`, `ChunkReports` (shared
   clickable chat lists + `/dt tpchunk`), optimizers `FarmLimiter`,
   `VillagerOptimizer` (both via `EntityFreezer`: AI off + PDC tag, woken by
   `FreezeListener` on player hit / chunk load), `EntityCapListener`,
-  `ItemCleaner`, `AfkViewManager`, `AutoPerformanceManager`, and
-  `web.PerformanceWebServer` (JDK `HttpServer`, own thread, token in
-  data.yml, serves only the monitor snapshot - never touch Bukkit API from
-  it; page in `src/main/resources/web/index.html`, excluded from resource
-  filtering). Gameplay-changing optimizers default to OFF and are toggled
+  `ItemCleaner`, `AfkViewManager` and `AutoPerformanceManager`. Gameplay-changing optimizers default to OFF and are toggled
   in the Overworld panel (`OverworldGuiBuilder`); lag reports share
   `ChunkReportGuiBuilder`. `model.WorldScope` (OVERWORLD/NETHER/END) is
   used where the Overworld counts too (mob management, spawn gamerule) -

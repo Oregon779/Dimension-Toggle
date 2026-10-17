@@ -39,6 +39,12 @@ public final class ConfigMigrations {
     public record Migration(String resourcePath, int version, String description, List<Step> steps) {
     }
 
+    private static final List<Step> WEBSITE_MESSAGES = List.of(
+            Step.remove(ConfigUpdater.join("help-web")),
+            Step.remove(ConfigUpdater.join("web-link")),
+            Step.remove(ConfigUpdater.join("web-disabled")),
+            Step.remove(ConfigUpdater.join("web-token-reset")));
+
     public static final List<Migration> ALL = List.of(
             // 1.2.0 switched each channel on/off under <feature>.notify; since
             // 1.3.0 a single "notification" field picks the channel and the
@@ -47,7 +53,17 @@ public final class ConfigMigrations {
             new Migration("config.yml", 2, "remove the unused notify sections from 1.2.0", List.of(
                     Step.remove(ConfigUpdater.join("maintenance", "notify")),
                     Step.remove(ConfigUpdater.join("schedule", "notify")),
-                    Step.remove(ConfigUpdater.join("lockdown", "notify"))))
+                    Step.remove(ConfigUpdater.join("lockdown", "notify")))),
+            // The performance website of the 3.3.0 dev builds was removed
+            // again (with /dt web and its GUI button).
+            new Migration("config.yml", 3, "remove the performance website", List.of(
+                    Step.remove(ConfigUpdater.join("web")))),
+            new Migration("languages/en/messages.yml", 2, "remove the performance website texts",
+                    WEBSITE_MESSAGES),
+            new Migration("languages/de/messages.yml", 2, "remove the performance website texts",
+                    WEBSITE_MESSAGES),
+            new Migration("gui/overworld/config.yml", 2, "remove the performance website button", List.of(
+                    Step.remove(ConfigUpdater.join("panel", "web"))))
     );
 
     private ConfigMigrations() {

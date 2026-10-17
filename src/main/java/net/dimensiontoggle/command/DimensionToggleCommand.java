@@ -34,7 +34,6 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
             new CommandInfo("lagmap", 60, "dimensiontoggle.lagmap"),
             new CommandInfo("redstone", 58, "dimensiontoggle.redstone"),
             new CommandInfo("chunkloaders", 56, "dimensiontoggle.chunkloaders"),
-            new CommandInfo("web", 54, "dimensiontoggle.performance"),
             new CommandInfo("help", 20, null),
             new CommandInfo("reload", 15, "dimensiontoggle.admin"),
             new CommandInfo("checkupdate", 10, "dimensiontoggle.admin")
@@ -76,7 +75,6 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
             case "lagmap" -> handleLagmap(sender, args);
             case "redstone" -> handleReport(sender, args, "dimensiontoggle.redstone", "redstone");
             case "chunkloaders" -> handleReport(sender, args, "dimensiontoggle.chunkloaders", "chunkloaders");
-            case "web" -> handleWeb(sender, args);
             case "tpchunk" -> handleTpChunk(sender, args);
             default -> messages.send(sender, "unknown-command");
         }
@@ -433,30 +431,6 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
                 Map.of("world", args[1], "x", String.valueOf(x), "z", String.valueOf(z)));
     }
 
-    // /dt web [reset-token]
-    private void handleWeb(CommandSender sender, String[] args) {
-        if (!require(sender, "dimensiontoggle.performance")) {
-            return;
-        }
-        var web = plugin.getPerformanceWebServer();
-        if (args.length >= 2 && args[1].equalsIgnoreCase("reset-token")) {
-            web.ensureToken(true);
-            plugin.getMessageManager().send(sender, "web-token-reset");
-            plugin.getLogManager().log(sender, "WEB TOKEN RESET", null, null);
-            if (!web.isRunning()) {
-                return;
-            }
-        }
-        if (!web.isRunning()) {
-            plugin.getMessageManager().send(sender, "web-disabled");
-            return;
-        }
-        String url = web.buildLink();
-        MessageManager messages = plugin.getMessageManager();
-        sender.sendMessage(messages.parseWithPlaceholders(messages.getPrefix() + messages.get("web-link"), Map.of("url", url))
-                .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(url)));
-    }
-
     // Lets /lagmap reuse everything here as if "/dt lagmap" was typed.
     public PrefixedCommand prefixed(String subcommand) {
         return new PrefixedCommand(subcommand);
@@ -518,10 +492,6 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 3 && args[0].equalsIgnoreCase("lagmap") && args[1].equalsIgnoreCase("chat")) {
             return SORTS.stream().filter(s -> s.startsWith(args[2].toLowerCase())).collect(Collectors.toList());
-        }
-
-        if (args.length == 2 && args[0].equalsIgnoreCase("web")) {
-            return List.of("reset-token").stream().filter(s -> s.startsWith(args[1].toLowerCase())).collect(Collectors.toList());
         }
 
         if (args.length == 3 && args[0].equalsIgnoreCase("maintenance")) {

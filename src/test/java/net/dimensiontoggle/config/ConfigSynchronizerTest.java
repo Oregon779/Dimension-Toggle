@@ -79,16 +79,16 @@ class ConfigSynchronizerTest extends PluginTestBase {
                 .replace("  group-size: 20", "  group-size: 33"));
         // ... and an update that brings two new options.
         drop("farm-limiter", "check-interval-seconds");
-        drop("web");
+        drop("auto-performance");
         forget("farm-limiter.check-interval-seconds");
-        forget("web");
+        forget("auto-performance");
 
         restart();
 
         String content = read();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(config());
         assertEquals(30, yaml.getInt("farm-limiter.check-interval-seconds"), "new option, default value");
-        assertEquals(8105, yaml.getInt("web.port"));
+        assertEquals(35.0, yaml.getDouble("auto-performance.recover-mspt"));
         assertEquals(33, yaml.getInt("farm-limiter.group-size"), "own value kept");
         assertEquals("de", yaml.getString("language"));
         assertTrue(content.contains("# ours"), "own comment kept");
@@ -123,8 +123,8 @@ class ConfigSynchronizerTest extends PluginTestBase {
     @Test
     void aBackupIsWrittenBeforeChangingAndOnlyTheLastFiveAreKept() throws Exception {
         String before = read();
-        drop("web", "port");
-        forget("web.port");
+        drop("auto-performance", "recover-mspt");
+        forget("auto-performance.recover-mspt");
         String changed = read();
         restart();
 
@@ -135,8 +135,8 @@ class ConfigSynchronizerTest extends PluginTestBase {
         assertFalse(before.equals(changed));
 
         for (int i = 0; i < 7; i++) {
-            drop("web", "port");
-            forget("web.port");
+            drop("auto-performance", "recover-mspt");
+            forget("auto-performance.recover-mspt");
             plugin.getConfigManager().reloadAll();
         }
         assertEquals(ConfigSynchronizer.BACKUPS_KEPT, new File(plugin.getDataFolder(), ConfigSynchronizer.BACKUP_FOLDER)
@@ -164,8 +164,48 @@ class ConfigSynchronizerTest extends PluginTestBase {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(config());
         assertFalse(yaml.contains("maintenance.notify"));
         assertEquals("server", yaml.getString("maintenance.broadcast-scope"), "neighbours untouched");
-        assertEquals(2, YamlConfiguration.loadConfiguration(stateFile())
+        assertEquals(ConfigMigrations.latestVersion("config.yml"), YamlConfiguration.loadConfiguration(stateFile())
                 .getInt(ConfigSynchronizer.id("config.yml") + ".version"));
+    }
+
+    @Test
+    void theRemovedWebsiteIsCleanedOutOfDevBuildFiles() throws Exception {
+        // Files as 3.3.0-dev3 left them.
+        write(read() + """
+
+                # A small read-only website with TPS, MSPT, memory, worlds and the busiest
+                # chunks. /dt web shows the link.
+                web:
+                  enabled: true
+                  port: 8105
+                """);
+        File messages = new File(plugin.getDataFolder(), "languages/en/messages.yml");
+        Files.writeString(messages.toPath(), Files.readString(messages.toPath(), StandardCharsets.UTF_8)
+                + "help-web: \"&d/dt web\"\nweb-link: \"%url%\"\nweb-disabled: \"off\"\nweb-token-reset: \"new\"\n",
+                StandardCharsets.UTF_8);
+        File gui = new File(plugin.getDataFolder(), "gui/overworld/config.yml");
+        Files.writeString(gui.toPath(), Files.readString(gui.toPath(), StandardCharsets.UTF_8).replace("  dashboard:\n",
+                "  web:\n    name-on: \"Website\"\n    lore-off:\n      - \"off\"\n\n  dashboard:\n"), StandardCharsets.UTF_8);
+        plugin.getConfigManager().getData().set("web.token", "secret");
+        plugin.getConfigManager().saveDataSync();
+        YamlConfiguration state = YamlConfiguration.loadConfiguration(stateFile());
+        state.set(ConfigSynchronizer.id("config.yml") + ".version", 2);
+        state.set(ConfigSynchronizer.id("languages/en/messages.yml") + ".version", 1);
+        state.set(ConfigSynchronizer.id("gui/overworld/config.yml") + ".version", 1);
+        Files.writeString(stateFile().toPath(), state.saveToString(), StandardCharsets.UTF_8);
+
+        restart();
+
+        assertFalse(YamlConfiguration.loadConfiguration(config()).contains("web"));
+        assertFalse(read().contains("website"), "its comment goes too");
+        assertTrue(YamlConfiguration.loadConfiguration(config()).contains("auto-performance.enabled"));
+        YamlConfiguration lang = YamlConfiguration.loadConfiguration(messages);
+        assertFalse(lang.contains("help-web") || lang.contains("web-link") || lang.contains("web-disabled")
+                || lang.contains("web-token-reset"));
+        YamlConfiguration guiYaml = YamlConfiguration.loadConfiguration(gui);
+        assertFalse(guiYaml.contains("panel.web"));
+        assertTrue(guiYaml.contains("panel.dashboard.name"));
+        assertFalse(plugin.getConfigManager().getData().contains("web"));
     }
 
     @Test
@@ -173,14 +213,14 @@ class ConfigSynchronizerTest extends PluginTestBase {
         File messages = new File(plugin.getDataFolder(), "languages/de/messages.yml");
         File gui = new File(plugin.getDataFolder(), "gui/overworld/config.yml");
         Files.write(messages.toPath(), ConfigUpdater.remove(Files.readAllLines(messages.toPath()),
-                ConfigUpdater.join("web-link")), StandardCharsets.UTF_8);
+                ConfigUpdater.join("lagmap-empty")), StandardCharsets.UTF_8);
         Files.write(gui.toPath(), ConfigUpdater.remove(Files.readAllLines(gui.toPath()),
-                ConfigUpdater.join("panel", "web", "lore-off")), StandardCharsets.UTF_8);
+                ConfigUpdater.join("panel", "chunkloaders", "lore")), StandardCharsets.UTF_8);
         Files.delete(stateFile().toPath());
 
         restart();
 
-        assertTrue(YamlConfiguration.loadConfiguration(messages).contains("web-link"));
-        assertTrue(YamlConfiguration.loadConfiguration(gui).contains("panel.web.lore-off"));
+        assertTrue(YamlConfiguration.loadConfiguration(messages).contains("lagmap-empty"));
+        assertTrue(YamlConfiguration.loadConfiguration(gui).contains("panel.chunkloaders.lore"));
     }
 }

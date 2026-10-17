@@ -91,11 +91,6 @@ public final class OverworldGuiBuilder {
         features.add(GuiItems.build(plugin, Material.LODESTONE, "OW_CHUNKLOADERS",
                 cfg.getString(base + "chunkloaders.name"), cfg.getStringList(base + "chunkloaders.lore")));
 
-        boolean web = plugin.getPerformanceWebServer().isRunning();
-        features.add(GuiItems.build(plugin, web ? Material.SPYGLASS : Material.GRAY_DYE, "OW_WEB",
-                cfg.getString(base + "web." + (web ? "name-on" : "name-off")),
-                cfg.getStringList(base + "web." + (web ? "lore-on" : "lore-off")), web));
-
         for (int i = 0; i < features.size() && i < INTERIOR_SLOTS.length; i++) {
             inventory.setItem(INTERIOR_SLOTS[i], features.get(i));
         }

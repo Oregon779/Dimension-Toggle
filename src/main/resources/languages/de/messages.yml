@@ -106,7 +106,6 @@ update-check-triggered: "&5&l⚠ &dPrüfe jetzt auf Modrinth nach Updates... &7s
 help-lagmap: "&d/dt lagmap [chat] &8» &7Vollste Chunks aller Welten &8(auch /lagmap)"
 help-redstone: "&d/dt redstone [chat] &8» &7Chunks mit dem schnellsten Redstone"
 help-chunkloaders: "&d/dt chunkloaders [chat] &8» &7Chunks, die ohne Spieler geladen sind"
-help-web: "&d/dt web &8» &7Link zur Live-Performance-Website"
 
 chunk-hover: "&7Klicken zum Hinteleportieren"
 teleported-chunk: "&a&l✔ &7Zu Chunk &f%x%, %z% &7in &f%world% &7teleportiert."
@@ -135,10 +134,6 @@ reason-force-loaded: "/forceload"
 reason-plugin: "Plugin: %plugins%"
 reason-ender-pearl: "Enderperle"
 reason-unknown: "unbekannt (Portal, Entity, …)"
-
-web-link: "&a&l✔ &7Performance-Website: &f&n%url% &8(klicken zum Öffnen)"
-web-disabled: "&c&l✘ &7Die Performance-Website ist aus &8(config.yml → web.enabled: true, dann /dt reload)."
-web-token-reset: "&a&l✔ &7Neuer Website-Token erstellt – alte Links funktionieren nicht mehr."
 
 item-cleaner-warning: "&e&l⚠ &7Items am Boden werden in &f%seconds% &7Sekunden entfernt!"
 item-cleaner-done: "&a&l✔ &f%count% &7Items vom Boden entfernt."

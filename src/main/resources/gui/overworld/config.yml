@@ -109,18 +109,6 @@ panel:
       - ""
       - "<gold>➤ <gray>Click to open"
 
-  web:
-    name-on: "<aqua><bold>Performance Website"
-    name-off: "<dark_gray>Performance Website <gray>(off)"
-    lore-on:
-      - "<gray>Live TPS, MSPT, memory and more"
-      - "<gray>in your browser."
-      - ""
-      - "<gold>➤ <gray>Click for the link"
-    lore-off:
-      - "<gray>Switch on in config.yml:"
-      - "<white>web.enabled: true <gray>+ /dt reload"
-
   dashboard:
     name: "<gradient:#86EFAC:#16A34A><bold>Server Performance</bold></gradient>"
     lore:

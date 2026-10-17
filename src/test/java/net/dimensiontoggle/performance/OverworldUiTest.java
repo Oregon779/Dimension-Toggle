@@ -116,14 +116,4 @@ class OverworldUiTest extends PluginTestBase {
         assertEquals(-2, admin.getLocation().getBlockZ() >> 4);
     }
 
-    @Test
-    void webCommandSaysWhenTheWebsiteIsOff() {
-        while (admin.nextComponentMessage() != null) {
-            // discard
-        }
-        admin.performCommand("dt web");
-        String expected = PlainTextComponentSerializer.plainText().serialize(plugin.getMessageManager()
-                .parse(plugin.getMessageManager().getPrefix() + plugin.getMessageManager().get("web-disabled")));
-        assertEquals(expected, PlainTextComponentSerializer.plainText().serialize(admin.nextComponentMessage()));
-    }
 }

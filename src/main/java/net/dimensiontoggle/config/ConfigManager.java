@@ -203,6 +203,12 @@ public class ConfigManager {
             data.set("dimensions.end.enabled", config.getBoolean("dimensions.end.enabled", true));
             changed = true;
         }
+        // Token of the performance website from the 3.3.0 dev builds (the
+        // website was removed again).
+        if (data.contains("web")) {
+            data.set("web", null);
+            changed = true;
+        }
         if (changed) {
             saveData();
         }

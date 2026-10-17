@@ -6,7 +6,7 @@
 
     <groupId>net.dimensiontoggle</groupId>
     <artifactId>DimensionToggle</artifactId>
-    <version>3.3.0-dev3</version>
+    <version>3.3.0-dev4</version>
     <packaging>jar</packaging>
 
     <name>DimensionToggle</name>
@@ -117,17 +117,6 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
-                <excludes>
-                    <exclude>web/**</exclude>
-                </excludes>
-            </resource>
-            <!-- The web page's JavaScript must not be touched by ${...} filtering. -->
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-                <includes>
-                    <include>web/**</include>
-                </includes>
             </resource>
         </resources>
     </build>

@@ -35,7 +35,6 @@ import net.dimensiontoggle.performance.LagMapScanner;
 import net.dimensiontoggle.performance.PerformanceMonitor;
 import net.dimensiontoggle.performance.RedstoneMeter;
 import net.dimensiontoggle.performance.VillagerOptimizer;
-import net.dimensiontoggle.performance.web.PerformanceWebServer;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bukkit.command.PluginCommand;
@@ -79,7 +78,6 @@ public class DimensionToggle extends JavaPlugin {
     private ItemCleaner itemCleaner;
     private AfkViewManager afkViewManager;
     private AutoPerformanceManager autoPerformanceManager;
-    private PerformanceWebServer performanceWebServer;
 
     @Override
     public void onEnable() {
@@ -116,7 +114,6 @@ public class DimensionToggle extends JavaPlugin {
         this.villagerOptimizer = new VillagerOptimizer(this);
         this.itemCleaner = new ItemCleaner(this);
         this.afkViewManager = new AfkViewManager(this);
-        this.performanceWebServer = new PerformanceWebServer(this);
         this.guiConfigManager = new GuiConfigManager(this);
         this.guiConfigManager.loadAll();
         this.guiManager = new GuiManager(this);
@@ -149,11 +146,9 @@ public class DimensionToggle extends JavaPlugin {
         villagerOptimizer.start();
         itemCleaner.start();
         afkViewManager.start();
-        performanceWebServer.start();
     }
 
     private void stopPerformanceFeatures() {
-        performanceWebServer.stop();
         afkViewManager.stop();
         itemCleaner.stop();
         villagerOptimizer.stop();
@@ -182,7 +177,6 @@ public class DimensionToggle extends JavaPlugin {
                 () -> String.valueOf(dimensionManager.isEnabled(ToggleDimension.END))));
         metrics.addCustomChart(new SimplePie("farm_limiter", () -> String.valueOf(farmLimiter.isConfiguredOn())));
         metrics.addCustomChart(new SimplePie("afk_view", () -> String.valueOf(afkViewManager.isConfiguredOn())));
-        metrics.addCustomChart(new SimplePie("web_dashboard", () -> String.valueOf(performanceWebServer.isRunning())));
     }
 
     private String safeLanguage() {
@@ -394,7 +388,4 @@ public class DimensionToggle extends JavaPlugin {
         return autoPerformanceManager;
     }
 
-    public PerformanceWebServer getPerformanceWebServer() {
-        return performanceWebServer;
-    }
 }

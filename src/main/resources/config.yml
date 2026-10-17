@@ -434,15 +434,3 @@ auto-performance:
   recover-mspt: 35
   afk-minutes: 2
   farm-group-size: 10
-
-# A small read-only website with TPS, MSPT, memory, worlds and the busiest
-# chunks. /dt web shows the link. Needs a free port (on rented servers this
-# usually has to be added as an extra port in your host's panel).
-web:
-  enabled: false
-  port: 8105
-  bind-address: "0.0.0.0"
-  # Address shown by /dt web, e.g. "http://play.example.net:8105"
-  public-url: ""
-  # Without the secret token from /dt web the page can't be opened.
-  require-token: true

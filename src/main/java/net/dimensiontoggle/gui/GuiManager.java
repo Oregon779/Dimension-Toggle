@@ -447,10 +447,6 @@ public class GuiManager implements Listener {
             }
             case "OW_REDSTONE" -> navigate(player, menu, MenuType.REPORT_REDSTONE, null);
             case "OW_CHUNKLOADERS" -> navigate(player, menu, MenuType.REPORT_LOADERS, null);
-            case "OW_WEB" -> afterClick(player, menu, () -> {
-                player.closeInventory();
-                player.performCommand("dt web");
-            });
 
             case "CR_BACK" -> navigate(player, menu, MenuType.OVERWORLD, null);
             case "CR_REFRESH" -> {
