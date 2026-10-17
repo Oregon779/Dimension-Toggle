@@ -979,6 +979,14 @@ Adventure-Component-API; `JavaPlugin#getDescription()` durch
   Verstellen lagen über dem, was Paper akzeptiert (59.999.968) - der Button
   tat nichts außer einer Konsolen-Warnung. Begrenzt jetzt auf das echte
   Server-Maximum.
+- **Portale mit Fahrzeug**: Wer in einem Boot, einer Lore oder auf einem
+  Tier saß, kam durch gesperrte Portale (es wird dann nur ein Event für das
+  Fahrzeug ausgelöst). Wird jetzt genauso geprüft wie zu Fuß.
+- **Lockdown/Wartung/Zeitplan holen wirklich alle raus**: Der
+  `action-command` lief immer als der Spieler - fehlte die Permission oder
+  brach eine Teleport-Verzögerung ab, blieb der Spieler drin. Neu:
+  `spawn %player%` läuft über die Konsole, und wer nach 5 Sekunden noch in
+  der geschlossenen Dimension ist, wird zum Spawn teleportiert.
 - Neue Nachrichten in `messages.yml` (DE+EN): `gateway-blocked`,
   `players-only` (Konsole bei `/dt editor`).
 

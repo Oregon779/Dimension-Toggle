@@ -167,10 +167,19 @@ Permission hat.
 | **Lockdown** | Nein, beide Dimensionen | Werden aus beiden Dimensionen rausgebracht (abschaltbar). | `/dt lockdown`, Editor |
 
 **„Rausbringen“** heißt: Ist ein `action-command` eingestellt, wird dieser
-Command für jeden betroffenen Spieler ausgeführt (z.B. `spawn`), sonst
-werden die Spieler zum Spawn der Hauptwelt teleportiert. Bei vielen Spielern
-passiert das verteilt über mehrere Ticks (20 Spieler pro Tick), damit der
-Server nicht laggt.
+Command für jeden betroffenen Spieler ausgeführt, sonst werden die Spieler
+zum Spawn der Hauptwelt teleportiert.
+
+- `spawn` → wird **als der Spieler** ausgeführt (er braucht die Permission dafür).
+- `spawn %player%` → wird **von der Konsole** für jeden Spieler ausgeführt
+  (empfohlen: keine Permission und keine Teleport-Verzögerung nötig).
+- **Sicherheitsnetz:** Wer 5 Sekunden später immer noch in der geschlossenen
+  Dimension ist (Command unbekannt, fehlende Rechte, abgebrochene
+  Teleport-Verzögerung …), wird automatisch zum Spawn teleportiert. Das gilt
+  auch für Spieler, die in eine bereits deaktivierte Dimension gelangt sind.
+
+Bei vielen Spielern passiert das verteilt über mehrere Ticks (20 Spieler pro
+Tick), damit der Server nicht laggt.
 
 **Reihenfolge der Prüfung beim Portal-Betreten**
 
@@ -183,8 +192,10 @@ Server nicht laggt.
 Wer in einem gesperrten Portal stehen bleibt, bekommt die Meldung höchstens
 alle 2 Sekunden.
 
-Geprüft werden **Netherportale, Endportale und End-Gateways** – andere
-Teleports (siehe [Bekannte Einschränkungen](#11-bekannte-einschränkungen))
+Geprüft werden **Netherportale, Endportale und End-Gateways** – auch wenn
+der Spieler in einem Boot, einer Lore oder auf einem Tier sitzt. Sitzt ein
+Spieler ohne Zugang im Fahrzeug, bleibt das ganze Fahrzeug stehen; mehrere
+Mitfahrer zählen gemeinsam fürs Spielerlimit. Andere Teleports (siehe [Bekannte Einschränkungen](#11-bekannte-einschränkungen))
 nicht.
 
 ---
@@ -476,7 +487,7 @@ Nach Änderungen an Dateien: `/dt reload`.
 
 | Schlüssel | Standard | Bedeutung |
 |---|---|---|
-| `action-command` | `""` | Command (ohne `/`), der bei Ablauf für jeden Spieler in der Dimension ausgeführt wird. Leer = Teleport zum Spawn. |
+| `action-command` | `""` | Command (ohne `/`), der bei Ablauf für jeden Spieler in der Dimension ausgeführt wird. Mit `%player%` läuft er über die Konsole. Leer = Teleport zum Spawn. |
 | `kick-to-spawn` | `true` | Spieler bei Ablauf rausbringen. |
 | `broadcast-scope` | `"server"` | `"server"` = alle, `"dimension"` = nur Spieler in der Dimension. |
 | `countdown.warnings` | `[600, 300, 120, 60, 30, 10, 5, 4, 3, 2, 1]` | Sekunden vor Ablauf, zu denen gewarnt wird. |
@@ -495,7 +506,7 @@ Nach Änderungen an Dateien: `/dt reload`.
 | `<dimension>.close-time` | `"22:00"` | Schließzeit. |
 | `<dimension>.countdown-enabled` | `true` | Vorwarnungen an/aus. |
 | `<dimension>.countdown-warnings` | `[600, 300, 60, 10]` | Sekunden vorher. |
-| `action-command` | `""` | Command beim automatischen Schließen. Leer = Teleport zum Spawn. |
+| `action-command` | `""` | Command beim automatischen Schließen (mit `%player%` über die Konsole). Leer = Teleport zum Spawn. |
 | `notification` | `"ActionBar"` | Kanal für alle Zeitplan-Meldungen. |
 | `title`, `bossbar`, `sound.warning` | – | wie bei `maintenance`. |
 | `messages.warning/opened/closed.<kanal>` | – | Texte. |
@@ -510,7 +521,7 @@ Nach Änderungen an Dateien: `/dt reload`.
 
 | Schlüssel | Standard | Bedeutung |
 |---|---|---|
-| `action-command` | `""` | Command für jeden Spieler in Nether/End bei Aktivierung. Leer = Teleport zum Spawn. |
+| `action-command` | `""` | Command für jeden Spieler in Nether/End bei Aktivierung (mit `%player%` über die Konsole). Leer = Teleport zum Spawn. |
 | `kick-players` | `true` | Spieler bei Aktivierung rausbringen. |
 | `notification` | `"Title"` | Kanal für beide Lockdown-Meldungen. |
 | `title`, `bossbar` | – | Timing/Farbe wie oben. |
@@ -656,8 +667,12 @@ in Nether/End ggf. im jeweiligen Plugin einschränken.
 Er ist nur aktiv, wenn das Plugin **PvPManager** installiert ist.
 
 **Der Action-Command funktioniert nicht.**
-Er wird ohne `/` eingetragen und **als der Spieler** ausgeführt – der Spieler
-braucht also die Permission für diesen Command (z.B. `essentials.spawn`).
+Ohne `%player%` wird er **als der Spieler** ausgeführt – der Spieler braucht
+dann die Permission (z.B. `essentials.spawn`), und eine Teleport-Verzögerung
+bricht ab, sobald er sich bewegt. Besser: `spawn %player%` eintragen, dann
+führt die Konsole den Command aus. Spieler, die danach trotzdem noch drin
+sind, teleportiert das Plugin nach 5 Sekunden selbst zum Spawn (Hinweis in
+der Konsole).
 
 **Ich kann das Spielerlimit im Editor nicht ausschalten.**
 Im Editor kann man es nur verstellen. Zum Abschalten in der `config.yml`

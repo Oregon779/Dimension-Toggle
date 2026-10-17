@@ -134,8 +134,12 @@ block-end-gateways: true
 #                                          or re-opens a dimension that
 #                                          is currently in maintenance
 maintenance:
-  # Command (without /) run for every player still in the dimension once the
-  # countdown ends, e.g. "spawn". Leave empty to teleport to spawn instead.
+  # Command (without /) for every player still in the dimension once the
+  # countdown ends. Leave empty to teleport to spawn instead.
+  #   "spawn"           -> run AS the player (needs their permission)
+  #   "spawn %player%"  -> run by the CONSOLE for each player (recommended:
+  #                        no permission or teleport warm-up needed)
+  # Anyone still inside 5 seconds later is teleported to spawn anyway.
   action-command: ""
   kick-to-spawn: true
   # "dimension" = only players inside the dimension, "server" = everyone
@@ -218,8 +222,12 @@ schedule:
     close-time: "22:00"
     countdown-enabled: true
     countdown-warnings: [600, 300, 60, 10]
-  # Command (without /) run for every player in the dimension when it closes
-  # automatically, e.g. "spawn". Leave empty to teleport to spawn instead.
+  # Command (without /) for every player in the dimension when it closes
+  # automatically. Leave empty to teleport to spawn instead.
+  #   "spawn"           -> run AS the player (needs their permission)
+  #   "spawn %player%"  -> run by the CONSOLE for each player (recommended:
+  #                        no permission or teleport warm-up needed)
+  # Anyone still inside 5 seconds later is teleported to spawn anyway.
   action-command: ""
 
   # Which single channel ALL schedule messages below use.
@@ -277,8 +285,12 @@ softlock:
 # /dt lockdown            - instantly disables Nether and End
 # /dt lockdown (again)    - lifts the lockdown again
 lockdown:
-  # Command (without /) run for every player in Nether/End when lockdown
-  # activates, e.g. "spawn". Leave empty to teleport to spawn instead.
+  # Command (without /) for every player in Nether/End when lockdown
+  # activates. Leave empty to teleport to spawn instead.
+  #   "spawn"           -> run AS the player (needs their permission)
+  #   "spawn %player%"  -> run by the CONSOLE for each player (recommended:
+  #                        no permission or teleport warm-up needed)
+  # Anyone still inside 5 seconds later is teleported to spawn anyway.
   action-command: ""
   kick-players: true
 

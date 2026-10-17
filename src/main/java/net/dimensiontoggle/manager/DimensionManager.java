@@ -205,6 +205,9 @@ public class DimensionManager {
     // noticeable spike, so anything beyond the first batch is spread over the
     // following ticks. Up to REMOVALS_PER_TICK players still leave instantly.
     private static final int REMOVALS_PER_TICK = 20;
+    // How long a configured command gets to actually move someone (e.g. a
+    // /spawn with a short warm-up) before the plugin teleports them itself.
+    public static final long FALLBACK_DELAY_TICKS = 100L;
 
     public void removePlayersFromDimension(ToggleDimension dimension, String actionCommand) {
         List<Player> players = getPlayersInDimension(dimension);
@@ -213,38 +216,75 @@ public class DimensionManager {
         }
         String command = actionCommand == null || actionCommand.isBlank() ? null
                 : actionCommand.startsWith("/") ? actionCommand.substring(1) : actionCommand;
-        Location spawn = command == null ? Bukkit.getWorlds().get(0).getSpawnLocation() : null;
 
         // UUIDs, not Player objects, for the players still waiting their turn.
-        Iterator<UUID> queue = players.stream().map(Player::getUniqueId).toList().iterator();
-        if (removeBatch(queue, dimension, command, spawn)) {
-            return;
-        }
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (removeBatch(queue, dimension, command, spawn)) {
-                    cancel();
+        List<UUID> ids = players.stream().map(Player::getUniqueId).toList();
+        Iterator<UUID> queue = ids.iterator();
+        if (!removeBatch(queue, dimension, command)) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (removeBatch(queue, dimension, command)) {
+                        cancel();
+                    }
                 }
-            }
-        }.runTaskTimer(plugin, 1L, 1L);
+            }.runTaskTimer(plugin, 1L, 1L);
+        }
+
+        // Safety net: a command can fail silently (unknown command, missing
+        // permission, a warm-up cancelled by moving), and a teleport can be
+        // refused. Whoever is still inside a closed dimension afterwards is
+        // sent to the main world's spawn.
+        Bukkit.getScheduler().runTaskLater(plugin, () -> sendStragglersToSpawn(dimension, ids),
+                FALLBACK_DELAY_TICKS + ids.size() / REMOVALS_PER_TICK);
     }
 
     // Returns true once the queue is empty.
-    private boolean removeBatch(Iterator<UUID> queue, ToggleDimension dimension, String command, Location spawn) {
+    private boolean removeBatch(Iterator<UUID> queue, ToggleDimension dimension, String command) {
         for (int i = 0; i < REMOVALS_PER_TICK && queue.hasNext(); i++) {
             Player player = Bukkit.getPlayer(queue.next());
             // Logged out or already left on their own in the meantime.
-            if (player == null || player.getWorld().getEnvironment() != dimension.getEnvironment()) {
+            if (player == null || !isIn(player, dimension)) {
                 continue;
             }
-            if (command != null) {
-                Bukkit.dispatchCommand(player, command);
+            if (command == null) {
+                player.teleportAsync(mainSpawn());
+            } else if (command.contains("%player%")) {
+                // Run by the console: no permission or warm-up of the player
+                // involved, e.g. "spawn %player%" or "warp hub %player%".
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", player.getName()));
             } else {
-                player.teleportAsync(spawn);
+                Bukkit.dispatchCommand(player, command);
             }
         }
         return !queue.hasNext();
+    }
+
+    private void sendStragglersToSpawn(ToggleDimension dimension, List<UUID> ids) {
+        if (isEnabled(dimension)) {
+            return; // reopened in the meantime - nobody needs to leave anymore
+        }
+        int moved = 0;
+        for (UUID id : ids) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null && isIn(player, dimension)) {
+                player.teleportAsync(mainSpawn());
+                moved++;
+            }
+        }
+        if (moved > 0) {
+            plugin.getLogger().warning(moved + " player(s) were still in the " + dimension.getKey()
+                    + " " + (FALLBACK_DELAY_TICKS / 20) + "s after being removed (action-command failed?)"
+                    + " - teleported them to spawn.");
+        }
+    }
+
+    private static boolean isIn(Player player, ToggleDimension dimension) {
+        return player.getWorld().getEnvironment() == dimension.getEnvironment();
+    }
+
+    private static Location mainSpawn() {
+        return Bukkit.getWorlds().get(0).getSpawnLocation();
     }
 
     // Called from the portal listener (with a player limit active) and the

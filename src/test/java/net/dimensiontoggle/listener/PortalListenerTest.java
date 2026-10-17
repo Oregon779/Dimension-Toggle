@@ -7,6 +7,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Pig;
+import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
@@ -156,5 +159,77 @@ class PortalListenerTest extends PluginTestBase {
         server.getPluginManager().callEvent(event);
 
         assertFalse(event.isCancelled());
+    }
+
+    private EntityPortalEvent ridePortal(World from, World to, PlayerMock... riders) {
+        Pig mount = (Pig) from.spawnEntity(from.getSpawnLocation(), EntityType.PIG);
+        for (PlayerMock rider : riders) {
+            rider.teleport(from.getSpawnLocation());
+            mount.addPassenger(rider);
+        }
+        EntityPortalEvent event = new EntityPortalEvent(mount, from.getSpawnLocation(), to.getSpawnLocation());
+        server.getPluginManager().callEvent(event);
+        return event;
+    }
+
+    @Test
+    void ridingIntoADisabledDimensionIsBlocked() {
+        plugin.getDimensionManager().setEnabledSilently(ToggleDimension.NETHER, false, null);
+
+        assertTrue(ridePortal(overworld, nether, player).isCancelled(), "a mount must not carry players past the lock");
+        assertNotNull(player.nextComponentMessage());
+    }
+
+    @Test
+    void ridingRespectsSoftLockLimitAndBypass() {
+        plugin.getDimensionManager().setLocked(ToggleDimension.END, true, null);
+        assertTrue(ridePortal(overworld, end, player).isCancelled());
+
+        PlayerMock staff = server.addPlayer("Staff");
+        staff.addAttachment(plugin, "dimensiontoggle.bypass", true);
+        assertFalse(ridePortal(overworld, end, staff).isCancelled());
+    }
+
+    @Test
+    void oneRiderWithoutAccessStopsTheWholeVehicle() {
+        plugin.getDimensionManager().setEnabledSilently(ToggleDimension.NETHER, false, null);
+        PlayerMock staff = server.addPlayer("Staff");
+        staff.addAttachment(plugin, "dimensiontoggle.bypass", true);
+
+        assertTrue(ridePortal(overworld, nether, staff, player).isCancelled());
+    }
+
+    @Test
+    void ridersCountTowardsThePlayerLimitTogether() {
+        plugin.getConfigManager().getConfig().set("limits.nether.enabled", true);
+        plugin.getConfigManager().getConfig().set("limits.nether.max-players", 1);
+        PlayerMock friend = server.addPlayer("Friend");
+        friend.setOp(false);
+
+        assertTrue(ridePortal(overworld, nether, player, friend).isCancelled(), "two riders don't fit a limit of one");
+    }
+
+    @Test
+    void ridingOutOfADisabledDimensionIsAllowed() {
+        plugin.getDimensionManager().setEnabledSilently(ToggleDimension.NETHER, false, null);
+
+        assertFalse(ridePortal(nether, overworld, player).isCancelled());
+    }
+
+    @Test
+    void emptyVehiclesAndMobsAreNotOurBusiness() {
+        plugin.getDimensionManager().setEnabledSilently(ToggleDimension.NETHER, false, null);
+        Pig pig = (Pig) overworld.spawnEntity(overworld.getSpawnLocation(), EntityType.PIG);
+        EntityPortalEvent event = new EntityPortalEvent(pig, overworld.getSpawnLocation(), nether.getSpawnLocation());
+        server.getPluginManager().callEvent(event);
+
+        assertFalse(event.isCancelled());
+    }
+
+    @Test
+    void ridingThroughABlockedEndGatewayIsBlocked() {
+        assertTrue(ridePortal(end, end, player).isCancelled());
+        plugin.getConfigManager().getConfig().set("block-end-gateways", false);
+        assertFalse(ridePortal(end, end, player).isCancelled());
     }
 }

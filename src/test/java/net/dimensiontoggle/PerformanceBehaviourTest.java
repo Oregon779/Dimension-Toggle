@@ -1,6 +1,7 @@
 package net.dimensiontoggle;
 
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
+import net.dimensiontoggle.manager.DimensionManager;
 import net.dimensiontoggle.model.ToggleDimension;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -89,5 +90,30 @@ class PerformanceBehaviourTest extends PluginTestBase {
 
         messages.clearCache();
         assertEquals(messages.parse(raw), messages.parse(raw), "same result after clearing");
+    }
+
+    @Test
+    void lockdownGetsPlayersOutOfAnAlreadyDisabledDimensionEvenIfTheCommandFails() {
+        // Players who slipped into a closed Nether (e.g. via a bug) must still
+        // leave on lockdown - even when the configured command does nothing.
+        plugin.getDimensionManager().setEnabledSilently(ToggleDimension.NETHER, false, null);
+        List<PlayerMock> players = playersIn(nether, 3);
+        plugin.getConfigManager().getConfig().set("lockdown.action-command", "doesnotexist");
+
+        plugin.getDimensionManager().toggleLockdownWithBroadcast(server.getConsoleSender());
+        assertEquals(3, stillIn(players, nether), "the command itself moved nobody");
+
+        server.getScheduler().performTicks(DimensionManager.FALLBACK_DELAY_TICKS + 5);
+        assertEquals(0, stillIn(players, nether));
+    }
+
+    @Test
+    void fallbackLeavesPlayersAloneIfTheDimensionWasReopened() {
+        List<PlayerMock> players = playersIn(end, 2);
+        plugin.getDimensionManager().removePlayersFromDimension(ToggleDimension.END, "doesnotexist");
+        // still enabled -> nobody is forced out by the safety net
+
+        server.getScheduler().performTicks(DimensionManager.FALLBACK_DELAY_TICKS + 5);
+        assertEquals(2, stillIn(players, end));
     }
 }
