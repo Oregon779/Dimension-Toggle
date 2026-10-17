@@ -17,6 +17,36 @@ Whenever a change alters a command, permission, config key, default, GUI
 button or visible behavior, update `WIKI.md` in the same commit - and add
 the changelog entry to `README.md`.
 
+## Arbeitsregeln des Nutzers (immer einhalten)
+
+### Fragen stellen
+Stelle möglichst viele Fragen. Bevor du etwas umsetzt, kläre alle unklaren
+Punkte (Spiel-Logik, gewünschtes Verhalten, Texte, Defaults, Randfälle)
+mit Rückfragen, statt zu raten. Lieber eine Frage zu viel als eine Annahme
+zu viel. Mehrere Fragen gesammelt in einer Nachricht stellen.
+
+### Versionierung & Build-Erstellung
+Strikte Trennung zwischen Dev-Builds und Release-Builds für Modrinth:
+
+1. **Stabile Hauptversion:** Die Hauptversion (aktuell `3.1.0`) darfst du
+   NIEMALS selbstständig ändern oder erhöhen.
+2. **Dev-Suffix:** Alle laufenden Änderungen, Fixes und Test-Builds tragen
+   das Format `[Hauptversion]-dev[Nummer]`, z.B. `3.1.0-dev1`, `3.1.0-dev2`.
+3. **Automatisches Hochzählen:** Bei jedem neuen Build zählst du
+   *ausschließlich* die Dev-Nummer um +1 hoch. Die Version steht nur in
+   `pom.xml` (`<version>`); `plugin.yml` übernimmt sie automatisch über
+   `${project.version}` - dort nichts hart eintragen. Die Jar heißt dann
+   `target/DimensionToggle-<version>.jar`.
+4. **Release-Befehl:** Erst wenn der Nutzer ausdrücklich **"Baue das
+   Release"** sagt, entfernst du das `-dev`-Suffix vollständig, trägst die
+   reine Hauptversion ein und baust die finale `.jar`.
+5. **Nächster Zyklus:** Nach einem Release und vor neuen Änderungen fragst
+   du den Nutzer, wie die nächste Hauptversion lauten soll, und startest
+   wieder bei `-dev1`.
+
+Hinweis: Der `UpdateChecker` vergleicht nur die Zahlen vor dem Suffix -
+`3.1.0-dev2` gilt gegenüber Modrinth als `3.1.0`.
+
 ## Build
 
 ```
