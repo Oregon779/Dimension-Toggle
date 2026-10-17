@@ -18,10 +18,11 @@
 # per-language instead, in:
 #   plugins/DimensionToggle/languages/<language>/messages.yml
 #
-# Missing top-level sections are added automatically (at the end of this
-# file) on plugin updates. Existing values you changed are never
-# overwritten. New options inside a section you already have are not added
-# - compare with the default config of the new version when updating.
+# On plugin updates, options that are new in that version are added
+# automatically - also inside sections you already have - right where they
+# belong, with their comments. Your values, comments and formatting stay as
+# they are, and options you deleted on purpose are not added back. Before
+# any change the old file is saved to backups/ (the last 5 are kept).
 # =====================================================================
 
 # Language used for general command feedback. Must match a folder under

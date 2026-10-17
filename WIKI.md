@@ -73,12 +73,11 @@ anpassbar, mit klassischen `&`-Farbcodes, Hex-Farben und MiniMessage
 **Update auf eine neue Version**
 
 1. Alte Jar durch die neue ersetzen, Server neu starten.
-2. Neue *Hauptabschnitte* der Config werden automatisch ans Ende deiner
-   `config.yml` (und der GUI-Configs) angehängt. Deine eigenen Werte werden
-   nie überschrieben.
-3. Neue Optionen *innerhalb* eines Abschnitts, den du schon hast, werden
-   nicht automatisch ergänzt – vergleiche bei einem Update kurz mit der
-   Standard-Config der neuen Version (siehe [Config-Updates](#config-updates)).
+2. Neue Optionen werden automatisch in deine `config.yml`, die Sprachdateien
+   und die GUI-Configs eingefügt – auch innerhalb vorhandener Abschnitte, an
+   der passenden Stelle und mit Kommentar. Deine Werte, Kommentare und deine
+   Formatierung bleiben erhalten, vorher wird ein Backup angelegt (siehe
+   [Config-Updates](#config-updates)).
 
 ---
 
@@ -619,6 +618,8 @@ plugins/DimensionToggle/
 │   ├── nether/config.yml      Texte aller Nether-Menüs
 │   ├── end/config.yml         Texte aller End-Menüs
 │   └── overworld/config.yml   Overworld-Panel und Lag-Berichte
+├── config-state.yml           Stand der Config-Updates (nicht von Hand bearbeiten)
+├── backups/                   Sicherungen vor automatischen Config-Updates
 └── logs/dimensiontoggle.log   Aktions-Log
 ```
 
@@ -824,12 +825,39 @@ bleibt zur Wiederherstellung erhalten.
 
 ### Config-Updates
 
-- Beim Start werden fehlende **Hauptabschnitte** aus der neuen Standard-Config
-  am Ende deiner Datei ergänzt (mit einem Hinweis-Kommentar darüber).
-- Bestehende Werte werden nie verändert.
-- Neue Optionen **innerhalb** vorhandener Abschnitte werden nicht automatisch
-  ergänzt. Fehlt eine Option, nutzt das Plugin einen eingebauten Standardwert –
-  zum Anpassen die Zeile aus der Standard-Config der neuen Version übernehmen.
+Beim Start und bei `/dt reload` gleicht das Plugin `config.yml`, die
+mitgelieferten Sprachdateien (`languages/en|de/messages.yml`) und die
+GUI-Configs mit den Standarddateien der installierten Version ab – **bevor**
+irgendein Wert gelesen wird.
+
+- **Neue Optionen werden ergänzt**, auf jeder Ebene (z.B.
+  `farm-limiter.ignore-named`) – an der passenden Stelle (hinter der Option,
+  die in der Standard-Config davor steht), mit dem Kommentar aus der
+  Standard-Config und in deiner Einrückung (2 oder 4 Leerzeichen).
+- **Deine Werte, Kommentare, Leerzeilen und die Reihenfolge bleiben erhalten.**
+  Es werden nur Zeilen eingefügt, nichts wird neu geschrieben.
+- **Gelöschte Optionen bleiben gelöscht.** Das Plugin merkt sich in
+  `config-state.yml`, welche Optionen es schon kennt; ergänzt werden nur
+  Optionen, die in der neuen Version wirklich neu sind. Fehlt eine Option,
+  nutzt das Plugin seinen eingebauten Standardwert. Beim allerersten Start mit
+  dieser Funktion (Update von 3.2.0 oder älter) werden einmalig alle fehlenden
+  Optionen ergänzt.
+- **Umbenannte oder entfernte Optionen** übernimmt das Plugin über
+  versionierte Migrationen (z.B. entfernt es die seit 1.3.0 ungenutzten
+  `notify`-Abschnitte von `maintenance`, `schedule` und `lockdown`).
+- **Backup:** Bevor eine Datei geändert wird, landet die alte Fassung in
+  `backups/` (z.B. `backups/config-2026-10-17_14-03-22.yml`). Pro Datei werden
+  die letzten 5 Sicherungen behalten. Unveränderte Dateien werden weder
+  geschrieben noch gesichert.
+- **Sicherheitsprüfung:** Jede Einfügung wird sofort mit dem echten
+  YAML-Parser nachgelesen. Würde sich dadurch irgendein vorhandener Wert ändern
+  oder die neue Option nicht korrekt gelesen, wird sie ausgelassen und in der
+  Konsole gemeldet („could not add …“). Eine Datei mit YAML-Fehlern wird gar
+  nicht angefasst.
+- In der Konsole steht nach einem Update, was ergänzt wurde und wo das Backup
+  liegt.
+- Eigene Sprachordner (z.B. `languages/fr/`) haben keine Standarddatei und
+  werden daher nicht abgeglichen.
 
 ---
 
@@ -872,8 +900,12 @@ Im Editor kann man es nur verstellen. Zum Abschalten in der `config.yml`
 der `config.yml`, Command-Texte in `languages/<sprache>/messages.yml`.
 
 **Nach einem Update fehlt eine neue Option in meiner config.yml.**
-Siehe [Config-Updates](#config-updates) – Optionen in bestehenden Abschnitten
-von Hand aus der Standard-Config übernehmen.
+Hast du die Option früher einmal selbst gelöscht, wird sie absichtlich nicht
+wieder eingefügt (siehe [Config-Updates](#config-updates)) – dann die Zeile aus
+der Standard-Config übernehmen. Sollen alle fehlenden Optionen einmal neu
+ergänzt werden, `config-state.yml` löschen und `/dt reload` ausführen. Steht
+in der Konsole „could not add …“, war die Stelle in deiner Datei zu ungewöhnlich
+formatiert – dann ebenfalls von Hand ergänzen.
 
 **In der Konsole steht „data.yml could not be read … moved it to data.yml.corrupt-…“.**
 Die Datei war beschädigt (z.B. von Hand falsch bearbeitet). Das Plugin läuft
@@ -920,7 +952,9 @@ klicken. Items und Mobs können sich inzwischen auch bewegt haben.
 - Das Redstone-Meter misst Signaländerungen und Kolben, nicht jede einzelne
   Block-Aktualisierung (z.B. reine Observer-Ketten ohne Redstone-Staub werden
   nur über die Kolben/Signale erfasst, die sie auslösen).
-- Config-Updates ergänzen nur neue Hauptabschnitte automatisch.
+- Config-Updates ändern keine vorhandenen Werte – auch keine Listen (z.B.
+  `warnings: [60, 30, 10]`), wenn sich deren Standard in einer neuen Version
+  ändert – und gleichen selbst angelegte Sprachordner nicht ab.
 - Folia wird nicht unterstützt.
 
 ---
@@ -955,7 +989,7 @@ PlaceholderAPI.
 | `listener` | Portal- und Gateway-Sperren |
 | `manager` | Ein Manager pro Feature (Dimension, Wartung, Zeitplan, Benachrichtigungen …) |
 | `gui` | Editor – jede Aktion steckt als Text im Item, nicht in der Slot-Nummer |
-| `config` | Laden, Update-Merge und kommentarerhaltendes Schreiben der YAML-Dateien |
+| `config` | Laden, automatische Config-Updates (Merge, Migrationen, Backups) und kommentarerhaltendes Schreiben der YAML-Dateien |
 | `io` | Hintergrund-Thread und absturzsicheres Schreiben für alle Dateien |
 | `performance` | Overworld & Performance: Monitor, Lagmap, Redstone-Meter, Chunk-Loader, Optimierer, Website |
 | `hook` | PlaceholderAPI-Erweiterung |

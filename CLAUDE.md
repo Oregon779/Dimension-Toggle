@@ -69,7 +69,7 @@ geprüft; Entfernen aus Dimensionen mit `%player%`-Konsolen-Commands +
 Ebenfalls gewünscht: **PlaceholderAPI-Support** (Nutzer hat PlaceholderAPI
 2.11.6 und VaultAPI 1.7 als Jars bereitgestellt; Vault vorerst nicht nötig).
 
-**Stand 3.3.0-dev2: alle Punkte unten sind gebaut** (Nutzer wollte alles auf
+**Stand 3.3.0-dev2: alle Punkte unten sind gebaut (dev3: automatische Config-Updates)** (Nutzer wollte alles auf
 einmal ohne weitere Rückfragen). Offen: bStats-Plugin-ID
 (`DimensionToggle.BSTATS_PLUGIN_ID`, 0 = aus) vom Nutzer besorgen.
 
@@ -181,11 +181,22 @@ Package layout under `net.dimensiontoggle`:
   into an existing user config, or writing a single value from a command
   or GUI click (`/dt limit`, dragging the world-border size, etc.), never
   clobbers the user's own comments/formatting/ordering in the file.
-  `GuiConfigManager` is the equivalent loader for the three
-  `gui/*/config.yml` files. Note `ConfigUpdater.update()` only adds missing
-  *top-level* sections (nested keys only for the explicit
-  `NESTED_PATHS_TO_CHECK`), so code must tolerate a nested key being absent
-  from an older user file (e.g. `GuiItems.line()` instead of `List.of()`).
+  `GuiConfigManager` is the equivalent loader for the `gui/*/config.yml`
+  files. **Automatic config updates**: `ConfigSynchronizer.sync(file,
+  resourcePath)` runs for config.yml, the shipped language files and every
+  GUI config *before* each one is read (start + `/dt reload`). It (1) runs
+  pending `ConfigMigrations` (versioned, idempotent rename/remove steps -
+  add one there when an option is renamed or dropped; a *new* option needs
+  nothing but the default file), (2) inserts options missing from the user
+  file via `ConfigUpdater.merge` - nested too, after the nearest preceding
+  sibling, with the default's comments, in the user's indentation, every
+  insertion re-parsed and rejected if any old value changes (`YamlLines` is
+  the line-structure parser behind it), (3) backs the old file up to
+  `backups/` (5 kept per file) and writes atomically. `config-state.yml`
+  remembers each file's migration version and known option paths, so only
+  options new to the plugin are added - an option the admin deleted stays
+  deleted. Code must therefore still tolerate any key being absent (use a
+  default, e.g. `GuiItems.line()` instead of `List.of()`).
 - **`io`** - `IoExecutor` (one daemon thread, so writes land in submission
   order; `drain()` before re-reading, `shutdown()` in `onDisable`) and
   `AtomicFiles` (temp file + atomic move). Every file write - data.yml

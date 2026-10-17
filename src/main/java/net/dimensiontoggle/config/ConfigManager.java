@@ -8,7 +8,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
@@ -18,21 +17,13 @@ import java.util.logging.Level;
 
 public class ConfigManager {
 
-    private static final String UPDATE_HEADER = "# ===================================================================\n"
-            + "# NEU seit dem letzten Update automatisch hinzugefuegt.\n"
-            + "# Deine bisherigen Einstellungen weiter oben in dieser Datei wurden\n"
-            + "# dabei NICHT veraendert.\n"
-            + "# ===================================================================";
-
     private static final String[] SUPPORTED_LANGUAGES = {"en", "de"};
     private static final String DEFAULT_LANGUAGE = "en";
 
-    private static final String[] NESTED_PATHS_TO_CHECK = {
-            "schedule.nether.countdown-enabled",
-            "schedule.end.countdown-enabled"
-    };
-
     private final DimensionToggle plugin;
+    // Adds new options to existing files on plugin updates - runs right
+    // before each file is read (enable and /dt reload).
+    private final ConfigSynchronizer synchronizer;
 
     private File configFile;
     private FileConfiguration config;
@@ -50,9 +41,15 @@ public class ConfigManager {
 
     public ConfigManager(DimensionToggle plugin) {
         this.plugin = plugin;
+        this.synchronizer = new ConfigSynchronizer(plugin);
+    }
+
+    public ConfigSynchronizer getSynchronizer() {
+        return synchronizer;
     }
 
     public void loadAll() {
+        synchronizer.reloadState();
         loadConfig();
         loadMessages();
         loadData();
@@ -67,12 +64,7 @@ public class ConfigManager {
 
     private void loadConfig() {
         configFile = new File(plugin.getDataFolder(), "config.yml");
-        boolean isNew = !configFile.exists();
-        if (isNew) {
-            plugin.saveResource("config.yml", false);
-        } else {
-            mergeWithDefault(configFile, "config.yml", true);
-        }
+        synchronizer.sync(configFile, "config.yml");
         config = YamlConfiguration.loadConfiguration(configFile);
     }
 
@@ -175,13 +167,7 @@ public class ConfigManager {
     }
 
     private void ensureLanguageFile(String lang) {
-        File file = languageFile(lang);
-        String resourcePath = "languages/" + lang + "/messages.yml";
-        if (!file.exists()) {
-            plugin.saveResource(resourcePath, false);
-        } else {
-            mergeWithDefault(file, resourcePath, false);
-        }
+        synchronizer.sync(languageFile(lang), "languages/" + lang + "/messages.yml");
     }
 
     private File languageFile(String lang) {
@@ -194,36 +180,6 @@ public class ConfigManager {
 
     public String getActiveLanguage() {
         return activeLanguage;
-    }
-
-    private void mergeWithDefault(File userFile, String resourcePath, boolean checkNestedPaths) {
-        try {
-            boolean changed = false;
-            try (InputStream defaultResource = plugin.getResource(resourcePath)) {
-                if (defaultResource == null) {
-                    return;
-                }
-                changed = ConfigUpdater.update(userFile.toPath(), defaultResource, UPDATE_HEADER);
-            }
-
-            if (checkNestedPaths) {
-                for (String path : NESTED_PATHS_TO_CHECK) {
-                    try (InputStream defaultResource = plugin.getResource(resourcePath)) {
-                        if (defaultResource != null
-                                && ConfigUpdater.ensureNestedPath(userFile.toPath(), defaultResource, path)) {
-                            changed = true;
-                        }
-                    }
-                }
-            }
-
-            if (changed) {
-                plugin.getLogger().info(resourcePath + " was extended with new options from the update "
-                        + "(existing settings were left unchanged).");
-            }
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "Could not automatically update " + resourcePath, e);
-        }
     }
 
     private void loadData() {

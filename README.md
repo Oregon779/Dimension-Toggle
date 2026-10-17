@@ -69,9 +69,10 @@ Benötigt Java 25 und Zugriff auf `repo.papermc.io`.
 
 Server stoppen → **nur** die alte `.jar` aus `plugins/` löschen (den Ordner
 `plugins/DimensionToggle/` mit deinen Einstellungen behalten) → neue `.jar`
-hineinlegen → Server starten. Neue Hauptabschnitte der Configs werden
-automatisch ergänzt, deine Werte bleiben unverändert. Neue Optionen innerhalb
-bestehender Abschnitte bitte von Hand übernehmen – siehe
+hineinlegen → Server starten. Neue Optionen werden automatisch an der
+passenden Stelle in die Configs eingefügt (auch in bestehende Abschnitte),
+deine Werte, Kommentare und Formatierung bleiben unverändert, und vorher wird
+ein Backup in `backups/` angelegt – siehe
 [WIKI.md → Config-Updates](WIKI.md#config-updates).
 
 ---
@@ -1063,6 +1064,22 @@ Spielverhalten verändert, ist standardmäßig **aus**.
   einen geheimen Token. Standardmäßig aus (braucht einen freien Port).
 - **PlaceholderAPI**: `%dimensiontoggle_nether_status%` u.v.m.
 - **bStats**-Unterstützung.
+
+### Neu: Automatische Config-Updates
+- `config.yml`, die Sprachdateien (`en`/`de`) und alle GUI-Configs bleiben
+  bei Updates automatisch aktuell: **neue Optionen werden auf jeder Ebene
+  ergänzt**, auch innerhalb vorhandener Abschnitte - an der passenden Stelle,
+  mit Kommentar und in deiner Einrückung. Bisher kamen nur neue
+  Hauptabschnitte dazu, und zwar ans Dateiende.
+- Deine Werte, Kommentare, Leerzeilen und die Reihenfolge bleiben erhalten;
+  es werden nur Zeilen eingefügt. Jede Einfügung wird mit dem YAML-Parser
+  gegengeprüft, eine Datei mit YAML-Fehlern wird nicht angefasst.
+- **Gelöschte Optionen bleiben gelöscht**: `config-state.yml` merkt sich, welche
+  Optionen schon bekannt sind, ergänzt werden nur echte Neuheiten.
+- **Backup** vor jeder Änderung in `backups/` (mit Zeitstempel, die letzten 5
+  pro Datei).
+- Versionierte **Migrationen** für umbenannte/entfernte Optionen; die erste
+  entfernt die seit 1.3.0 ungenutzten `notify`-Abschnitte.
 
 ### Bugfixes
 - **Portale mit Fahrzeug**: Wer in einem Boot, einer Lore oder auf einem

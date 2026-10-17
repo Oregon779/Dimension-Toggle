@@ -7,17 +7,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.logging.Level;
 
 public class GuiConfigManager {
-
-    private static final String UPDATE_HEADER = "# ===================================================================\n"
-            + "# NEU seit dem letzten Update automatisch hinzugefuegt.\n"
-            + "# Deine bisherigen Einstellungen weiter oben in dieser Datei wurden\n"
-            + "# dabei NICHT veraendert.\n"
-            + "# ===================================================================";
 
     private final DimensionToggle plugin;
 
@@ -43,26 +34,8 @@ public class GuiConfigManager {
 
     private File load(String resourcePath) {
         File file = new File(plugin.getDataFolder(), resourcePath);
-        if (!file.exists()) {
-            plugin.saveResource(resourcePath, false);
-        } else {
-            mergeWithDefault(file, resourcePath);
-        }
+        plugin.getConfigManager().getSynchronizer().sync(file, resourcePath);
         return file;
-    }
-
-    private void mergeWithDefault(File userFile, String resourcePath) {
-        try (InputStream defaultResource = plugin.getResource(resourcePath)) {
-            if (defaultResource == null) {
-                return;
-            }
-            boolean changed = ConfigUpdater.update(userFile.toPath(), defaultResource, UPDATE_HEADER);
-            if (changed) {
-                plugin.getLogger().info(resourcePath + " was extended with new options from the update.");
-            }
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "Could not automatically update " + resourcePath, e);
-        }
     }
 
     public FileConfiguration getMain() {
