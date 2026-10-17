@@ -23,15 +23,21 @@ the changelog entry to `README.md`.
 Stelle möglichst viele Fragen. Bevor du etwas umsetzt, kläre alle unklaren
 Punkte (Spiel-Logik, gewünschtes Verhalten, Texte, Defaults, Randfälle)
 mit Rückfragen, statt zu raten. Lieber eine Frage zu viel als eine Annahme
-zu viel. Mehrere Fragen gesammelt in einer Nachricht stellen.
+zu viel.
+
+**Fragen immer als Auswahlfragen über das `AskUserQuestion`-Tool stellen**
+(nicht als Text-Fragenliste im Chat): pro Frage 2-4 Antwortoptionen,
+empfohlene Option zuerst mit „(Empfohlen)“, `multiSelect` wenn mehrere
+Antworten möglich sind. Bei vielen Fragen mehrere Runden (je bis zu 4
+Fragen) nacheinander stellen.
 
 ### Versionierung & Build-Erstellung
 Strikte Trennung zwischen Dev-Builds und Release-Builds für Modrinth:
 
-1. **Stabile Hauptversion:** Die Hauptversion (aktuell `3.1.0`) darfst du
+1. **Stabile Hauptversion:** Die Hauptversion (aktuell `3.3.0`) darfst du
    NIEMALS selbstständig ändern oder erhöhen.
 2. **Dev-Suffix:** Alle laufenden Änderungen, Fixes und Test-Builds tragen
-   das Format `[Hauptversion]-dev[Nummer]`, z.B. `3.1.0-dev1`, `3.1.0-dev2`.
+   das Format `[Hauptversion]-dev[Nummer]`, z.B. `3.3.0-dev1`, `3.3.0-dev2`.
 3. **Automatisches Hochzählen:** Bei jedem neuen Build zählst du
    *ausschließlich* die Dev-Nummer um +1 hoch. Die Version steht nur in
    `pom.xml` (`<version>`); `plugin.yml` übernimmt sie automatisch über
@@ -45,7 +51,40 @@ Strikte Trennung zwischen Dev-Builds und Release-Builds für Modrinth:
    wieder bei `-dev1`.
 
 Hinweis: Der `UpdateChecker` vergleicht nur die Zahlen vor dem Suffix -
-`3.1.0-dev2` gilt gegenüber Modrinth als `3.1.0`.
+`3.3.0-dev2` gilt gegenüber Modrinth als `3.3.0`.
+
+## Roadmap 3.3.0 (mit dem Nutzer abgestimmt)
+
+Neue Ebene „Overworld & Performance“: dritter Button „Overworld“ im
+Hauptmenü mit eigenem Panel. Lag-Werkzeuge gelten für **alle Welten**.
+Jedes Feature wird **einzeln** als eigener Dev-Build gebaut und vom Nutzer
+getestet, bevor das nächste kommt. Jedes Werkzeug bekommt eine **eigene
+Permission** (z.B. `dimensiontoggle.lagmap`); `dimensiontoggle.admin`
+enthält alle als Children.
+
+Erledigt (3.3.0-dev1): Fahrzeuge an Portalen geprüft, Entfernen aus
+Dimensionen mit `%player%`-Konsolen-Commands + 5s-Sicherheitsnetz.
+
+Reihenfolge / Stand:
+1. **`/lagmap`** (als Nächstes) – `/lagmap` und `/dt lagmap`; GUI (Klick =
+   Teleport) plus `/lagmap chat` (klickbare Liste, auch Konsole); Top 10
+   Chunks aller Welten; Spalten: Entities gesamt, Mobs, Items/XP am Boden,
+   Hopper/Block-Entities; Standard-Sortierung „Lag-Score“ (gewichtet: Mobs
+   und Hopper > Items), per Klick umschaltbar; Shift-Klick = Aufräumen
+   (Items löschen / Mobs entfernen außer benannte+gezähmte) nur nach
+   zweitem Bestätigungsklick.
+2. Farm-Limiter (an/aus): große Tiergruppen → KI + Kollision aus, bis ein
+   Spieler eins schlägt. Details noch per Auswahlfragen klären.
+3. Mob-Spawn-Kontrolle Overworld (wie Nether/End).
+4. AFK-Sichtweite (Render-/Simulationsdistanz nach AFK-Intervall).
+5. Redstone-Clock-Meter.
+6. Chunk-Loader-Melder.
+7. Performance-Website per Command (TPS, MSPT, …).
+8. bStats (Plugin-ID vom Nutzer nötig).
+Zusätzlich gewählt: Villager-Optimierung, Entity-Cap pro Chunk,
+Boden-Item-Aufräumer, Auto-Performance-Modus, Hopper-/Block-Entity-Zähler
+(Teil der Lagmap). Nicht gewählt: Lag-Alarm.
+Vor jedem Feature die offenen Details per `AskUserQuestion` klären.
 
 ## Build
 

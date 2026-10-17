@@ -5,7 +5,7 @@ Mit **DimensionToggle** steuerst du auf deinem Paper-Server, wer wann in den
 tägliche Öffnungszeiten, Notfall-Lockdown, Spielerlimits und vieles mehr –
 per Command oder komplett per Klick im In-Game-Editor.
 
-> Dieses Wiki beschreibt den aktuellen Stand des Plugins (Version 3.1.x).
+> Dieses Wiki beschreibt den aktuellen Stand des Plugins (Version 3.2.x / 3.3.0 in Entwicklung).
 > Den Versionsverlauf findest du in der [README](README.md).
 
 ## Inhalt
