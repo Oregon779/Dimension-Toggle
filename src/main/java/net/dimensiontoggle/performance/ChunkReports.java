@@ -37,10 +37,10 @@ public class ChunkReports {
     public void sendLagmap(CommandSender sender, LagMapScanner.Sort sort) {
         int limit = Math.max(1, plugin.getConfigManager().getConfig().getInt("lagmap.top", TOP));
         List<LagMapScanner.ChunkStats> top = plugin.getLagMapScanner().top(sort, limit);
-        messages().send(sender, "lagmap-header", Map.of("count", String.valueOf(limit),
+        messages().sendRaw(sender, "lagmap-header", Map.of("count", String.valueOf(limit),
                 "sort", messages().get("sort-" + sort.name().toLowerCase().replace('_', '-'))));
         if (top.isEmpty()) {
-            messages().send(sender, "lagmap-empty");
+            messages().sendRaw(sender, "lagmap-empty");
             return;
         }
         int rank = 1;
@@ -58,9 +58,9 @@ public class ChunkReports {
 
     public void sendRedstone(CommandSender sender) {
         List<RedstoneMeter.ChunkRate> top = plugin.getRedstoneMeter().top(TOP);
-        messages().send(sender, "redstone-header", Map.of("window", String.valueOf(RedstoneMeter.WINDOW_SECONDS)));
+        messages().sendRaw(sender, "redstone-header", Map.of("window", String.valueOf(RedstoneMeter.WINDOW_SECONDS)));
         if (top.isEmpty()) {
-            messages().send(sender, "redstone-empty");
+            messages().sendRaw(sender, "redstone-empty");
             return;
         }
         int rank = 1;
@@ -73,9 +73,9 @@ public class ChunkReports {
 
     public void sendChunkLoaders(CommandSender sender) {
         List<ChunkLoaderDetector.LoadedChunk> found = plugin.getChunkLoaderDetector().find();
-        messages().send(sender, "chunkloaders-header", Map.of("count", String.valueOf(found.size())));
+        messages().sendRaw(sender, "chunkloaders-header", Map.of("count", String.valueOf(found.size())));
         if (found.isEmpty()) {
-            messages().send(sender, "chunkloaders-empty");
+            messages().sendRaw(sender, "chunkloaders-empty");
             return;
         }
         int rank = 1;

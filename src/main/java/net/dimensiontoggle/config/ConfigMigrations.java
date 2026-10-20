@@ -63,7 +63,11 @@ public final class ConfigMigrations {
             new Migration("gui/main/config.yml", 3, "new editor design", List.of(Step.reset())),
             new Migration("gui/nether/config.yml", 3, "new editor design", List.of(Step.reset())),
             new Migration("gui/end/config.yml", 3, "new editor design", List.of(Step.reset())),
-            new Migration("gui/overworld/config.yml", 3, "new editor design", List.of(Step.reset()))
+            new Migration("gui/overworld/config.yml", 3, "new editor design", List.of(Step.reset())),
+            // 3.3.0: restyled chat messages; 3 because a dropped dev build
+            // already used 2 for the language files.
+            new Migration("languages/en/messages.yml", 3, "new message style", List.of(Step.reset())),
+            new Migration("languages/de/messages.yml", 3, "new message style", List.of(Step.reset()))
     );
 
     private ConfigMigrations() {

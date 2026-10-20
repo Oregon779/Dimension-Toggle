@@ -88,6 +88,9 @@ public final class GuiItems {
         if (action != null) {
             meta.getPersistentDataContainer().set(actionKey(plugin), PersistentDataType.STRING, action);
         }
+        // Menu icons are signs, not tools: no "attack damage" lines under
+        // the sword etc.
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
         item.setItemMeta(meta);
     }
@@ -179,6 +182,32 @@ public final class GuiItems {
             slots[i] = row * 9 + columns[i];
         }
         return slots;
+    }
+
+    // Slots for `count` buttons kept together around the middle column: an
+    // odd count fills it, an even count leaves exactly the middle free
+    // (4 -> columns 2,3 | 5,6), so every row mirrors around the same axis.
+    public static int[] axisSlots(int row, int count) {
+        int n = Math.min(count, count % 2 == 0 ? 6 : 7);
+        int[] slots = new int[n];
+        int half = n / 2;
+        for (int i = 0; i < n; i++) {
+            int column;
+            if (n % 2 == 1) {
+                column = 4 - half + i;
+            } else {
+                column = i < half ? 4 - half + i : 5 + (i - half);
+            }
+            slots[i] = row * 9 + column;
+        }
+        return slots;
+    }
+
+    public static void placeOnAxis(Inventory inventory, int row, List<ItemStack> items) {
+        int[] slots = axisSlots(row, items.size());
+        for (int i = 0; i < slots.length; i++) {
+            inventory.setItem(slots[i], items.get(i));
+        }
     }
 
     public static void place(Inventory inventory, int row, List<ItemStack> items) {

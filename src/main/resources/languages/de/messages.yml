@@ -1,117 +1,126 @@
-# =========================================
+# =====================================================================
 #   DimensionToggle - Nachrichten (Deutsch)
-# =========================================
-# Diese Datei deckt nur Command-Rückmeldungen und UI-Texte ab. Klassische
-# &-Farbcodes, &#RRGGBB-Hexfarben und MiniMessage-Tags (z.B. <gradient:...>)
-# funktionieren alle und dürfen gemischt werden.
+# =====================================================================
+# Command-Rückmeldungen und Chat-Texte. %platzhalter% wo angegeben.
+# MiniMessage (<gradient:...>, <#hex>, <bold>, ...) und klassische
+# &-Codes dürfen gemischt werden.
 #
-# Die Broadcast-Texte fürs Aktivieren/Deaktivieren, Wartung, Zeitplan und
-# Lockdown stehen NICHT hier - die liegen direkt in der config.yml (immer
-# auf Englisch, direkt neben den zugehörigen Einstellungen wie Farbe/Timing).
+# Durchgehender Stil:
+#   <#4ADE80>✔  Erfolg        <#F87171>✘  Fehler / gesperrt
+#   <#FBBF24>⚠  Warnung       <#60A5FA>ℹ  Info
+#   <white> = Werte, <gray> = Text, <dark_gray> = Hinweise
+#
+# Die Broadcast-Texte fürs Öffnen/Schließen, Wartung, Zeitplan und
+# Lockdown stehen NICHT hier, sondern in der config.yml - direkt neben
+# den Einstellungen für Timing, Farbe und Sound.
 #
 # Aktivieren mit config.yml -> language: "de"
 
-prefix: "&8[&5DT&8]&r "
+# Steht vor jeder einzelnen Nachricht (nicht vor Listen-Zeilen).
+prefix: "<gradient:#C084FC:#7C3AED><bold>DimensionToggle</bold></gradient> <dark_gray>» "
 
-no-permission: "&c&l✘ &cDu hast keine Berechtigung dafür."
-unknown-command: "&c&l✘ &cUnbekannter Command. Nutze &f/dt help &cfür Hilfe."
-invalid-usage: "&7Nutzung: &f/dt <editor|status|nether|end|softlock|lockdown|limit|maintenance|help|reload|checkupdate>"
-invalid-usage-status-only: "&7Nutze &f/dt status &7für den aktuellen Status."
+no-permission: "<#F87171>✘ <gray>Dafür hast du keine Berechtigung."
+unknown-command: "<#F87171>✘ <gray>Unbekannter Command - <white>/dt help <gray>zeigt alle Commands."
+invalid-usage: "<#60A5FA>ℹ <gray>Nutzung: <white>/dt <editor|status|nether|end|softlock|lockdown|limit|maintenance|help|reload|checkupdate>"
+invalid-usage-status-only: "<#60A5FA>ℹ <gray>Mit <white>/dt status <gray>siehst du den aktuellen Status."
+players-only: "<#F87171>✘ <gray>Das kann nur ein Spieler im Spiel benutzen."
 
-unit-hours: "Stunde(n)"
-unit-minutes: "Minute(n)"
-unit-seconds: "Sekunde(n)"
+# Wörter in formatierten Zeitangaben (z.B. %duration%)
+unit-hours: "Std."
+unit-minutes: "Min."
+unit-seconds: "Sek."
 
-dimension-already-enabled: "&e➤ &f%dimension% &7ist bereits aktiviert."
-dimension-already-disabled: "&e➤ &f%dimension% &7ist bereits deaktiviert."
-dimension-enabled: "&a&l✔ &f%dimension% &awurde erfolgreich aktiviert."
-dimension-disabled: "&c&l✘ &f%dimension% &cwurde erfolgreich deaktiviert."
+# ---------- Öffnen / Schließen ----------
+dimension-already-enabled: "<#60A5FA>ℹ <white>%dimension% <gray>ist bereits offen."
+dimension-already-disabled: "<#60A5FA>ℹ <white>%dimension% <gray>ist bereits geschlossen."
+dimension-enabled: "<#4ADE80>✔ <white>%dimension% <gray>ist jetzt <#4ADE80>offen<gray>."
+dimension-disabled: "<#F87171>✘ <white>%dimension% <gray>ist jetzt <#F87171>geschlossen<gray>."
 
-portal-blocked: "&c&l✘ &cDer Zugang zu &f%dimension% &cist derzeit deaktiviert."
-portal-locked: "&6&l⚠ &f%dimension% &6ist gesperrt &7- es können keine neuen Spieler mehr rein."
-dimension-full: "&6&l⚠ &f%dimension% &6ist derzeit voll &7(%limit% Spieler). Versuche es später erneut."
-gateway-blocked: "&c&l✘ &cEnd-Gateways sind derzeit deaktiviert."
-players-only: "&c&l✘ &cDas kann nur ein Spieler im Spiel verwenden."
+# ---------- Portale ----------
+portal-blocked: "<#F87171>✘ <gray>Der Zugang zu <white>%dimension% <gray>ist gerade geschlossen."
+portal-locked: "<#FBBF24>⚠ <white>%dimension% <gray>ist im Soft-Lock <dark_gray>- neue Spieler kommen nicht rein."
+dimension-full: "<#FBBF24>⚠ <white>%dimension% <gray>ist voll <dark_gray>(%limit% Spieler)<gray> - versuch es später nochmal."
+gateway-blocked: "<#F87171>✘ <gray>End-Gateways sind gerade gesperrt."
 
-status-header: "<gradient:#A78BFA:#7C3AED>━━━━━</gradient> <gradient:#A78BFA:#7C3AED><bold>Dimension Toggle</bold></gradient> <gradient:#A78BFA:#7C3AED>━━━━━</gradient>"
-status-nether: " &7Nether  &8» %status% &8(&7%players% Spieler&8)"
-status-end: " &7End     &8» %status% &8(&7%players% Spieler&8)"
-status-enabled: "&a&l● Aktiviert"
-status-disabled: "&c&l● Deaktiviert"
-status-maintenance-pending: "&6&l● In Wartung &7(schließt in %seconds%s)"
-status-locked: "&6&l● Gesperrt &7(Spieler drinnen können bleiben)"
-status-footer: "<gradient:#A78BFA:#7C3AED>━━━━━━━━━━━━━━━━━━━━━━━━━</gradient>"
+# ---------- /dt status (Zeilen ohne Prefix) ----------
+status-header: "<dark_gray><st>          </st></dark_gray> <gradient:#C084FC:#7C3AED><bold>DimensionToggle</bold></gradient> <dark_gray><st>          </st>"
+status-nether: " <gradient:#FB923C:#DC2626><bold>Nether</bold></gradient> <dark_gray>» %status% <dark_gray>· <white>%players% <gray>Spieler"
+status-end: " <gradient:#E879F9:#8B5CF6><bold>End</bold></gradient>    <dark_gray>» %status% <dark_gray>· <white>%players% <gray>Spieler"
+status-enabled: "<#4ADE80>● Offen"
+status-disabled: "<#F87171>● Geschlossen"
+status-maintenance-pending: "<#FBBF24>● Wartung <dark_gray>(schließt in %seconds%s)"
+status-locked: "<#FBBF24>● Soft-Lock <dark_gray>(wer drin ist, darf bleiben)"
+status-footer: "<dark_gray><st>                                        </st>"
 
-reload-success: "&a&l✔ &aKonfiguration wurde erfolgreich neu geladen."
-reload-error: "&c&l✘ &cFehler beim Neuladen der Konfiguration: &7%error%"
+# ---------- Reload / Fehler ----------
+reload-success: "<#4ADE80>✔ <gray>Konfiguration neu geladen."
+reload-error: "<#F87171>✘ <gray>Neuladen fehlgeschlagen: <white>%error%"
+error-invalid-sound: "<#F87171>✘ <gray>Ungültiger Sound in der Konfiguration: <white>%sound%"
+error-generic: "<#F87171>✘ <gray>Da ist etwas schiefgelaufen - bitte einem Admin Bescheid geben."
 
-error-invalid-sound: "&c&l✘ &cUngültiger Sound in der Konfiguration: &7%sound%"
-error-generic: "&c&l✘ &cEs ist ein Fehler aufgetreten. Bitte kontaktiere einen Administrator."
+# ---------- Wartung ----------
+maintenance-usage: "<#60A5FA>ℹ <gray>Nutzung: <white>/dt maintenance <nether|end> <zeit|cancel> <dark_gray>(z.B. 5m, 1h, 30s, 1h30m)"
+maintenance-invalid-duration: "<#F87171>✘ <gray>Ungültige Zeit - z.B. <white>5m<gray>, <white>1h<gray>, <white>30s<gray>, <white>1h30m"
+maintenance-already-active: "<#FBBF24>⚠ <gray>Für <white>%dimension% <gray>läuft schon ein Wartungs-Countdown."
+maintenance-none-active: "<#FBBF24>⚠ <gray>Für <white>%dimension% <gray>läuft kein Countdown und keine Wartung."
+maintenance-start-success: "<#4ADE80>✔ <gray>Wartungs-Countdown für <white>%dimension% <gray>gestartet <dark_gray>(<white>%duration%<dark_gray>)."
+maintenance-cancel-success: "<#4ADE80>✔ <gray>Wartungs-Countdown für <white>%dimension% <gray>abgebrochen."
+maintenance-ended-success: "<#4ADE80>✔ <gray>Wartung vorbei - <white>%dimension% <gray>ist wieder offen."
+maintenance-teleported: "<#FBBF24>⚠ <gray>Du wurdest wegen Wartungsarbeiten aus <white>%dimension% <gray>gebracht."
 
-# ---------- WARTUNGSMODUS (Command-Rückmeldungen) ----------
-maintenance-usage: "&7Nutzung: &f/dt maintenance <nether|end> <zeit|cancel> &8(z.B. 5m, 1h, 30s, 1h30m)"
-maintenance-invalid-duration: "&c&l✘ &cUngültige Zeitangabe. Beispiele: &f5m&7, &f1h&7, &f30s&7, &f1h30m"
-maintenance-already-active: "&6&l⚠ &7Für &f%dimension% &7läuft bereits ein Wartungs-Countdown."
-maintenance-none-active: "&6&l⚠ &7Für &f%dimension% &7läuft aktuell kein Wartungs-Countdown, und sie ist auch nicht in Wartung."
-maintenance-start-success: "&a&l✔ &7Wartungs-Countdown für &f%dimension% &7gestartet &8(&f%duration%&8)."
-maintenance-cancel-success: "&a&l✔ &7Wartungs-Countdown für &f%dimension% &7wurde abgebrochen."
-maintenance-ended-success: "&a&l✔ &f%dimension% &7wurde wieder geöffnet, Wartung beendet."
-maintenance-teleported: "&6&l⚠ &7Du wurdest wegen Wartungsarbeiten an &f%dimension% &7entfernt."
-
-# ---------- ZEITPLAN ----------
+# ---------- Zeitplan ----------
 action-opens: "öffnet"
 action-closes: "schließt"
 
-# ---------- SPIELER-LIMIT ----------
-limit-usage: "&7Nutzung: &f/dt limit <nether|end> <zahl>"
-limit-invalid-number: "&c&l✘ &cBitte gib eine gültige Zahl &7(0 oder größer) an."
-limit-set-success: "&a&l✔ &7Limit für &f%dimension% &7wurde auf &f%limit% &7Spieler gesetzt."
+# ---------- Spielerlimit ----------
+limit-usage: "<#60A5FA>ℹ <gray>Nutzung: <white>/dt limit <nether|end> <zahl>"
+limit-invalid-number: "<#F87171>✘ <gray>Bitte eine gültige Zahl angeben <dark_gray>(0 oder größer)<gray>."
+limit-set-success: "<#4ADE80>✔ <gray>Spielerlimit für <white>%dimension% <gray>auf <white>%limit% <gray>gesetzt."
 
-# ---------- SOFT-LOCK (/dt softlock - getrennt von /dt lockdown weiter unten) ----------
-softlock-usage: "&7Nutzung: &f/dt softlock <nether|end>"
-softlock-enabled: "&6&l⚠ &f%dimension% &6wurde weich gesperrt &7- keine neuen Spieler können mehr rein, wer schon drin ist, kann bleiben."
-softlock-disabled: "&a&l✔ &f%dimension% &awurde entsperrt &7- neue Spieler können wieder rein."
+# ---------- Soft-Lock (/dt softlock - nicht dasselbe wie /dt lockdown) ----------
+softlock-usage: "<#60A5FA>ℹ <gray>Nutzung: <white>/dt softlock <nether|end>"
+softlock-enabled: "<#FBBF24>⚠ <white>%dimension% <gray>im Soft-Lock <dark_gray>- keine neuen Spieler, wer drin ist, darf bleiben."
+softlock-disabled: "<#4ADE80>✔ <white>%dimension% <gray>entsperrt <dark_gray>- neue Spieler kommen wieder rein."
 
-# ---------- LOCKDOWN (Konsolen-Rückmeldung) ----------
-lockdown-activated-console: "&4&l⚠ &cLockdown aktiviert - alle Dimensionen wurden deaktiviert."
-lockdown-lifted-console: "&a&l✔ &aLockdown aufgehoben - alle Dimensionen wieder aktiviert."
+# ---------- Lockdown (Konsole, der Broadcast erreicht nur Spieler) ----------
+lockdown-activated-console: "<#F87171>⚠ <gray>Lockdown <#F87171>aktiv <dark_gray>- alle Dimensionen sind geschlossen."
+lockdown-lifted-console: "<#4ADE80>✔ <gray>Lockdown <#4ADE80>aufgehoben <dark_gray>- alle Dimensionen sind wieder offen."
 
-# ---------- HELP (nur dimensiontoggle.admin) ----------
-help-header: "<gradient:#A78BFA:#7C3AED>━━━━━</gradient> <gradient:#A78BFA:#7C3AED><bold>Dimension Toggle Hilfe</bold></gradient> <gradient:#A78BFA:#7C3AED>━━━━━</gradient>"
-help-checkupdate: "&d/dt checkupdate &8» &7Prüft sofort auf Modrinth nach einer neuen Version"
-help-end: "&d/dt end <on|off> &8» &7End aktivieren/deaktivieren"
-help-help: "&d/dt help &8» &7Zeigt diese Übersicht"
-help-limit: "&d/dt limit <nether|end> <zahl> &8» &7Setzt das Spieler-Limit sofort"
-help-lockdown: "&d/dt lockdown &8» &7Deaktiviert alle Dimensionen, nochmal ausführen hebt es auf"
-help-maintenance: "&d/dt maintenance <nether|end> <zeit> &8» &7Startet Countdown &8(z.B. 5m, 1h, 30s)"
-help-maintenance-cancel: "&d/dt maintenance <nether|end> cancel &8» &7Bricht Wartung ab/beendet sie"
-help-nether: "&d/dt nether <on|off> &8» &7Nether aktivieren/deaktivieren"
-help-reload: "&d/dt reload &8» &7Lädt config.yml und messages.yml neu"
-help-softlock: "&d/dt softlock <nether|end> &8» &7Sperrt eine Dimension weich &8(anders als lockdown)"
-help-status: "&d/dt status &8» &7Zeigt Status & Spielerzahl"
-help-editor: "&d/dt editor &8» &7Öffnet das klickbare Bedienmenü"
-help-footer: "<gradient:#A78BFA:#7C3AED>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</gradient>"
+# ---------- /dt help (Zeilen ohne Prefix) ----------
+help-header: "<dark_gray><st>        </st></dark_gray> <gradient:#C084FC:#7C3AED><bold>DimensionToggle</bold></gradient> <gray>Hilfe <dark_gray><st>        </st>"
+help-editor: " <#C084FC>/dt editor <dark_gray>» <gray>Klick-Menü zum Verwalten"
+help-status: " <#C084FC>/dt status <dark_gray>» <gray>Status und Spieler aller Dimensionen"
+help-nether: " <#C084FC>/dt nether <on|off> <dark_gray>» <gray>Nether öffnen/schließen"
+help-end: " <#C084FC>/dt end <on|off> <dark_gray>» <gray>End öffnen/schließen"
+help-softlock: " <#C084FC>/dt softlock <nether|end> <dark_gray>» <gray>Keine neuen Spieler <dark_gray>(kein Lockdown)"
+help-lockdown: " <#C084FC>/dt lockdown <dark_gray>» <gray>Alles auf einmal schließen, nochmal zum Aufheben"
+help-limit: " <#C084FC>/dt limit <nether|end> <zahl> <dark_gray>» <gray>Spielerlimit setzen"
+help-maintenance: " <#C084FC>/dt maintenance <nether|end> <zeit> <dark_gray>» <gray>Countdown starten <dark_gray>(5m, 1h, …)"
+help-maintenance-cancel: " <#C084FC>/dt maintenance <nether|end> cancel <dark_gray>» <gray>Wartung abbrechen/beenden"
+help-lagmap: " <#C084FC>/dt lagmap [chat] <dark_gray>» <gray>Vollste Chunks aller Welten <dark_gray>(auch /lagmap)"
+help-redstone: " <#C084FC>/dt redstone [chat] <dark_gray>» <gray>Chunks mit dem schnellsten Redstone"
+help-chunkloaders: " <#C084FC>/dt chunkloaders [chat] <dark_gray>» <gray>Chunks, die ohne Spieler geladen sind"
+help-web: " <#C084FC>/dt web <dark_gray>» <gray>Link zur Live-Performance-Website"
+help-reload: " <#C084FC>/dt reload <dark_gray>» <gray>Alle Konfigurationsdateien neu laden"
+help-checkupdate: " <#C084FC>/dt checkupdate <dark_gray>» <gray>Sofort auf Modrinth nach Updates suchen"
+help-help: " <#C084FC>/dt help <dark_gray>» <gray>Diese Übersicht"
+help-footer: "<dark_gray><st>                                        </st>"
 
 names:
   nether: "Nether"
   end: "End"
   overworld: "Overworld"
 
-# ---------- UPDATE-CHECKER ----------
-update-available: "&5&l⚠ &d[DimensionToggle] &fEine neue Version ist verfügbar: &a%version% &7(du hast &c%current%&7, &e%behind% &7Rückstand). Schau auf Modrinth vorbei."
+# ---------- Update-Checker ----------
+update-available: "<#C084FC>★ <gray>Neue Version <#4ADE80>%version% <gray>verfügbar <dark_gray>(du hast <#F87171>%current%<dark_gray>, %behind% zurück)<gray> - jetzt auf Modrinth holen."
 update-versions-behind: "%count% Version(en)"
-update-versions-behind-unknown: "eine unbekannte Anzahl an Versionen"
-update-check-triggered: "&5&l⚠ &dPrüfe jetzt auf Modrinth nach Updates... &7schau in die Konsole für das Ergebnis."
+update-versions-behind-unknown: "einige Versionen"
+update-check-triggered: "<#60A5FA>ℹ <gray>Suche auf Modrinth nach Updates <dark_gray>- das Ergebnis steht in der Konsole."
 
-# ---------- OVERWORLD & PERFORMANCE ----------
-help-lagmap: "&d/dt lagmap [chat] &8» &7Vollste Chunks aller Welten &8(auch /lagmap)"
-help-redstone: "&d/dt redstone [chat] &8» &7Chunks mit dem schnellsten Redstone"
-help-chunkloaders: "&d/dt chunkloaders [chat] &8» &7Chunks, die ohne Spieler geladen sind"
-help-web: "&d/dt web &8» &7Link zur Live-Performance-Website"
-
-chunk-hover: "&7Klicken zum Hinteleportieren"
-teleported-chunk: "&a&l✔ &7Zu Chunk &f%x%, %z% &7in &f%world% &7teleportiert."
-world-not-found: "&c&l✘ &7Welt &f%world% &7nicht gefunden."
+# ---------- Lag-Werkzeuge ----------
+chunk-hover: "<#FCD34D>▸ <gray>Klicken zum Hinteleportieren"
+teleported-chunk: "<#4ADE80>✔ <gray>Zu Chunk <white>%x%, %z% <gray>in <white>%world% <gray>teleportiert."
+world-not-found: "<#F87171>✘ <gray>Welt <white>%world% <gray>nicht gefunden."
 
 sort-score: "Lag-Score"
 sort-entities: "Entities"
@@ -119,52 +128,51 @@ sort-mobs: "Mobs"
 sort-items: "Items"
 sort-block-entities: "Block-Entities"
 
-lagmap-header: "&6&lLagmap &8» &7Top %count% Chunks, sortiert nach &f%sort%"
-lagmap-line: " &7#%rank% &f%world% &8(&7%x%, %z%&8) &8| &6%score% &8| &7Entities &f%entities% &7Mobs &f%mobs% &7Items &f%items% &7Hopper &f%hoppers% &7Blöcke &f%blocks%"
-lagmap-empty: " &7Keine geladenen Chunks mit Entities oder Block-Entities."
-lagmap-cleaned: "&a&l✔ &f%items% &7Items und &f%mobs% &7Mobs in Chunk &f%x%, %z% &7(%world%) entfernt."
+lagmap-header: "<gradient:#FBBF24:#D97706><bold>Lagmap</bold></gradient> <dark_gray>» <gray>Top <white>%count% <gray>Chunks nach <white>%sort% <dark_gray>(Klick = Teleport)"
+lagmap-line: " <#FBBF24>#%rank% <white>%world% <dark_gray>(%x%, %z%) <dark_gray>│ <#FBBF24>%score% <dark_gray>│ <gray>Ent <white>%entities% <gray>Mobs <white>%mobs% <gray>Items <white>%items% <gray>Hopper <white>%hoppers% <gray>Blöcke <white>%blocks%"
+lagmap-empty: " <gray>Keine geladenen Chunks mit Entities oder Block-Entities."
+lagmap-cleaned: "<#4ADE80>✔ <white>%items% <gray>Items und <white>%mobs% <gray>Mobs in Chunk <white>%x%, %z% <dark_gray>(%world%) <gray>entfernt."
 
-redstone-header: "&c&lRedstone &8» &7Schnellste Chunks der letzten %window% Sekunden"
-redstone-line: " &7#%rank% &f%world% &8(&7%x%, %z%&8) &8| &c%rate% Updates/s"
-redstone-empty: " &7Noch keine Redstone-Aktivität gemessen (Messfenster: 20 Sekunden)."
-redstone-alert: "&c&l⚠ &7Schnelles Redstone in &f%world% &8(&7%x%, %z%&8)&7: &c%rate% Updates/s &8[Klick: Teleport]"
+redstone-header: "<gradient:#F87171:#DC2626><bold>Redstone</bold></gradient> <dark_gray>» <gray>schnellste Chunks der letzten <white>%window% s <dark_gray>(Klick = Teleport)"
+redstone-line: " <#F87171>#%rank% <white>%world% <dark_gray>(%x%, %z%) <dark_gray>│ <#F87171>%rate% <gray>Updates/s"
+redstone-empty: " <gray>Noch keine Redstone-Aktivität gemessen <dark_gray>(Messfenster 20 Sekunden)<gray>."
+redstone-alert: "<#F87171>⚠ <gray>Schnelles Redstone in <white>%world% <dark_gray>(%x%, %z%)<gray>: <#F87171>%rate% Updates/s <dark_gray>[Klick: Teleport]"
 
-chunkloaders-header: "&e&lChunk-Loader &8» &f%count% &7Chunks sind geladen, ohne dass ein Spieler in der Nähe ist"
-chunkloaders-line: " &7#%rank% &f%world% &8(&7%x%, %z%&8) &8| &7%reason% &8| &f%entities% &7Entities"
-chunkloaders-empty: " &7Keine Chunks ohne Spieler in der Nähe geladen."
+chunkloaders-header: "<gradient:#FDE047:#CA8A04><bold>Chunk-Loader</bold></gradient> <dark_gray>» <white>%count% <gray>Chunks ohne Spieler in der Nähe geladen"
+chunkloaders-line: " <#FDE047>#%rank% <white>%world% <dark_gray>(%x%, %z%) <dark_gray>│ <gray>%reason% <dark_gray>│ <white>%entities% <gray>Entities"
+chunkloaders-empty: " <gray>Keine Chunks ohne Spieler in der Nähe geladen."
 reason-force-loaded: "/forceload"
 reason-plugin: "Plugin: %plugins%"
 reason-ender-pearl: "Enderperle"
 reason-unknown: "unbekannt (Portal, Entity, …)"
 
-web-link: "&a&l✔ &7Performance-Website: &f&n%url% &8(klicken zum Öffnen)"
-web-disabled: "&c&l✘ &7Die Performance-Website ist aus &8(config.yml → web.enabled: true, dann /dt reload)."
-web-token-reset: "&a&l✔ &7Neuer Website-Token erstellt – alte Links funktionieren nicht mehr."
+# ---------- Performance-Website ----------
+web-link: "<#4ADE80>✔ <gray>Performance-Website: <white><u>%url%</u> <dark_gray>(klicken zum Öffnen)"
+web-disabled: "<#F87171>✘ <gray>Die Performance-Website ist aus <dark_gray>(config.yml → web.enabled: true, dann /dt reload)<gray>."
+web-token-reset: "<#4ADE80>✔ <gray>Neuer Website-Token erstellt <dark_gray>- alte Links funktionieren nicht mehr."
 
-item-cleaner-warning: "&e&l⚠ &7Items am Boden werden in &f%seconds% &7Sekunden entfernt!"
-item-cleaner-done: "&a&l✔ &f%count% &7Items vom Boden entfernt."
+# ---------- Optimierer ----------
+item-cleaner-warning: "<#FBBF24>⚠ <gray>Items am Boden werden in <white>%seconds% <gray>Sekunden entfernt!"
+item-cleaner-done: "<#4ADE80>✔ <white>%count% <gray>Items vom Boden entfernt."
+afk-view-reduced: "<#60A5FA>ℹ <gray>Du bist AFK - deine Sichtweite wurde gesenkt, um Leistung zu sparen."
+afk-view-restored: "<#60A5FA>ℹ <gray>Willkommen zurück - deine Sichtweite ist wieder normal."
+entity-cap-reached: "<#F87171>✘ <gray>Zu viele <white>%mob% <gray>in diesem Chunk <dark_gray>(max. %max%)<gray> - hier können sie sich nicht vermehren."
+auto-performance-activated: "<#FBBF24>⚠ <gray>Server unter Last <dark_gray>(<#F87171>%mspt% ms/Tick<dark_gray>)<gray> - Auto-Performance-Modus <#FBBF24>an<gray>."
+auto-performance-deactivated: "<#4ADE80>✔ <gray>Server-Last wieder normal <dark_gray>(<#4ADE80>%mspt% ms/Tick<dark_gray>)<gray> - Auto-Performance-Modus <#4ADE80>aus<gray>."
 
 # ---------- Chat-Eingabe (eigene Intervalle im Editor) ----------
-chat-input-prompt: "&e&l✎ &7Schreib die neue Zeit für &f%what% &7in den Chat &8(jetzt: &f%current%&8)"
-chat-input-hint: "&8   z.B. &f15m&8, &f2h&8, &f1h30m &8(1 Min. - 24 Std.) · &f0 &8= aus · &fabbrechen &8= Abbruch"
-chat-input-invalid: "&c&l✘ &7Keine gültige Zeit - erlaubt sind 1 Minute bis 24 Stunden (z.B. &f15m&7, &f2h&7), &f0 &7für aus oder &fabbrechen&7."
-chat-input-cancelled: "&7Eingabe abgebrochen - nichts geändert."
-chat-input-timeout: "&7Keine Eingabe in 30 Sekunden - nichts geändert."
-chat-input-set: "&a&l✔ &f%what% &7auf &f%value% &7gesetzt."
+chat-input-prompt: "<#FCD34D>✎ <gray>Schreib die neue Zeit für <white>%what% <gray>in den Chat <dark_gray>(jetzt: <white>%current%<dark_gray>)"
+chat-input-hint: "<dark_gray>   z.B. <white>15m<dark_gray>, <white>2h<dark_gray>, <white>1h30m <dark_gray>(1 Min. - 24 Std.) · <white>0 <dark_gray>= aus · <white>abbrechen <dark_gray>= Abbruch"
+chat-input-invalid: "<#F87171>✘ <gray>Keine gültige Zeit - erlaubt sind 1 Minute bis 24 Stunden <dark_gray>(z.B. 15m, 2h)<gray>, <white>0 <gray>für aus oder <white>abbrechen<gray>."
+chat-input-cancelled: "<#60A5FA>ℹ <gray>Eingabe abgebrochen - nichts geändert."
+chat-input-timeout: "<#60A5FA>ℹ <gray>Keine Eingabe in 30 Sekunden - nichts geändert."
+chat-input-set: "<#4ADE80>✔ <white>%what% <gray>auf <white>%value% <gray>gesetzt."
 chat-input-off-word: "aus"
 chat-input-what-item-cleaner: "Item-Aufräumer"
 chat-input-what-mob: "Aufräumen von %mob% (%dimension%)"
 
-afk-view-reduced: "&7Du bist AFK – deine Sichtweite wurde zur Entlastung des Servers gesenkt."
-afk-view-restored: "&7Willkommen zurück – deine Sichtweite ist wieder normal."
-
-entity-cap-reached: "&c&l✘ &7Zu viele &f%mob% &7in diesem Chunk &8(max. %max%)&7 – hier kann nicht mehr gezüchtet werden."
-
-auto-performance-activated: "&6&l⚠ &7Server unter Last &8(&c%mspt% ms/Tick&8)&7 – Auto-Performance-Modus &6AN&7."
-auto-performance-deactivated: "&a&l✔ &7Serverlast wieder normal &8(&a%mspt% ms/Tick&8)&7 – Auto-Performance-Modus &aAUS&7."
-
-# Text für %dimensiontoggle_nether_status% / %dimensiontoggle_end_status% (PlaceholderAPI)
-placeholder-enabled: "&aOffen"
-placeholder-disabled: "&cGeschlossen"
-placeholder-locked: "&6Soft-Lock"
-placeholder-maintenance: "&6Wartung"
+# ---------- PlaceholderAPI: %dimensiontoggle_nether_status% / ..._end_status% ----------
+placeholder-enabled: "<#4ADE80>Offen"
+placeholder-disabled: "<#F87171>Geschlossen"
+placeholder-locked: "<#FBBF24>Soft-Lock"
+placeholder-maintenance: "<#FBBF24>Wartung"

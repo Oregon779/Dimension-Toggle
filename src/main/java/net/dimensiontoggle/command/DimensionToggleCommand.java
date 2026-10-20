@@ -129,16 +129,16 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
         }
 
         MessageManager messages = plugin.getMessageManager();
-        messages.send(sender, "status-header");
+        messages.sendRaw(sender, "status-header");
 
         for (ToggleDimension dimension : ToggleDimension.values()) {
             Map<String, String> placeholders = new HashMap<>();
             placeholders.put("status", statusText(messages, dimension));
             placeholders.put("players", String.valueOf(plugin.getDimensionManager().countPlayersInDimension(dimension)));
-            messages.send(sender, "status-" + dimension.getKey(), placeholders);
+            messages.sendRaw(sender, "status-" + dimension.getKey(), placeholders);
         }
 
-        messages.send(sender, "status-footer");
+        messages.sendRaw(sender, "status-footer");
     }
 
     private String statusText(MessageManager messages, ToggleDimension dimension) {
@@ -335,14 +335,14 @@ public class DimensionToggleCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        messages.send(sender, "help-header");
+        messages.sendRaw(sender, "help-header");
         for (CommandInfo info : visible) {
-            messages.send(sender, "help-" + info.name());
+            messages.sendRaw(sender, "help-" + info.name());
             if (info.name().equals("maintenance")) {
-                messages.send(sender, "help-maintenance-cancel");
+                messages.sendRaw(sender, "help-maintenance-cancel");
             }
         }
-        messages.send(sender, "help-footer");
+        messages.sendRaw(sender, "help-footer");
     }
 
     private boolean require(CommandSender sender, String permission) {

@@ -69,7 +69,7 @@ geprüft; Entfernen aus Dimensionen mit `%player%`-Konsolen-Commands +
 Ebenfalls gewünscht: **PlaceholderAPI-Support** (Nutzer hat PlaceholderAPI
 2.11.6 und VaultAPI 1.7 als Jars bereitgestellt; Vault vorerst nicht nötig).
 
-**Stand 3.3.0-dev2: alle Punkte unten sind gebaut (dev3: automatische Config-Updates; dev5: Enderperlen-Fix; dev6: Website zurück mit neuem Design, alle Overworld-Mobs in Gruppen, Chat-Eingabe für Intervalle, Editor-Redesign)** (Nutzer wollte alles auf
+**Stand 3.3.0-dev2: alle Punkte unten sind gebaut (dev3: automatische Config-Updates; dev5: Enderperlen-Fix; dev6: Website zurück mit neuem Design, alle Overworld-Mobs in Gruppen, Chat-Eingabe für Intervalle, Editor-Redesign; dev7: Nether/End-Panel neu angeordnet, Chat-Nachrichten neu gestaltet)** (Nutzer wollte alles auf
 einmal ohne weitere Rückfragen). Offen: bStats-Plugin-ID
 (`DimensionToggle.BSTATS_PLUGIN_ID`, 0 = aus) vom Nutzer besorgen.
 
@@ -189,7 +189,8 @@ Package layout under `net.dimensiontoggle`:
   pending `ConfigMigrations` (versioned, idempotent rename/remove steps -
   add one there when an option is renamed or dropped; a *new* option needs
   nothing but the default file; `Step.reset()` replaces a whole file once,
-  used for the 3.3.0 GUI redesign - gui files are at version 3, and stored
+  used for the 3.3.0 GUI redesign and message restyle - gui and language
+  files are at version 3, and stored
   versions never step back, so new migrations must use higher numbers), (2) inserts options missing from the user
   file via `ConfigUpdater.merge` - nested too, after the nearest preceding
   sibling, with the default's comments, in the user's indentation, every
@@ -261,7 +262,13 @@ Package layout under `net.dimensiontoggle`:
   Look: `GuiItems.frame(inventory, plugin, Theme, rows)` draws the themed
   frame (MAIN purple, NETHER red, END magenta, OVERWORLD lime; accent
   corners, black inside) - call it last, it only fills empty slots;
-  `GuiItems.place(inventory, row, items)` centers a button group in a row.
+  `GuiItems.place(inventory, row, items)` spreads a button group over a row
+  (Overworld panel); `GuiItems.placeOnAxis` keeps a group together around the
+  middle column, even counts leaving exactly the middle free (Nether/End
+  control panel, 6 rows). Feature icons never switch to a barrier when off -
+  state is glow + the configured green/red name. All GUI items hide
+  attribute tooltips. Chat: `MessageManager.send` adds the prefix,
+  `sendRaw` doesn't (help/status/report list lines).
   Click feedback: `handleAction` sets `clickSound` (`toggled(on)` for
   switches), played via `SoundManager.playGui` (`gui-sounds` in config.yml).
   `ChatInput` (registered listener, owned by `GuiManager`) asks for an

@@ -1084,8 +1084,21 @@ Spielverhalten verändert, ist standardmäßig **aus**.
 - Klick-Sounds (Klick, an, aus, Fehler), einstellbar unter `gui-sounds`.
 - Hauptmenü mit Server-Info (Spieler online, TPS, MSPT, Version) und
   Spielerzahl je Dimension.
+- Nether-/End-Panel spiegelgleich um die Mittelspalte: oben Übersicht,
+  An/Aus-Schalter und Spielerliste, darunter Zugang | Automatik, Regeln und
+  Verwaltung. Jede Funktion zeigt immer ihr eigenes Icon (keine roten
+  Barrieren mehr), an = Glanz + grün, aus = rot.
 - Die GUI-Configs werden beim Update **einmalig** durch die neuen ersetzt -
   die alten landen als Backup in `backups/`.
+
+### Neu: Chat-Nachrichten im neuen Stil
+- Alle Texte in `languages/en|de/messages.yml` überarbeitet: Prefix
+  „DimensionToggle »“ als Farbverlauf, einheitliche Symbole (✔ ✘ ⚠ ℹ) und
+  Farben wie im Editor, Werte hervorgehoben, kürzere Zeiteinheiten.
+- `/dt help`, `/dt status` und die Lag-Berichte haben eine Kopfzeile und
+  keine Prefix-Wiederholung mehr in jeder Zeile.
+- Die mitgelieferten Sprachdateien werden beim Update **einmalig** ersetzt
+  (Backup in `backups/`).
 - **PlaceholderAPI**: `%dimensiontoggle_nether_status%` u.v.m.
 - **bStats**-Unterstützung.
 

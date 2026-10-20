@@ -193,6 +193,22 @@ class ConfigSynchronizerTest extends PluginTestBase {
     }
 
     @Test
+    void theNewMessageStyleReplacesOldLanguageFilesOnce() throws Exception {
+        File messages = new File(plugin.getDataFolder(), "languages/de/messages.yml");
+        String shipped = Files.readString(messages.toPath(), StandardCharsets.UTF_8);
+        Files.writeString(messages.toPath(), "prefix: \"&8[&5DT&8]&r \"\nno-permission: \"&cNein\"\n", StandardCharsets.UTF_8);
+        YamlConfiguration state = YamlConfiguration.loadConfiguration(stateFile());
+        state.set(ConfigSynchronizer.id("languages/de/messages.yml") + ".version", 2);
+        Files.writeString(stateFile().toPath(), state.saveToString(), StandardCharsets.UTF_8);
+
+        restart();
+
+        assertEquals(shipped, Files.readString(messages.toPath(), StandardCharsets.UTF_8));
+        assertEquals(1, new File(plugin.getDataFolder(), ConfigSynchronizer.BACKUP_FOLDER)
+                .listFiles((d, n) -> n.startsWith("languages-de-messages-")).length);
+    }
+
+    @Test
     void languageAndGuiFilesAreKeptUpToDateToo() throws Exception {
         File messages = new File(plugin.getDataFolder(), "languages/de/messages.yml");
         File gui = new File(plugin.getDataFolder(), "gui/overworld/config.yml");

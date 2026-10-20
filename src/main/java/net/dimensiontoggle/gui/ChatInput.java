@@ -69,7 +69,7 @@ public class ChatInput implements Listener {
         pending.put(id, new Pending(request, timeout));
         plugin.getMessageManager().send(player, "chat-input-prompt",
                 Map.of("what", request.what(), "current", request.current()));
-        plugin.getMessageManager().send(player, "chat-input-hint");
+        plugin.getMessageManager().sendRaw(player, "chat-input-hint");
     }
 
     // LOWEST: cancel before chat formatters/other plugins pick the message up.

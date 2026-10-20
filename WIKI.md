@@ -607,15 +607,23 @@ Hauptmenü
 
 ### Control Panel
 
-Aufbau (5 Reihen): oben die Übersicht (Karte), Reihe 1 **Zugang** (Schalter,
-Soft-Lock, Spielerlimit, Spieler drinnen) und **Automatik** (Wartung,
-Zeitplan), Reihe 2 **Regeln** (Keep Inventory, PvP, Mob Spawning, Spawner bzw.
-Elytra + Gateways), Reihe 3 **Verwaltung** (Mob Management, World Border),
-unten „Zurück“.
+Aufbau (6 Reihen, spiegelgleich um die Mittelspalte):
+
+```
+# # # # # # # # #
+# · · D T P · · #    D Übersicht · T An/Aus-Schalter · P Spieler drinnen
+# · S L · W Z · #    S Soft-Lock · L Spielerlimit | W Wartung · Z Zeitplan
+# · K V · M X · #    K Keep Inventory · V PvP | M Mob Spawning · X Spawner
+# · · B · R · · #    B Mob Management | R World Border
+# # # # ← # # # #    ← Zurück
+```
+
+Im End steht in der Regel-Reihe ein Fünferblock: Keep Inventory, PvP, Mob
+Spawning, Elytra-Flug, Gateways.
 
 | Button | Aktion |
 |---|---|
-| Schalter (Reihe 1 links) | Dimension aktivieren / deaktivieren |
+| Schalter (oben Mitte) | Dimension aktivieren / deaktivieren |
 | Soft-Lock | Soft-Lock an/aus |
 | Players Inside | Spielerliste öffnen |
 | Player Limit | Links −1, Shift-Links −10, Rechts +1, Shift-Rechts +10 (aktiviert das Limit) |
@@ -632,8 +640,10 @@ unten „Zurück“.
 | Übersicht (Karte, oben) | nur Anzeige |
 | Zurück | Hauptmenü |
 
-Aktive Schalter „glühen“ (Verzauberungs-Glanz), damit man den Zustand auf
-einen Blick sieht.
+Jede Funktion zeigt immer ihr eigenes Icon (Totem, Schwert, Spawner, Elytra,
+Enderauge …). Aktive Schalter „glühen“ (Verzauberungs-Glanz) und haben einen
+grünen Zustand, ausgeschaltete sind ohne Glanz mit rotem Zustand – so sieht
+man alles auf einen Blick.
 
 ### Eigene Zeiten im Chat
 
@@ -870,6 +880,12 @@ erkennbar (`%count%`, `%limit-status%`, `%peak%`, `%size%`, `%tps%` usw.).
 - Die Broadcast-Texte für An/Aus, Wartung, Zeitplan und Lockdown stehen nicht
   in der Sprachdatei, sondern in der `config.yml` direkt neben ihren
   Einstellungen – dort übersetzen.
+- **Stil (seit 3.3.0):** Prefix „DimensionToggle »“ als lila Farbverlauf,
+  ✔ grün = Erfolg, ✘ rot = Fehler/gesperrt, ⚠ gelb = Warnung, ℹ blau = Info,
+  Werte in Weiß. Listen (`/dt help`, `/dt status`, Lag-Berichte) kommen ohne
+  Prefix vor jeder Zeile. Beim Update auf 3.3.0 werden die mitgelieferten
+  Dateien `languages/en|de/messages.yml` **einmalig** durch die neuen ersetzt;
+  die alten liegen in `backups/` (eigene Sprachordner bleiben unangetastet).
 
 ### GUI-Texte
 

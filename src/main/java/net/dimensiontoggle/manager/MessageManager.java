@@ -135,6 +135,16 @@ public class MessageManager {
         send(sender, path, null);
     }
 
+    // Without the prefix - for lines of a list (help, status, lag reports),
+    // where a prefix on every line would only be noise.
+    public void sendRaw(CommandSender sender, String path, Map<String, String> placeholders) {
+        sender.sendMessage(parse(replacePlaceholders(get(path), placeholders)));
+    }
+
+    public void sendRaw(CommandSender sender, String path) {
+        sendRaw(sender, path, null);
+    }
+
     // Same idea as the broadcast-path bulk helpers elsewhere: resolve and parse
     // the message once, then reuse the Component for every recipient instead of
     // repeating the placeholder substitution + MiniMessage parse per player.
