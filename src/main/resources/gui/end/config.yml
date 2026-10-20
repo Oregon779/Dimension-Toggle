@@ -1,244 +1,299 @@
 # =====================================================================
-#   DimensionToggle - End GUI
+#   DimensionToggle - End menus
 # =====================================================================
-# Every text shown in the End control panel and its sub-menus (player
-# list, maintenance, schedule, mob management, world border), fully
-# editable/translatable. Placeholders where noted. Full MiniMessage is
-# supported (gradients, small caps via Unicode) alongside classic & codes.
+# Every text of these menus, fully editable. Placeholders where noted.
+# MiniMessage (gradients, <#hex> colors, small caps via Unicode) and
+# classic & codes can be mixed freely.
+# Look: the theme color of this area is violet; green = on, red = off,
+# yellow lines tell what a click does.
 
 # ---------- Control panel ----------
 control-panel:
-  title: "<gradient:#C084FC:#EC4899><bold>ᴇɴᴅ</bold></gradient> <dark_gray>| <gray>ᴄᴏɴᴛʀᴏʟ ᴘᴀɴᴇʟ"
+  title: "<gradient:#E879F9:#8B5CF6><bold>ᴇɴᴅ</bold></gradient> <dark_gray>» <gray>ᴄᴏɴᴛʀᴏʟ ᴘᴀɴᴇʟ"
 
   toggle-button:
-    name-enabled: "<gradient:#4ADE80:#16A34A><bold>✔ Enabled</bold></gradient>"
-    name-disabled: "<gray>✖ Disabled"
-    lore: "<gray>Click to %action% the End"
+    name-enabled: "<#4ADE80><bold>● End is OPEN</bold>"
+    name-disabled: "<#F87171><bold>● End is CLOSED</bold>"
+    lore:
+      - "<dark_gray>ᴀᴄᴄᴇꜱꜱ"
+      - ""
+      - "<gray>Opens or closes the portals to"
+      - "<gray>the End. Closing sends everyone"
+      - "<gray>inside back to the spawn."
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>%action% the End"
 
   softlock-button:
-    name-locked: "<gradient:#FBBF24:#D97706><bold>⚠ Soft-Locked</bold></gradient>"
-    name-unlocked: "<gray>Soft-Lock: Off"
+    name-locked: "<#FBBF24><bold>● Soft-Lock ON</bold>"
+    name-unlocked: "<gray><bold>Soft-Lock</bold> <dark_gray>│ <#F87171>● Off"
     lore:
-      - "<gray>No new arrivals while locked;"
-      - "<gray>players already inside can stay."
+      - "<dark_gray>ᴀᴄᴄᴇꜱꜱ"
       - ""
-      - "<gold>➤ <gray>Click to %action%"
-
-  playerlist-button:
-    name: "<aqua><bold>Players Inside <white>(%count%)"
-    lore:
-      - "<gray>Click to see who's in the End"
-      - "<gray>and teleport to them."
-
-  keepinventory-button:
-    name-on: "<gradient:#4ADE80:#16A34A><bold>✔ Keep Inventory: On</bold></gradient>"
-    name-off: "<gray>✖ Keep Inventory: Off"
-    lore:
-      - "<gray>Players keep their items"
-      - "<gray>on death in the End."
+      - "<gray>No new arrivals - players who are"
+      - "<gray>already inside may stay."
       - ""
-      - "<gold>➤ <gray>Click to toggle"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>%action%"
 
   limit-button:
-    name: "<gold><bold>Player Limit"
+    name: "<gradient:#E879F9:#8B5CF6><bold>Player Limit</bold></gradient>"
     lore:
-      - "<gray>Limit is currently %limit-status%"
-      - "<gray>Current: <white>%limit% <gray>players"
+      - "<dark_gray>ᴀᴄᴄᴇꜱꜱ"
       - ""
-      - "<gold>Left-click: <white>-1  <gold>Shift-Left: <white>-10"
-      - "<gold>Right-click: <white>+1  <gold>Shift-Right: <white>+10"
+      - "<gray>Limit <dark_gray>» %limit-status%"
+      - "<gray>Max players <dark_gray>» <white>%limit%"
+      - ""
+      - "<#FCD34D>▸ Left-click <dark_gray>» <gray>-1"
+      - "<#FCD34D>▸ Right-click <dark_gray>» <gray>+1"
+      - "<#FCD34D>▸ Shift <dark_gray>» <gray>-10 / +10"
+
+  playerlist-button:
+    name: "<aqua><bold>Players Inside</bold> <dark_gray>│ <white>%count%"
+    lore:
+      - "<dark_gray>ᴀᴄᴄᴇꜱꜱ"
+      - ""
+      - "<gray>Who is in the End right now -"
+      - "<gray>click a head to teleport there."
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>show the list"
 
   maintenance-button:
     name: "<gradient:#FBBF24:#D97706><bold>Maintenance</bold></gradient>"
     lore:
-      - "<gray>Start a countdown, then close"
-      - "<gray>the End and remove everyone inside."
+      - "<dark_gray>ᴀᴜᴛᴏᴍᴀᴛɪᴏɴ"
       - ""
-      - "<gold>➤ <gray>Click to open"
+      - "<gray>Countdown, then the End closes"
+      - "<gray>and everyone inside is sent out."
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>open"
 
   schedule-button:
-    name: "<aqua><bold>Schedule"
+    name: "<aqua><bold>Schedule</bold>"
     lore:
-      - "<gray>Automatic daily open/close times."
+      - "<dark_gray>ᴀᴜᴛᴏᴍᴀᴛɪᴏɴ"
       - ""
-      - "<gold>➤ <gray>Click to open"
+      - "<gray>Open and close the End"
+      - "<gray>automatically every day."
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>open"
+
+  keepinventory-button:
+    name-on: "<white><bold>Keep Inventory</bold> <dark_gray>│ <#4ADE80>● On"
+    name-off: "<white><bold>Keep Inventory</bold> <dark_gray>│ <#F87171>● Off"
+    lore:
+      - "<dark_gray>ʀᴜʟᴇꜱ"
+      - ""
+      - "<gray>Players keep their items when"
+      - "<gray>they die in the End."
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>toggle"
+
+  pvp-button:
+    name-on: "<white><bold>PvP</bold> <dark_gray>│ <#4ADE80>● On"
+    name-off: "<white><bold>PvP</bold> <dark_gray>│ <#F87171>● Off"
+    name-unavailable: "<dark_gray><bold>PvP</bold> │ not available"
+    lore-available:
+      - "<dark_gray>ʀᴜʟᴇꜱ"
+      - ""
+      - "<gray>Whether players can fight each"
+      - "<gray>other in the End."
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>toggle"
+    lore-unavailable:
+      - "<dark_gray>ʀᴜʟᴇꜱ"
+      - ""
+      - "<#F87171>Needs the PvPManager plugin."
+
+  mobspawn-button:
+    name-on: "<white><bold>Mob Spawning</bold> <dark_gray>│ <#4ADE80>● On"
+    name-off: "<white><bold>Mob Spawning</bold> <dark_gray>│ <#F87171>● Off"
+    lore:
+      - "<dark_gray>ʀᴜʟᴇꜱ"
+      - ""
+      - "<gray>Whether any mob spawns naturally"
+      - "<gray>in the End (gamerule spawn_mobs)."
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>toggle"
+
+  elytra-button:
+    name-on: "<white><bold>Elytra Flight</bold> <dark_gray>│ <#4ADE80>● On"
+    name-off: "<white><bold>Elytra Flight</bold> <dark_gray>│ <#F87171>● Off"
+    lore:
+      - "<dark_gray>ʀᴜʟᴇꜱ"
+      - ""
+      - "<gray>Whether players may glide with"
+      - "<gray>an Elytra in the End."
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>toggle"
+
+  gateway-button:
+    name-blocked: "<white><bold>End Gateways</bold> <dark_gray>│ <#F87171>● Blocked"
+    name-allowed: "<white><bold>End Gateways</bold> <dark_gray>│ <#4ADE80>● Allowed"
+    lore:
+      - "<dark_gray>ʀᴜʟᴇꜱ"
+      - ""
+      - "<gray>Teleports through End gateways"
+      - "<gray>(also ender pearls), independent"
+      - "<gray>of whether the End is open."
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>toggle"
 
   mobmanagement-button:
     name: "<gradient:#4ADE80:#16A34A><bold>Mob Management</bold></gradient>"
     lore:
-      - "<gray>Toggle spawning per mob type,"
-      - "<gray>and set automatic cleanup intervals."
+      - "<dark_gray>ᴍᴀɴᴀɢᴇᴍᴇɴᴛ"
       - ""
-      - "<gold>➤ <gray>Click to open"
-
-  mobspawn-button:
-    name-on: "<gradient:#4ADE80:#16A34A><bold>✔ Mob Spawning: On</bold></gradient>"
-    name-off: "<gray>✖ Mob Spawning: Off"
-    lore:
-      - "<gray>Whether ANY mob can spawn at all"
-      - "<gray>in the End (gamerule spawn_mobs)."
+      - "<gray>Allow or block each mob type and"
+      - "<gray>set automatic cleanups."
       - ""
-      - "<gold>➤ <gray>Click to toggle"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>open"
 
   worldborder-button:
-    name: "<aqua><bold>World Border"
+    name: "<aqua><bold>World Border</bold>"
     lore:
-      - "<gray>Adjust how far the End"
-      - "<gray>extends from its center."
+      - "<dark_gray>ᴍᴀɴᴀɢᴇᴍᴇɴᴛ"
       - ""
-      - "<gold>➤ <gray>Click to open"
-
-  pvp-button:
-    name-on: "<gradient:#4ADE80:#16A34A><bold>✔ PvP: On</bold></gradient>"
-    name-off: "<gray>✖ PvP: Off"
-    name-unavailable: "<dark_gray>PvP: Unavailable"
-    lore-available:
-      - "<gray>Whether players can fight each"
-      - "<gray>other in the End."
+      - "<gray>How far the End reaches"
+      - "<gray>from its center."
       - ""
-      - "<gold>➤ <gray>Click to toggle"
-    lore-unavailable:
-      - "<red>Requires the 'PvPManager' plugin"
-      - "<red>to be installed on this server."
-
-  elytra-button:
-    name-on: "<gradient:#4ADE80:#16A34A><bold>✔ Elytra Flight: On</bold></gradient>"
-    name-off: "<gray>✖ Elytra Flight: Off"
-    lore:
-      - "<gray>Whether players may glide"
-      - "<gray>with an Elytra in the End."
-      - ""
-      - "<gold>➤ <gray>Click to toggle"
-
-  gateway-button:
-    name-blocked: "<gray>✖ Gateways Blocked"
-    name-allowed: "<gradient:#4ADE80:#16A34A><bold>✔ Gateways Allowed</bold></gradient>"
-    lore:
-      - "<gray>Whether players can teleport via"
-      - "<gray>End Gateways, independent of"
-      - "<gray>whether the End itself is open."
-      - ""
-      - "<gold>➤ <gray>Click to toggle"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>open"
 
   back-button:
-    name: "<dark_gray>« <gray>Back"
-    lore: "<gray>Return to the main menu"
+    name: "<gray>« <white>Back"
+    lore:
+      - "<dark_gray>Return to the main menu"
 
   dashboard:
-    title: "<gradient:#C084FC:#EC4899><bold>Dashboard</bold></gradient> <dark_gray>- <gray>End"
-    peak-players: "<gray>Peak players seen: <white>%peak%"
-    world-border: "<gray>World border size: <white>%size%"
-    loaded-chunks: "<gray>Loaded chunks: <white>%chunks%"
-    entities-header: "<dark_gray>Top entities in this dimension:"
-    entity-line: "<gray> - %type%: <white>%count%"
-    world-not-loaded: "<gray>(World not loaded)"
-    server-wide-header: "<dark_gray>Server-wide (not dimension-specific):"
-    tps-line: "<gray>TPS: <white>%tps%"
+    title: "<gradient:#E879F9:#8B5CF6><bold>End</bold></gradient> <dark_gray>» <gray>Overview"
+    peak-players: "<gray>Player record <dark_gray>» <white>%peak%"
+    world-border: "<gray>World border <dark_gray>» <white>%size%"
+    loaded-chunks: "<gray>Loaded chunks <dark_gray>» <white>%chunks%"
+    entities-header: "<dark_gray>ᴍᴏꜱᴛ ᴄᴏᴍᴍᴏɴ ᴇɴᴛɪᴛɪᴇꜱ"
+    entity-line: "<dark_gray> ▪ <gray>%type% <dark_gray>» <white>%count%"
+    world-not-loaded: "<gray>(world not loaded)"
+    server-wide-header: "<dark_gray>ᴡʜᴏʟᴇ ꜱᴇʀᴠᴇʀ"
+    tps-line: "<gray>TPS <dark_gray>» <white>%tps%"
 
 # Words used above for %action% / %limit-status%
-action-enable: "enable"
-action-disable: "disable"
-action-lock: "soft-lock"
-action-unlock: "unlock"
-limit-status-enabled: "<green>enabled"
-limit-status-disabled: "<gray>disabled"
+action-enable: "open"
+action-disable: "close"
+action-lock: "switch on"
+action-unlock: "switch off"
+limit-status-enabled: "<#4ADE80>● active"
+limit-status-disabled: "<#F87171>● off"
 
-# ---------- Player list sub-menu ----------
+# ---------- Player list ----------
 playerlist:
-  title: "<gradient:#C084FC:#EC4899><bold>ᴘʟᴀʏᴇʀꜱ</bold></gradient> <dark_gray>| <gray>End"
-  empty-message: "<gray>Nobody is currently in the End"
-  head-lore: "<gold>➤ <gray>Click to teleport to this player"
+  title: "<gradient:#E879F9:#8B5CF6><bold>ᴘʟᴀʏᴇʀꜱ</bold></gradient> <dark_gray>» <gray>End"
+  empty-message: "<gray>Nobody is in the End right now"
+  head-name: "<white><bold>%player%</bold>"
+  head-lore:
+    - "<#FCD34D>▸ Click <dark_gray>» <gray>teleport to %player%"
   back-button:
-    name: "<dark_gray>« <gray>Back"
-    lore: "<gray>Return to the End's control panel"
+    name: "<gray>« <white>Back"
+    lore:
+      - "<dark_gray>Return to the End's control panel"
 
-# ---------- Maintenance sub-menu ----------
+# ---------- Maintenance ----------
 maintenance:
-  title: "<gradient:#C084FC:#EC4899><bold>ᴍᴀɪɴᴛᴇɴᴀɴᴄᴇ</bold></gradient> <dark_gray>| <gray>End"
-  preset-lore: "<gray>Start a <white>%preset% <gray>countdown for the End"
-  status-active: "<gradient:#FBBF24:#D97706><bold>⏱ Countdown Running</bold></gradient>"
-  status-active-lore: "<gray>End closes in <white>%seconds%s"
-  status-idle: "<gray>No Countdown Running"
-  status-idle-lore: "<gray>Pick a preset below to start one."
+  title: "<gradient:#E879F9:#8B5CF6><bold>ᴍᴀɪɴᴛᴇɴᴀɴᴄᴇ</bold></gradient> <dark_gray>» <gray>End"
+  preset-name: "<#FBBF24><bold>%preset%</bold>"
+  preset-lore: "<gray>Close the End in <white>%preset%"
+  status-active: "<gradient:#FBBF24:#D97706><bold>⏱ Countdown running</bold></gradient>"
+  status-active-lore: "<gray>The End closes in <white>%seconds%s"
+  status-idle: "<gray><bold>No countdown running</bold>"
+  status-idle-lore: "<dark_gray>Pick a time below to start one."
   # Title of the anvil that opens for the custom time
-  custom-title: "<aqua><bold>Custom Time <dark_gray>| <gray>e.g. 1h30m"
+  custom-title: "<aqua><bold>Custom time</bold> <dark_gray>» <gray>e.g. 1h30m"
   custom-button:
-    name: "<aqua><bold>Custom Time"
+    name: "<aqua><bold>Custom time</bold>"
     lore:
-      - "<gray>Click, then rename the item to any"
-      - "<gray>duration (e.g. 1h30m, 45m, 2h)"
-      - "<gray>and click it again to confirm."
+      - "<gray>Any duration, e.g. <white>45m<gray>, <white>2h<gray>, <white>1h30m"
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>type it in an anvil"
   cancel-button:
-    name: "<red><bold>Cancel Countdown"
+    name: "<#F87171><bold>Cancel countdown</bold>"
     lore:
-      - "<gray>A countdown is running: <white>%seconds%s <gray>left"
+      - "<gray><white>%seconds%s <gray>left"
       - ""
-      - "<gold>➤ <gray>Click to cancel it"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>cancel"
   back-button:
-    name: "<dark_gray>« <gray>Back"
-    lore: "<gray>Return to the End's control panel"
+    name: "<gray>« <white>Back"
+    lore:
+      - "<dark_gray>Return to the End's control panel"
 
-# ---------- Schedule sub-menu ----------
+# ---------- Schedule ----------
 schedule:
-  title: "<gradient:#C084FC:#EC4899><bold>ꜱᴄʜᴇᴅᴜʟᴇ</bold></gradient> <dark_gray>| <gray>End"
+  title: "<gradient:#E879F9:#8B5CF6><bold>ꜱᴄʜᴇᴅᴜʟᴇ</bold></gradient> <dark_gray>» <gray>End"
   toggle-button:
-    name-on: "<gradient:#4ADE80:#16A34A><bold>✔ Schedule: On</bold></gradient>"
-    name-off: "<gray>✖ Schedule: Off"
+    name-on: "<white><bold>Schedule</bold> <dark_gray>│ <#4ADE80>● On"
+    name-off: "<white><bold>Schedule</bold> <dark_gray>│ <#F87171>● Off"
     lore:
-      - "<gray>Open: <white>%open-time%  <gray>Close: <white>%close-time%"
+      - "<gray>Opens <dark_gray>» <white>%open-time%"
+      - "<gray>Closes <dark_gray>» <white>%close-time%"
       - ""
-      - "<gold>➤ <gray>Click to toggle the whole schedule"
-  open-time-header: "<gradient:#4ADE80:#16A34A><bold>Pick an OPEN time</bold></gradient>"
-  open-time-lore: "<gray>Set the opening time to <white>%time%"
-  close-time-header: "<gradient:#F87171:#DC2626><bold>Pick a CLOSE time</bold></gradient>"
-  close-time-lore: "<gray>Set the closing time to <white>%time%"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>toggle"
   countdown-button:
-    name-on: "<gradient:#4ADE80:#16A34A><bold>✔ Countdown: On</bold></gradient>"
-    name-off: "<gray>✖ Countdown: Off"
+    name-on: "<white><bold>Countdown</bold> <dark_gray>│ <#4ADE80>● On"
+    name-off: "<white><bold>Countdown</bold> <dark_gray>│ <#F87171>● Off"
     lore:
-      - "<gray>Whether a countdown warning is shown"
-      - "<gray>before opening/closing automatically."
+      - "<gray>Warn players before the End"
+      - "<gray>opens or closes automatically."
       - ""
-      - "<gold>➤ <gray>Click to toggle"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>toggle"
+  open-time-header: "<#4ADE80><bold>▼ Opening time</bold>"
+  open-time-header-lore:
+    - "<gray>Now <dark_gray>» <white>%open-time%"
+  open-time-name: "<#4ADE80><bold>%time%</bold>"
+  open-time-lore: "<gray>Open the End at <white>%time%"
+  close-time-header: "<#F87171><bold>▼ Closing time</bold>"
+  close-time-header-lore:
+    - "<gray>Now <dark_gray>» <white>%close-time%"
+  close-time-name: "<#F87171><bold>%time%</bold>"
+  close-time-lore: "<gray>Close the End at <white>%time%"
   back-button:
-    name: "<dark_gray>« <gray>Back"
-    lore: "<gray>Return to the End's control panel"
+    name: "<gray>« <white>Back"
+    lore:
+      - "<dark_gray>Return to the End's control panel"
 
-# ---------- Mob management sub-menu ----------
+# ---------- Mob management ----------
 mob-management:
-  title: "<gradient:#C084FC:#EC4899><bold>ᴍᴏʙ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ</bold></gradient> <dark_gray>| <gray>End"
-  mob-name-enabled: "<green>%mob%"
-  mob-name-disabled: "<gray>%mob%"
-  status-spawning-allowed: "<gray>Spawning: <green>allowed"
-  status-spawning-blocked: "<gray>Spawning: <red>blocked"
-  cleanup-off: "<gray>Auto-cleanup: <gray>off"
-  cleanup-active: "<gray>Auto-cleanup: <white>every %minutes%m"
-  cleanup-next: "<gray>Next cleanup in: <gold>%next%m"
+  title: "<gradient:#E879F9:#8B5CF6><bold>ᴍᴏʙꜱ</bold></gradient> <dark_gray>» <gray>End"
+  mob-name-enabled: "<#4ADE80><bold>%mob%</bold>"
+  mob-name-disabled: "<#F87171><bold>%mob%</bold>"
+  status-spawning-allowed: "<gray>Spawning <dark_gray>» <#4ADE80>● allowed"
+  status-spawning-blocked: "<gray>Spawning <dark_gray>» <#F87171>● blocked"
+  cleanup-off: "<gray>Auto-cleanup <dark_gray>» <gray>off"
+  cleanup-active: "<gray>Auto-cleanup <dark_gray>» <white>every %interval%"
+  cleanup-next: "<gray>Next cleanup <dark_gray>» <#FBBF24>in %next%"
   mob-lore-hint:
     - ""
-    - "<gold>Click: <gray>toggle spawning"
-    - "<gold>Shift-click: <gray>cycle cleanup interval"
+    - "<#FCD34D>▸ Click <dark_gray>» <gray>spawning on/off"
+    - "<#FCD34D>▸ Shift-click <dark_gray>» <gray>cleanup: off/5/10/30/60 min"
+    - "<#FCD34D>▸ Right-click <dark_gray>» <gray>own cleanup time (chat)"
   back-button:
-    name: "<dark_gray>« <gray>Back"
-    lore: "<gray>Return to the End's control panel"
+    name: "<gray>« <white>Back"
+    lore:
+      - "<dark_gray>Return to the End's control panel"
 
-# ---------- World border sub-menu ----------
+# ---------- World border ----------
 worldborder:
-  title: "<gradient:#C084FC:#EC4899><bold>ᴡᴏʀʟᴅ ʙᴏʀᴅᴇʀ</bold></gradient> <dark_gray>| <gray>End"
+  title: "<gradient:#E879F9:#8B5CF6><bold>ᴡᴏʀʟᴅ ʙᴏʀᴅᴇʀ</bold></gradient> <dark_gray>» <gray>End"
   adjust-button:
-    name: "<aqua><bold>Diameter: <white>%size%"
+    name: "<aqua><bold>Diameter</bold> <dark_gray>│ <white>%size%"
     lore:
-      - "<gray>Center: <white>%center-x%<gray>, <white>%center-z%"
+      - "<gray>Center <dark_gray>» <white>%center-x%<gray>, <white>%center-z%"
       - ""
-      - "<gold>Left-click: <white>-100  <gold>Shift-Left: <white>-1000"
-      - "<gold>Right-click: <white>+100  <gold>Shift-Right: <white>+1000"
-  preset-name: "<gold>%size%"
-  preset-lore: "<gray>Set the border diameter to <white>%size%"
+      - "<#FCD34D>▸ Left-click <dark_gray>» <gray>-100"
+      - "<#FCD34D>▸ Right-click <dark_gray>» <gray>+100"
+      - "<#FCD34D>▸ Shift <dark_gray>» <gray>-1000 / +1000"
+  preset-name: "<#FBBF24><bold>%size%</bold>"
+  preset-lore: "<gray>Set the diameter to <white>%size%"
   center-button:
-    name: "<aqua><bold>Center at 0, 0"
+    name: "<aqua><bold>Center at 0, 0</bold>"
     lore:
-      - "<gray>Moves the border's center"
-      - "<gray>back to the world origin."
+      - "<gray>Moves the border's center back"
+      - "<gray>to the world origin."
   back-button:
-    name: "<dark_gray>« <gray>Back"
-    lore: "<gray>Return to the End's control panel"
+    name: "<gray>« <white>Back"
+    lore:
+      - "<dark_gray>Return to the End's control panel"

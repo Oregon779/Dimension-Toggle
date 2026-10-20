@@ -1,194 +1,308 @@
 # =====================================================================
-#   DimensionToggle - Overworld & Performance GUI
+#   DimensionToggle - Overworld & Performance menus
 # =====================================================================
-# Every text of the Overworld panel, the Overworld mob list and the lag
-# reports (lag map, redstone, chunk loaders). Placeholders where noted.
-# MiniMessage (gradients, small caps via Unicode) and classic & codes work.
+# Every text of these menus, fully editable. Placeholders where noted.
+# MiniMessage (gradients, <#hex> colors, small caps via Unicode) and
+# classic & codes can be mixed freely.
+# Look: the theme color of this area is green; green = on, red = off,
+# yellow lines tell what a click does.
 
-# Words used for %state% below
-state-on: "<gradient:#4ADE80:#16A34A><bold>ON</bold></gradient>"
-state-off: "<gray>OFF"
-auto-active: "<red><bold>ACTIVE NOW</bold>"
-auto-idle: "<gray>waiting"
+# Words used for %state% / %active% below
+state-on: "<#4ADE80>● On"
+state-off: "<#F87171>● Off"
+auto-active: "<#F87171><bold>● ACTIVE NOW</bold>"
+auto-idle: "<gray>● waiting"
 
 # ---------- Panel ----------
 panel:
-  title: "<gradient:#86EFAC:#16A34A><bold>ᴏᴠᴇʀᴡᴏʀʟᴅ</bold></gradient> <dark_gray>| <gray>ᴘᴇʀꜰᴏʀᴍᴀɴᴄᴇ"
+  title: "<gradient:#A3E635:#16A34A><bold>ᴏᴠᴇʀᴡᴏʀʟᴅ</bold></gradient> <dark_gray>» <gray>ᴘᴇʀꜰᴏʀᴍᴀɴᴄᴇ"
 
   mobspawn:
-    name: "<white><bold>Mob Spawning</bold> <dark_gray>» %state%"
+    name: "<white><bold>Mob Spawning</bold> <dark_gray>│ %state%"
     lore:
-      - "<gray>Whether ANY mob can spawn naturally"
+      - "<dark_gray>ᴍᴏʙꜱ"
+      - ""
+      - "<gray>Whether any mob spawns naturally"
       - "<gray>in the Overworld (gamerule spawn_mobs)."
       - ""
-      - "<gold>➤ <gray>Click to toggle"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>toggle"
 
   mobmanagement:
     name: "<gradient:#4ADE80:#16A34A><bold>Mob Management</bold></gradient>"
     lore:
-      - "<gray>Allow/block spawning per mob type"
-      - "<gray>and set automatic cleanups."
+      - "<dark_gray>ᴍᴏʙꜱ"
       - ""
-      - "<gold>➤ <gray>Click to open"
+      - "<gray>All Overworld mobs in 4 groups:"
+      - "<gray>allow/block spawning, set cleanups."
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>open"
 
   farm-limiter:
-    name: "<white><bold>Farm Limiter</bold> <dark_gray>» %state%"
+    name: "<white><bold>Farm Limiter</bold> <dark_gray>│ %state%"
     lore:
+      - "<dark_gray>ᴏᴘᴛɪᴍɪᴢᴇʀ"
+      - ""
       - "<gray>From <white>%size% <gray>animals of one type per"
       - "<gray>chunk, their AI and collision are"
       - "<gray>switched off until a player hits one."
       - ""
-      - "<gold>➤ <gray>Click to toggle"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>toggle"
 
   entity-cap:
-    name: "<white><bold>Entity Cap</bold> <dark_gray>» %state%"
+    name: "<white><bold>Entity Cap</bold> <dark_gray>│ %state%"
     lore:
+      - "<dark_gray>ᴏᴘᴛɪᴍɪᴢᴇʀ"
+      - ""
       - "<gray>Max <white>%max% <gray>animals/villagers of one"
       - "<gray>type per chunk - breeding and"
       - "<gray>spawning stop beyond that."
       - ""
-      - "<gold>➤ <gray>Click to toggle"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>toggle"
 
   villager-optimizer:
-    name: "<white><bold>Villager Optimizer</bold> <dark_gray>» %state%"
+    name: "<white><bold>Villager Optimizer</bold> <dark_gray>│ %state%"
     lore:
+      - "<dark_gray>ᴏᴘᴛɪᴍɪᴢᴇʀ"
+      - ""
       - "<gray>Villagers that stood still for"
       - "<white>%minutes% min <gray>(trading halls) lose their AI."
       - "<gray>Trading keeps working, restock 2x/day."
       - ""
-      - "<gold>➤ <gray>Click to toggle"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>toggle"
 
   item-cleaner:
-    name: "<white><bold>Item Cleaner</bold> <dark_gray>» %state%"
+    name: "<white><bold>Item Cleaner</bold> <dark_gray>│ %state%"
     lore:
-      - "<gray>Removes ground items every <white>%minutes% min"
-      - "<gray>with warnings in chat."
-      - "<gray>Next cleanup: <white>%next%"
+      - "<dark_gray>ᴏᴘᴛɪᴍɪᴢᴇʀ"
       - ""
-      - "<gold>➤ <gray>Click to toggle"
+      - "<gray>Removes ground items every <white>%interval%"
+      - "<gray>with warnings in chat."
+      - "<gray>Next cleanup <dark_gray>» <white>%next%"
+      - ""
+      - "<#FCD34D>▸ Left-click <dark_gray>» <gray>toggle"
+      - "<#FCD34D>▸ Right-click <dark_gray>» <gray>set the interval (chat)"
 
   afk-view:
-    name: "<white><bold>AFK View Distance</bold> <dark_gray>» %state%"
+    name: "<white><bold>AFK View Distance</bold> <dark_gray>│ %state%"
     lore:
+      - "<dark_gray>ᴏᴘᴛɪᴍɪᴢᴇʀ"
+      - ""
       - "<gray>After <white>%minutes% min <gray>AFK the view distance"
       - "<gray>drops to <white>%distance% <gray>chunks."
-      - "<gray>Currently reduced: <white>%count% <gray>players"
+      - "<gray>Reduced right now <dark_gray>» <white>%count% <gray>players"
       - ""
-      - "<gold>➤ <gray>Click to toggle"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>toggle"
 
   auto-performance:
-    name: "<white><bold>Auto Performance</bold> <dark_gray>» %state%"
+    name: "<white><bold>Auto Performance</bold> <dark_gray>│ %state%"
     lore:
-      - "<gray>Above <white>%mspt% ms/tick <gray>for 60 s, AFK view"
-      - "<gray>and farm limiter switch on automatically."
-      - "<gray>Status: %active%"
+      - "<dark_gray>ᴏᴘᴛɪᴍɪᴢᴇʀ"
       - ""
-      - "<gold>➤ <gray>Click to toggle"
+      - "<gray>Above <white>%mspt% ms/tick <gray>for 60 s, AFK view"
+      - "<gray>and farm limiter switch on by themselves."
+      - "<gray>Status <dark_gray>» %active%"
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>toggle"
 
   lagmap:
-    name: "<gradient:#FBBF24:#D97706><bold>Lagmap</bold></gradient>"
+    name: "<gradient:#FBBF24:#D97706><bold>Lag Map</bold></gradient>"
     lore:
+      - "<dark_gray>ᴛᴏᴏʟ"
+      - ""
       - "<gray>The busiest chunks of all worlds:"
       - "<gray>entities, mobs, items, hoppers."
       - ""
-      - "<gold>➤ <gray>Click to open"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>open"
 
   redstone:
     name: "<gradient:#F87171:#DC2626><bold>Redstone Meter</bold></gradient>"
     lore:
-      - "<gray>Chunks with the fastest/largest"
-      - "<gray>redstone contraptions."
+      - "<dark_gray>ᴛᴏᴏʟ"
       - ""
-      - "<gold>➤ <gray>Click to open"
+      - "<gray>Chunks with the fastest or"
+      - "<gray>biggest redstone machines."
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>open"
 
   chunkloaders:
-    name: "<yellow><bold>Chunk Loaders"
+    name: "<gradient:#FDE047:#CA8A04><bold>Chunk Loaders</bold></gradient>"
     lore:
-      - "<gray>Chunks that are loaded although"
+      - "<dark_gray>ᴛᴏᴏʟ"
+      - ""
+      - "<gray>Chunks that stay loaded although"
       - "<gray>no player is nearby."
       - ""
-      - "<gold>➤ <gray>Click to open"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>open"
+
+  web:
+    name-on: "<aqua><bold>Performance Website</bold> <dark_gray>│ <#4ADE80>● On"
+    name-off: "<aqua><bold>Performance Website</bold> <dark_gray>│ <#F87171>● Off"
+    lore-on:
+      - "<dark_gray>ᴛᴏᴏʟ"
+      - ""
+      - "<gray>Live TPS, MSPT, memory, worlds and"
+      - "<gray>the last hour in your browser."
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>get the link"
+    lore-off:
+      - "<dark_gray>ᴛᴏᴏʟ"
+      - ""
+      - "<gray>Switch on in config.yml:"
+      - "<white>web.enabled: true <gray>+ /dt reload"
 
   dashboard:
-    name: "<gradient:#86EFAC:#16A34A><bold>Server Performance</bold></gradient>"
+    name: "<gradient:#A3E635:#16A34A><bold>Server Performance</bold></gradient>"
     lore:
-      - "<gray>TPS: <white>%tps%"
-      - "<gray>MSPT: <white>%mspt% <dark_gray>(limit 50)"
-      - "<gray>Players: <white>%players%"
-      - "<gray>Memory: <white>%memory%"
-      - "<gray>Loaded chunks: <white>%chunks%"
-      - "<gray>Entities: <white>%entities%"
-      - "<gray>AFK with reduced view: <white>%afk%"
+      - "<dark_gray>ʟɪᴠᴇ"
+      - ""
+      - "<gray>TPS <dark_gray>» <white>%tps%"
+      - "<gray>MSPT <dark_gray>» <white>%mspt% <dark_gray>(limit 50)"
+      - "<gray>Players <dark_gray>» <white>%players%"
+      - "<gray>Memory <dark_gray>» <white>%memory%"
+      - "<gray>Loaded chunks <dark_gray>» <white>%chunks%"
+      - "<gray>Entities <dark_gray>» <white>%entities%"
+      - "<gray>AFK with reduced view <dark_gray>» <white>%afk%"
 
   back-button:
-    name: "<dark_gray>« <gray>Back"
-    lore: "<gray>Return to the main menu"
+    name: "<gray>« <white>Back"
+    lore:
+      - "<dark_gray>Return to the main menu"
 
-# ---------- Overworld mob list (same layout as Nether/End) ----------
+# ---------- Mob groups ----------
+mob-categories:
+  title: "<gradient:#A3E635:#16A34A><bold>ᴍᴏʙꜱ</bold></gradient> <dark_gray>» <gray>Overworld"
+  monsters:
+    name: "<gradient:#F87171:#B91C1C><bold>Monsters</bold></gradient>"
+    title-word: "Monsters"
+    lore:
+      - "<gray>Zombies, skeletons, creepers, raiders …"
+      - ""
+      - "<gray>Mobs <dark_gray>» <white>%total%"
+      - "<gray>Spawning allowed <dark_gray>» <#4ADE80>%allowed%"
+      - "<gray>Spawning blocked <dark_gray>» <#F87171>%blocked%"
+      - "<gray>With auto-cleanup <dark_gray>» <#FBBF24>%cleanups%"
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>open"
+  animals:
+    name: "<gradient:#FDE68A:#D97706><bold>Animals</bold></gradient>"
+    title-word: "Animals"
+    lore:
+      - "<gray>Farm animals, horses, pets, wild animals …"
+      - ""
+      - "<gray>Mobs <dark_gray>» <white>%total%"
+      - "<gray>Spawning allowed <dark_gray>» <#4ADE80>%allowed%"
+      - "<gray>Spawning blocked <dark_gray>» <#F87171>%blocked%"
+      - "<gray>With auto-cleanup <dark_gray>» <#FBBF24>%cleanups%"
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>open"
+  water:
+    name: "<gradient:#67E8F9:#0284C7><bold>Water</bold></gradient>"
+    title-word: "Water"
+    lore:
+      - "<gray>Fish, squids, dolphins, guardians …"
+      - ""
+      - "<gray>Mobs <dark_gray>» <white>%total%"
+      - "<gray>Spawning allowed <dark_gray>» <#4ADE80>%allowed%"
+      - "<gray>Spawning blocked <dark_gray>» <#F87171>%blocked%"
+      - "<gray>With auto-cleanup <dark_gray>» <#FBBF24>%cleanups%"
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>open"
+  other:
+    name: "<gradient:#D8B4FE:#9333EA><bold>Others</bold></gradient>"
+    title-word: "Others"
+    lore:
+      - "<gray>Villagers, golems, allays, bosses …"
+      - ""
+      - "<gray>Mobs <dark_gray>» <white>%total%"
+      - "<gray>Spawning allowed <dark_gray>» <#4ADE80>%allowed%"
+      - "<gray>Spawning blocked <dark_gray>» <#F87171>%blocked%"
+      - "<gray>With auto-cleanup <dark_gray>» <#FBBF24>%cleanups%"
+      - ""
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>open"
+  back-button:
+    name: "<gray>« <white>Back"
+    lore:
+      - "<dark_gray>Return to the Overworld panel"
+
+# ---------- Overworld mob list ----------
 mob-management:
-  title: "<gradient:#86EFAC:#16A34A><bold>ᴍᴏʙ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ</bold></gradient> <dark_gray>| <gray>Overworld"
-  mob-name-enabled: "<green>%mob%"
-  mob-name-disabled: "<gray>%mob%"
-  status-spawning-allowed: "<gray>Spawning: <green>allowed"
-  status-spawning-blocked: "<gray>Spawning: <red>blocked"
-  cleanup-off: "<gray>Auto-cleanup: <gray>off"
-  cleanup-active: "<gray>Auto-cleanup: <white>every %minutes%m"
-  cleanup-next: "<gray>Next cleanup in: <gold>%next%m"
+  title: "<gradient:#A3E635:#16A34A><bold>ᴍᴏʙꜱ</bold></gradient> <dark_gray>» <gray>Overworld"
+  # Title of the list of one group (%category%, %page%, %pages%)
+  category-title: "<gradient:#A3E635:#16A34A><bold>ᴍᴏʙꜱ</bold></gradient> <dark_gray>» <gray>%category% <dark_gray>(%page%/%pages%)"
+  mob-name-enabled: "<#4ADE80><bold>%mob%</bold>"
+  mob-name-disabled: "<#F87171><bold>%mob%</bold>"
+  status-spawning-allowed: "<gray>Spawning <dark_gray>» <#4ADE80>● allowed"
+  status-spawning-blocked: "<gray>Spawning <dark_gray>» <#F87171>● blocked"
+  cleanup-off: "<gray>Auto-cleanup <dark_gray>» <gray>off"
+  cleanup-active: "<gray>Auto-cleanup <dark_gray>» <white>every %interval%"
+  cleanup-next: "<gray>Next cleanup <dark_gray>» <#FBBF24>in %next%"
   mob-lore-hint:
     - ""
-    - "<gold>Click: <gray>toggle spawning"
-    - "<gold>Shift-click: <gray>cycle cleanup interval"
+    - "<#FCD34D>▸ Click <dark_gray>» <gray>spawning on/off"
+    - "<#FCD34D>▸ Shift-click <dark_gray>» <gray>cleanup: off/5/10/30/60 min"
+    - "<#FCD34D>▸ Right-click <dark_gray>» <gray>own cleanup time (chat)"
+  previous-page:
+    name: "<#FCD34D><bold>« Previous page</bold>"
+    lore:
+      - "<gray>Page <white>%page% <gray>of <white>%pages%"
+  next-page:
+    name: "<#FCD34D><bold>Next page »</bold>"
+    lore:
+      - "<gray>Page <white>%page% <gray>of <white>%pages%"
   back-button:
-    name: "<dark_gray>« <gray>Back"
-    lore: "<gray>Return to the Overworld panel"
+    name: "<gray>« <white>Back"
+    lore:
+      - "<dark_gray>Return to the mob groups"
 
 # ---------- Lag reports ----------
 reports:
   back-button:
-    name: "<dark_gray>« <gray>Back"
-    lore: "<gray>Return to the Overworld panel"
+    name: "<gray>« <white>Back"
+    lore:
+      - "<dark_gray>Return to the Overworld panel"
   refresh-button:
-    name: "<yellow><bold>Refresh"
-    lore: "<gray>Measure again now"
+    name: "<#FCD34D><bold>⟳ Refresh</bold>"
+    lore:
+      - "<dark_gray>Measure again now"
 
   lag:
-    title: "<gradient:#FBBF24:#D97706><bold>ʟᴀɢᴍᴀᴘ</bold></gradient> <dark_gray>| <gray>all worlds"
-    entry-name: "<gold>#%rank% <white>%world% <gray>(%x%, %z%)"
+    title: "<gradient:#FBBF24:#D97706><bold>ʟᴀɢ ᴍᴀᴘ</bold></gradient> <dark_gray>» <gray>all worlds"
+    entry-name: "<#FBBF24><bold>#%rank%</bold> <white>%world% <dark_gray>(%x%, %z%)"
     entry-lore:
-      - "<gray>Lag score: <gold>%score%"
-      - "<gray>Entities: <white>%entities% <dark_gray>| <gray>Mobs: <white>%mobs%"
-      - "<gray>Items: <white>%items% <dark_gray>| <gray>Hoppers: <white>%hoppers%"
-      - "<gray>Block entities: <white>%blocks%"
+      - "<gray>Lag score <dark_gray>» <#FBBF24>%score%"
+      - "<gray>Entities <dark_gray>» <white>%entities%  <gray>Mobs <dark_gray>» <white>%mobs%"
+      - "<gray>Items <dark_gray>» <white>%items%  <gray>Hoppers <dark_gray>» <white>%hoppers%"
+      - "<gray>Block entities <dark_gray>» <white>%blocks%"
       - ""
     action-lore:
-      - "<gold>Click: <gray>teleport there"
-      - "<gold>Shift-click: <gray>clean up (items + mobs)"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>teleport there"
+      - "<#FCD34D>▸ Shift-click <dark_gray>» <gray>clean up (items + mobs)"
     confirm-lore:
-      - "<red><bold>Shift-click again to confirm!"
+      - "<#F87171><bold>Shift-click again to confirm!</bold>"
       - "<gray>Removes ground items, XP and mobs"
       - "<gray>(not named, tamed, leashed or villagers)."
     sort-button:
-      name: "<aqua><bold>Sorted by: <white>%sort%"
+      name: "<aqua><bold>Sorted by</bold> <dark_gray>│ <white>%sort%"
       lore:
-        - "<gold>➤ <gray>Click to change"
+        - "<#FCD34D>▸ Click <dark_gray>» <gray>change"
     empty: "<gray>No busy chunks right now"
 
   redstone:
-    title: "<gradient:#F87171:#DC2626><bold>ʀᴇᴅꜱᴛᴏɴᴇ</bold></gradient> <dark_gray>| <gray>all worlds"
-    entry-name: "<red>#%rank% <white>%world% <gray>(%x%, %z%)"
+    title: "<gradient:#F87171:#DC2626><bold>ʀᴇᴅꜱᴛᴏɴᴇ</bold></gradient> <dark_gray>» <gray>all worlds"
+    entry-name: "<#F87171><bold>#%rank%</bold> <white>%world% <dark_gray>(%x%, %z%)"
     entry-lore:
-      - "<gray>Redstone updates: <red>%rate%/s"
+      - "<gray>Redstone updates <dark_gray>» <#F87171>%rate%/s"
       - "<dark_gray>(measured over the last %window% s)"
       - ""
-      - "<gold>Click: <gray>teleport there"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>teleport there"
     empty: "<gray>No redstone activity measured yet"
 
   loaders:
-    title: "<yellow><bold>ᴄʜᴜɴᴋ ʟᴏᴀᴅᴇʀꜱ</bold> <dark_gray>| <gray>all worlds"
-    entry-name: "<yellow>#%rank% <white>%world% <gray>(%x%, %z%)"
+    title: "<gradient:#FDE047:#CA8A04><bold>ᴄʜᴜɴᴋ ʟᴏᴀᴅᴇʀꜱ</bold></gradient> <dark_gray>» <gray>all worlds"
+    entry-name: "<#FBBF24><bold>#%rank%</bold> <white>%world% <dark_gray>(%x%, %z%)"
     entry-lore:
-      - "<gray>Reason: <white>%reason%"
-      - "<gray>Entities: <white>%entities%"
+      - "<gray>Reason <dark_gray>» <white>%reason%"
+      - "<gray>Entities <dark_gray>» <white>%entities%"
       - ""
-      - "<gold>Click: <gray>teleport there"
+      - "<#FCD34D>▸ Click <dark_gray>» <gray>teleport there"
     empty: "<gray>No chunks loaded without a player nearby"

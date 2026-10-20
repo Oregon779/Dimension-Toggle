@@ -25,7 +25,7 @@ public final class WorldBorderGuiBuilder {
         FileConfiguration cfg = plugin.getGuiConfigManager().getFor(dimension);
         String base = "worldborder.";
 
-        Inventory inventory = Bukkit.createInventory(null, 27,
+        Inventory inventory = Bukkit.createInventory(null, 36,
                 plugin.getMessageManager().parse(cfg.getString(base + "title", "&b&lWorld Border")));
 
         World world = dimension.findWorld();
@@ -42,7 +42,7 @@ public final class WorldBorderGuiBuilder {
                 cfg.getString(base + "adjust-button.name"),
                 GuiItems.subList(cfg.getStringList(base + "adjust-button.lore"), sizePlaceholders)));
 
-        int[] presetSlots = {20, 21, 23, 24};
+        int[] presetSlots = {10, 11, 15, 16};
         for (int i = 0; i < PRESETS.length; i++) {
             inventory.setItem(presetSlots[i], GuiItems.build(plugin, PRESET_MATERIALS[i],
                     "WB_PRESET_" + PRESETS[i],
@@ -53,10 +53,10 @@ public final class WorldBorderGuiBuilder {
         inventory.setItem(22, GuiItems.build(plugin, Material.COMPASS, "WB_CENTER",
                 cfg.getString(base + "center-button.name"), cfg.getStringList(base + "center-button.lore")));
 
-        GuiItems.fillBorderAndFiller(inventory, plugin, dimension, 3);
+        inventory.setItem(31, GuiItems.build(plugin, Material.ARROW, "WB_BACK",
+                cfg.getString(base + "back-button.name"), DimensionGuiBuilder.lore(cfg, base + "back-button.lore", Map.of())));
 
-        inventory.setItem(18, GuiItems.build(plugin, Material.ARROW, "WB_BACK",
-                cfg.getString(base + "back-button.name"), cfg.getStringList(base + "back-button.lore")));
+        GuiItems.frame(inventory, plugin, GuiItems.themeFor(dimension), 4);
 
         return inventory;
     }

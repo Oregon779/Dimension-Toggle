@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>DimensionToggle · Performance</title>
+<style>
+  :root {
+    --page:#111110; --surface:#1a1a19; --surface-2:#222220; --line:#2c2c2a;
+    --text:#f0efec; --text-2:#c3c2b7; --muted:#8f8e86;
+    --accent:#9085e9;
+    --series-mspt:#3987e5; --series-tps:#199e70;
+    --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b;
+    --radius:14px;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; background:var(--page); color:var(--text);
+    font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 16px; }
+
+  header { position:sticky; top:0; z-index:5; background:rgba(17,17,16,.88);
+    backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  header .wrap { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; flex-wrap:wrap; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:650; font-size:18px; }
+  .logo { width:30px; height:30px; border-radius:9px;
+    background:linear-gradient(135deg,#9085e9 0%,#3987e5 55%,#199e70 100%); box-shadow:0 0 18px rgba(144,133,233,.35); }
+  .brand small { color:var(--muted); font-weight:500; font-size:14px; }
+  .live { display:flex; align-items:center; gap:8px; color:var(--text-2); font-size:13px; }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--good); box-shadow:0 0 0 0 rgba(12,163,12,.6); animation:pulse 2s infinite; }
+  .dot.off { background:var(--critical); animation:none; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(12,163,12,.55)} 70%{box-shadow:0 0 0 8px rgba(12,163,12,0)} 100%{box-shadow:0 0 0 0 rgba(12,163,12,0)} }
+
+  main { padding:20px 0 40px; }
+  #error { display:none; margin:0 0 16px; padding:10px 14px; border-radius:10px;
+    background:rgba(208,59,59,.12); border:1px solid rgba(208,59,59,.4); color:var(--text); }
+  #autoBanner { display:none; margin:0 0 16px; padding:10px 14px; border-radius:10px;
+    background:rgba(250,178,25,.10); border:1px solid rgba(250,178,25,.35); color:var(--text); }
+
+  .tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; }
+  .tile { position:relative; overflow:hidden; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); padding:14px 16px 16px; }
+  .tile::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--line); }
+  .tile[data-state="good"]::before { background:var(--good); }
+  .tile[data-state="warning"]::before { background:var(--warning); }
+  .tile[data-state="critical"]::before { background:var(--critical); }
+  .label { color:var(--text-2); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:600; }
+  .value { font-size:32px; font-weight:700; letter-spacing:-.01em; margin-top:4px; font-variant-numeric:tabular-nums; }
+  #uptime { font-size:26px; white-space:nowrap; padding-top:4px; }
+  .value small { font-size:15px; color:var(--text-2); font-weight:500; margin-left:3px; }
+  .sub { color:var(--muted); font-size:13px; margin-top:2px; font-variant-numeric:tabular-nums; }
+  .chip { display:inline-flex; align-items:center; gap:5px; margin-top:8px; padding:2px 9px; border-radius:99px;
+    font-size:12px; font-weight:600; color:var(--text); background:var(--surface-2); border:1px solid var(--line); }
+  .chip i { font-style:normal; font-size:11px; }
+  .chip.good i { color:var(--good); } .chip.warning i { color:var(--warning); } .chip.critical i { color:var(--critical); }
+  .bar { height:6px; border-radius:3px; background:var(--surface-2); margin-top:10px; overflow:hidden; }
+  .bar span { display:block; height:100%; border-radius:3px; background:var(--text-2); transition:width .4s; }
+  .bar.good span { background:var(--good); } .bar.warning span { background:var(--warning); } .bar.critical span { background:var(--critical); }
+
+  h2 { font-size:13px; margin:28px 0 10px; color:var(--text-2); font-weight:600; text-transform:uppercase; letter-spacing:.06em; }
+  .charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px; }
+  .panel { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; }
+  .panel-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .panel-head b { font-size:14px; }
+  .panel-head span { color:var(--muted); font-size:12px; }
+  .chart { position:relative; height:190px; }
+  .chart canvas { width:100%; height:100%; display:block; }
+  .tip { position:absolute; pointer-events:none; display:none; padding:6px 9px; border-radius:8px; font-size:12px;
+    background:#2c2c2a; border:1px solid #3a3a37; color:var(--text); white-space:nowrap; transform:translate(-50%,-115%); }
+  .tip b { font-variant-numeric:tabular-nums; }
+
+  .dims { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+  .dim { display:flex; align-items:center; gap:14px; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); padding:14px 16px; }
+  .dim .icon { width:40px; height:40px; border-radius:10px; flex:none; }
+  .dim .icon.nether { background:linear-gradient(135deg,#7a1f1f,#d95926); }
+  .dim .icon.end { background:linear-gradient(135deg,#2b2350,#9085e9); }
+  .dim .name { font-weight:650; }
+
+  .table { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--line); }
+  tr:last-child td { border-bottom:none; }
+  th { color:var(--text-2); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em; background:var(--surface-2); }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  tbody tr:hover td { background:#202020; }
+  td.empty { color:var(--muted); text-align:center; padding:18px; }
+  .rank { color:var(--muted); width:36px; }
+
+  footer { color:var(--muted); font-size:12px; text-align:center; padding:8px 0 28px; }
+  @media (max-width:520px) { .value { font-size:26px; } th, td { padding:8px 10px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><div class="logo"></div>DimensionToggle <small data-t="title">Performance</small></div>
+    <div class="live"><span class="dot" id="liveDot"></span><span id="updated">…</span></div>
+  </div>
+</header>
+<main class="wrap">
+  <div id="error"></div>
+  <div id="autoBanner">⚡ <span data-t="auto">Auto performance mode active</span></div>
+
+  <div class="tiles">
+    <div class="tile" id="tTps"><div class="label" data-t="tps">TPS</div><div class="value" id="tps">–</div>
+      <div class="sub" id="tpsSub"></div><span class="chip" id="tpsChip"></span></div>
+    <div class="tile" id="tMspt"><div class="label" data-t="mspt">MSPT</div><div class="value" id="mspt">–</div>
+      <div class="sub" id="msptSub"></div><span class="chip" id="msptChip"></span></div>
+    <div class="tile" id="tPlayers"><div class="label" data-t="players">Players</div><div class="value" id="players">–</div>
+      <div class="bar" id="playersBar"><span></span></div></div>
+    <div class="tile" id="tMemory"><div class="label" data-t="memory">Memory</div><div class="value" id="memory">–</div>
+      <div class="sub" id="memorySub"></div><div class="bar" id="memoryBar"><span></span></div></div>
+    <div class="tile" id="tCpu"><div class="label" data-t="cpu">CPU</div><div class="value" id="cpu">–</div>
+      <div class="bar" id="cpuBar"><span></span></div></div>
+    <div class="tile"><div class="label" data-t="uptime">Uptime</div><div class="value" id="uptime">–</div></div>
+  </div>
+
+  <h2 data-t="history">Last hour</h2>
+  <div class="charts">
+    <div class="panel">
+      <div class="panel-head"><b data-t="msptChart">Milliseconds per tick</b><span data-t="msptHint">lower is better · limit 50 ms</span></div>
+      <div class="chart"><canvas id="msptChart"></canvas><div class="tip" id="msptTip"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><b data-t="tpsChart">Ticks per second</b><span data-t="tpsHint">higher is better · max 20</span></div>
+      <div class="chart"><canvas id="tpsChart"></canvas><div class="tip" id="tpsTip"></div></div>
+    </div>
+  </div>
+
+  <h2 data-t="dimensions">Dimensions</h2>
+  <div class="dims" id="dimensions"></div>
+
+  <h2 data-t="worlds">Worlds</h2>
+  <div class="table"><table>
+    <thead><tr><th data-t="world">World</th><th class="num" data-t="players">Players</th><th class="num" data-t="chunks">Chunks</th><th class="num" data-t="entities">Entities</th><th class="num" data-t="blockEntities">Block entities</th></tr></thead>
+    <tbody id="worlds"></tbody>
+  </table></div>
+
+  <h2 data-t="topChunks">Busiest chunks</h2>
+  <div class="table"><table>
+    <thead><tr><th class="rank">#</th><th data-t="world">World</th><th data-t="chunk">Chunk</th><th class="num" data-t="entities">Entities</th><th class="num" data-t="mobs">Mobs</th><th class="num" data-t="items">Items</th><th class="num" data-t="score">Score</th></tr></thead>
+    <tbody id="chunks"></tbody>
+  </table></div>
+</main>
+<footer data-t="footer">Read-only · refreshes every 5 seconds</footer>
+<script>
+(function () {
+  var T = {
+    en: { title:"Performance", tps:"TPS", mspt:"MSPT", players:"Players", memory:"Memory", cpu:"CPU", uptime:"Uptime",
+          history:"Last hour", msptChart:"Milliseconds per tick", msptHint:"lower is better · limit 50 ms",
+          tpsChart:"Ticks per second", tpsHint:"higher is better · max 20",
+          dimensions:"Dimensions", worlds:"Worlds", world:"World", chunks:"Chunks", entities:"Entities",
+          blockEntities:"Block entities", topChunks:"Busiest chunks", chunk:"Chunk", mobs:"Mobs", items:"Items",
+          score:"Score", updated:"Live · updated", peak:"peak", avg:"5m / 15m", auto:"Auto performance mode active",
+          good:"Smooth", warning:"Busy", critical:"Lagging", ago:"min ago", now:"now",
+          enabled:"Open", disabled:"Closed", locked:"Soft-locked", maintenance:"Maintenance running",
+          nether:"Nether", end:"End", none:"Nothing to show yet", offline:"Connection lost - retrying …",
+          footer:"Read-only · refreshes every 5 seconds" },
+    de: { title:"Performance", tps:"TPS", mspt:"MSPT", players:"Spieler", memory:"Arbeitsspeicher", cpu:"CPU", uptime:"Laufzeit",
+          history:"Letzte Stunde", msptChart:"Millisekunden pro Tick", msptHint:"niedriger ist besser · Grenze 50 ms",
+          tpsChart:"Ticks pro Sekunde", tpsHint:"höher ist besser · max. 20",
+          dimensions:"Dimensionen", worlds:"Welten", world:"Welt", chunks:"Chunks", entities:"Entities",
+          blockEntities:"Block-Entities", topChunks:"Vollste Chunks", chunk:"Chunk", mobs:"Mobs", items:"Items",
+          score:"Score", updated:"Live · aktualisiert", peak:"Spitze", avg:"5m / 15m", auto:"Auto-Performance-Modus aktiv",
+          good:"Flüssig", warning:"Ausgelastet", critical:"Lag", ago:"Min. her", now:"jetzt",
+          enabled:"Offen", disabled:"Geschlossen", locked:"Soft-Lock", maintenance:"Wartung läuft",
+          nether:"Nether", end:"End", none:"Noch keine Daten", offline:"Verbindung verloren – neuer Versuch …",
+          footer:"Nur Anzeige · aktualisiert alle 5 Sekunden" }
+  };
+  var ICON = { good:"●", warning:"▲", critical:"✖" };
+  var lang = "en", last = null;
+  var token = new URLSearchParams(location.search).get("token") || "";
+  function t(key) { return (T[lang] && T[lang][key]) || T.en[key] || key; }
+  function el(id) { return document.getElementById(id); }
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function state(value, good, warn, higherIsBetter) {
+    if (higherIsBetter) return value >= good ? "good" : value >= warn ? "warning" : "critical";
+    return value <= good ? "good" : value <= warn ? "warning" : "critical";
+  }
+  function chip(id, s) { var c = el(id); c.className = "chip " + s; c.innerHTML = ""; var i = document.createElement("i");
+    i.textContent = ICON[s]; c.appendChild(i); c.appendChild(document.createTextNode(t(s))); }
+  function bar(id, pct, s) { var b = el(id); b.className = "bar " + (s || ""); b.firstElementChild.style.width = Math.max(0, Math.min(100, pct)) + "%"; }
+  function value(id, main, unit) { var v = el(id); v.textContent = main; if (unit) { var u = document.createElement("small"); u.textContent = unit; v.appendChild(u); } }
+  function cell(row, text, cls) { var td = document.createElement("td"); td.textContent = text; if (cls) td.className = cls; row.appendChild(td); return td; }
+  function duration(s) { var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+    return (d ? d + "d " : "") + (h || d ? h + "h " : "") + m + "m"; }
+  function translate() { document.documentElement.lang = lang;
+    var nodes = document.querySelectorAll("[data-t]");
+    for (var i = 0; i < nodes.length; i++) nodes[i].textContent = t(nodes[i].getAttribute("data-t")); }
+
+  // One series per chart (no shared axis); crosshair + tooltip on hover.
+  var charts = {};
+  function chart(id, opts) {
+    var canvas = el(id), tip = el(opts.tip), c = { values:[], hover:-1, sample:5 };
+    function draw() {
+      var ratio = window.devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight;
+      canvas.width = w * ratio; canvas.height = h * ratio;
+      var ctx = canvas.getContext("2d"); ctx.scale(ratio, ratio); ctx.clearRect(0, 0, w, h);
+      var left = 40, top = 8, bottom = 20, plotW = w - left - 4, plotH = h - top - bottom;
+      var max = opts.max(c.values);
+      ctx.font = "11px system-ui"; ctx.fillStyle = css("--muted"); ctx.strokeStyle = css("--line"); ctx.lineWidth = 1;
+      [0, 0.5, 1].forEach(function (f) { var y = top + plotH * (1 - f);
+        ctx.beginPath(); ctx.moveTo(left, y + .5); ctx.lineTo(w, y + .5); ctx.stroke();
+        ctx.fillText(opts.axis(max * f), 0, y + 4); });
+      ctx.fillText("-60 min", left, h - 4); var nowW = ctx.measureText(t("now")).width; ctx.fillText(t("now"), w - nowW - 2, h - 4);
+      if (opts.limit != null && opts.limit <= max) {
+        var ly = top + plotH * (1 - opts.limit / max);
+        ctx.strokeStyle = css("--critical"); ctx.globalAlpha = .6; ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(left, ly); ctx.lineTo(w, ly); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+      }
+      var v = c.values; if (v.length < 2) return;
+      function x(i) { return left + plotW * i / (v.length - 1); }
+      function y(val) { return top + plotH * (1 - Math.min(val, max) / max); }
+      var color = css(opts.color);
+      var grad = ctx.createLinearGradient(0, top, 0, top + plotH);
+      grad.addColorStop(0, color + "55"); grad.addColorStop(1, color + "00");
+      ctx.beginPath(); ctx.moveTo(x(0), top + plotH);
+      for (var i = 0; i < v.length; i++) ctx.lineTo(x(i), y(v[i]));
+      ctx.lineTo(x(v.length - 1), top + plotH); ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+      ctx.beginPath(); for (i = 0; i < v.length; i++) { if (i === 0) ctx.moveTo(x(i), y(v[i])); else ctx.lineTo(x(i), y(v[i])); }
+      ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.stroke();
+      if (c.hover >= 0 && c.hover < v.length) {
+        var hx = x(c.hover), hy = y(v[c.hover]);
+        ctx.strokeStyle = css("--text-2"); ctx.globalAlpha = .5; ctx.beginPath(); ctx.moveTo(hx, top); ctx.lineTo(hx, top + plotH); ctx.stroke(); ctx.globalAlpha = 1;
+        ctx.beginPath(); ctx.arc(hx, hy, 5, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+        ctx.lineWidth = 2; ctx.strokeStyle = css("--surface"); ctx.stroke();
+        var minsAgo = Math.round((v.length - 1 - c.hover) * c.sample / 60);
+        tip.innerHTML = ""; var b = document.createElement("b"); b.textContent = opts.format(v[c.hover]);
+        tip.appendChild(b); tip.appendChild(document.createTextNode("  ·  " + (minsAgo ? minsAgo + " " + t("ago") : t("now"))));
+        tip.style.left = Math.min(Math.max(hx, 60), w - 60) + "px"; tip.style.top = hy + "px"; tip.style.display = "block";
+      } else { tip.style.display = "none"; }
+    }
+    function pick(e) { var r = canvas.getBoundingClientRect(), left = 40, plotW = r.width - left - 4;
+      var p = ((e.touches ? e.touches[0].clientX : e.clientX) - r.left - left) / plotW;
+      c.hover = c.values.length < 2 ? -1 : Math.round(Math.max(0, Math.min(1, p)) * (c.values.length - 1)); draw(); }
+    canvas.addEventListener("mousemove", pick); canvas.addEventListener("touchstart", pick, { passive:true });
+    canvas.addEventListener("touchmove", pick, { passive:true });
+    canvas.addEventListener("mouseleave", function () { c.hover = -1; draw(); });
+    c.draw = draw; charts[id] = c; return c;
+  }
+  var msptChart = chart("msptChart", { tip:"msptTip", color:"--series-mspt", limit:50,
+    max:function (v) { var m = 60; for (var i = 0; i < v.length; i++) m = Math.max(m, v[i]); return Math.ceil(m / 10) * 10; },
+    axis:function (n) { return Math.round(n) + " ms"; }, format:function (n) { return n.toFixed(1) + " ms"; } });
+  var tpsChart = chart("tpsChart", { tip:"tpsTip", color:"--series-tps", limit:null,
+    max:function () { return 20; }, axis:function (n) { return String(Math.round(n)); }, format:function (n) { return n.toFixed(1) + " TPS"; } });
+
+  function tile(id, s) { el(id).setAttribute("data-state", s || ""); }
+  function render(d) {
+    last = d;
+    if (d.language && T[d.language] && d.language !== lang) { lang = d.language; translate(); }
+    var sTps = state(d.tps1, 19.5, 17, true), sMspt = state(d.mspt, 40, 50, false);
+    value("tps", d.tps1.toFixed(1)); el("tpsSub").textContent = t("avg") + ": " + d.tps5.toFixed(1) + " / " + d.tps15.toFixed(1);
+    chip("tpsChip", sTps); tile("tTps", sTps);
+    value("mspt", d.mspt.toFixed(1), "ms"); el("msptSub").textContent = t("peak") + ": " + d.msptMax.toFixed(1) + " ms";
+    chip("msptChip", sMspt); tile("tMspt", sMspt);
+    value("players", String(d.online), "/ " + d.maxPlayers);
+    bar("playersBar", d.maxPlayers > 0 ? d.online / d.maxPlayers * 100 : 0);
+    var memPct = d.memoryMaxMb > 0 ? d.memoryUsedMb / d.memoryMaxMb * 100 : 0, sMem = state(memPct, 75, 90, false);
+    value("memory", String(Math.round(memPct)), "%"); el("memorySub").textContent = d.memoryUsedMb + " / " + d.memoryMaxMb + " MB";
+    bar("memoryBar", memPct, sMem); tile("tMemory", sMem);
+    if (d.cpuPercent < 0) { value("cpu", "–"); bar("cpuBar", 0); tile("tCpu", ""); }
+    else { var sCpu = state(d.cpuPercent, 70, 90, false); value("cpu", String(Math.round(d.cpuPercent)), "%"); bar("cpuBar", d.cpuPercent, sCpu); tile("tCpu", sCpu); }
+    value("uptime", duration(d.uptimeSeconds));
+    el("autoBanner").style.display = d.autoPerformance ? "block" : "none";
+
+    var dims = el("dimensions"); dims.innerHTML = "";
+    Object.keys(d.dimensions).forEach(function (key) {
+      var st = d.dimensions[key], s = st === "enabled" ? "good" : st === "disabled" ? "critical" : "warning";
+      var card = document.createElement("div"); card.className = "dim";
+      var icon = document.createElement("div"); icon.className = "icon " + key; card.appendChild(icon);
+      var box = document.createElement("div"); var name = document.createElement("div"); name.className = "name"; name.textContent = t(key);
+      var c = document.createElement("span"); c.className = "chip " + s; var i = document.createElement("i"); i.textContent = ICON[s];
+      c.appendChild(i); c.appendChild(document.createTextNode(t(st))); box.appendChild(name); box.appendChild(c); card.appendChild(box);
+      dims.appendChild(card);
+    });
+
+    var worlds = el("worlds"); worlds.innerHTML = "";
+    d.worlds.forEach(function (w) { var row = document.createElement("tr");
+      cell(row, w.name); cell(row, w.players, "num"); cell(row, w.chunks.toLocaleString(), "num");
+      cell(row, w.entities.toLocaleString(), "num"); cell(row, w.blockEntities.toLocaleString(), "num"); worlds.appendChild(row); });
+
+    var chunks = el("chunks"); chunks.innerHTML = "";
+    if (!d.topChunks.length) { var empty = document.createElement("tr"); var td = cell(empty, t("none"), "empty"); td.colSpan = 7; chunks.appendChild(empty); }
+    d.topChunks.forEach(function (c, i) { var row = document.createElement("tr");
+      cell(row, String(i + 1), "rank"); cell(row, c.world); cell(row, c.x + ", " + c.z); cell(row, c.entities, "num");
+      cell(row, c.mobs, "num"); cell(row, c.items, "num"); cell(row, c.score, "num"); chunks.appendChild(row); });
+
+    msptChart.values = d.msptHistory; msptChart.sample = d.sampleSeconds || 5; msptChart.draw();
+    tpsChart.values = d.tpsHistory; tpsChart.sample = d.sampleSeconds || 5; tpsChart.draw();
+    el("updated").textContent = t("updated") + " " + new Date(d.timestamp).toLocaleTimeString();
+  }
+  function load() {
+    fetch("/api/stats?token=" + encodeURIComponent(token), { cache:"no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) { el("error").style.display = "none"; el("liveDot").className = "dot"; render(d); })
+      .catch(function () { el("error").textContent = t("offline"); el("error").style.display = "block"; el("liveDot").className = "dot off"; });
+  }
+  translate(); load(); setInterval(load, 5000);
+  window.addEventListener("resize", function () { msptChart.draw(); tpsChart.draw(); });
+})();
+</script>
+</body>
+</html>

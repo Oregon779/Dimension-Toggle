@@ -1,7 +1,6 @@
 package net.dimensiontoggle.gui;
 
 import net.dimensiontoggle.DimensionToggle;
-import net.dimensiontoggle.model.WorldScope;
 import net.dimensiontoggle.performance.ChunkLoaderDetector;
 import net.dimensiontoggle.performance.ChunkReports;
 import net.dimensiontoggle.performance.LagMapScanner;
@@ -104,12 +103,11 @@ public final class ChunkReportGuiBuilder {
         }
 
         inventory.setItem(40, GuiItems.build(plugin, Material.ARROW, "CR_BACK",
-                cfg.getString("reports.back-button.name"), cfg.getStringList("reports.back-button.lore")));
+                cfg.getString("reports.back-button.name"), DimensionGuiBuilder.lore(cfg, "reports.back-button.lore", Map.of())));
         inventory.setItem(41, GuiItems.build(plugin, Material.SUNFLOWER, "CR_REFRESH",
-                cfg.getString("reports.refresh-button.name"), cfg.getStringList("reports.refresh-button.lore")));
+                cfg.getString("reports.refresh-button.name"), DimensionGuiBuilder.lore(cfg, "reports.refresh-button.lore", Map.of())));
 
-        GuiItems.fillBorderAndFiller(inventory, plugin, GuiItems.fillerFor(WorldScope.OVERWORLD),
-                GuiItems.borderFor(WorldScope.OVERWORLD), 5);
+        GuiItems.frame(inventory, plugin, GuiItems.Theme.OVERWORLD, 5);
         return inventory;
     }
 

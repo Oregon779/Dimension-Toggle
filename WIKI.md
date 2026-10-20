@@ -42,6 +42,7 @@ per Command oder komplett per Klick im In-Game-Editor.
 | **Dashboard** | Spieler-Rekord, geladene Chunks, häufigste Entities, TPS. |
 | **Overworld & Performance** | Mob-Kontrolle für die Overworld, Farm-Limiter, Entity-Cap, Villager-Optimierer, Item-Aufräumer, AFK-Sichtweite, Auto-Performance-Modus. |
 | **Lag-Werkzeuge** | `/lagmap` (vollste Chunks), Redstone-Meter, Chunk-Loader-Melder – jeweils mit Klick-Teleport. |
+| **Performance-Website** | Live-TPS/MSPT, Speicher, Welten und Verlauf im Browser (`/dt web`). |
 | **Integrationen** | PlaceholderAPI-Platzhalter, bStats. |
 | **In-Game-Editor** | Alles oben per Klick unter `/dt editor`. |
 | **Logging** | Jede Aktion mit Zeit und Verursacher in einer Log-Datei. |
@@ -126,6 +127,8 @@ Hauptcommand: `/dimensiontoggle` – Aliase: **`/dt`**, `/dimtoggle`.
 | `/dt lagmap chat [score\|entities\|mobs\|items\|blocks]` | Dieselbe Liste als klickbarer Chat-Text, sortiert nach der gewählten Spalte (geht auch in der Konsole). | `dimensiontoggle.lagmap` |
 | `/dt redstone [chat]` | Chunks mit dem schnellsten Redstone der letzten 20 Sekunden. | `dimensiontoggle.redstone` |
 | `/dt chunkloaders [chat]` | Chunks, die geladen sind, obwohl kein Spieler in der Nähe ist – mit Grund. | `dimensiontoggle.chunkloaders` |
+| `/dt web` | Link zur Performance-Website (anklickbar). | `dimensiontoggle.performance` |
+| `/dt web reset-token` | Neuen geheimen Website-Token erzeugen – alte Links funktionieren dann nicht mehr. | `dimensiontoggle.performance` |
 
 **Zeitangaben** (Wartung): `30s`, `5m`, `1h`, `1h30m`, `2h15m30s`.
 Eine reine Zahl bedeutet Minuten (`10` = 10 Minuten). Die Zeit muss größer als 0 sein.
@@ -147,6 +150,7 @@ Permission hat.
 | `dimensiontoggle.lagmap` | OP | `/lagmap`: vollste Chunks ansehen, hinteleportieren, aufräumen. |
 | `dimensiontoggle.redstone` | OP | `/dt redstone` |
 | `dimensiontoggle.chunkloaders` | OP | `/dt chunkloaders` |
+| `dimensiontoggle.performance` | OP | `/dt web` (Link zur Website) |
 | `dimensiontoggle.performance.notify` | OP | Bekommt Redstone- und Auto-Performance-Warnungen im Chat. |
 | `dimensiontoggle.afk.bypass` | niemand | Sichtweite wird bei AFK nie gesenkt. |
 
@@ -348,14 +352,20 @@ Im Control Panel → **Mob Management**. Pro Mob-Typ:
   Spawn-Ei, Commands). Vorsicht beim **Enderdrachen** – ein Verbot verhindert
   auch das Wiederbeleben des Drachen.
 - **Shift-Klick:** automatisches Aufräumen durchschalten:
-  aus → alle 5 → 10 → 30 → 60 Minuten → aus. Dabei werden **alle** Entities
-  dieses Typs in der Dimension entfernt (auch benannte oder gezähmte) –
-  außer Reittiere, auf denen gerade ein Spieler sitzt.
+  aus → alle 5 → 10 → 30 → 60 Minuten → aus.
+- **Rechtsklick:** eigenes Aufräum-Intervall im Chat eingeben (siehe
+  [Eigene Zeiten im Chat](#eigene-zeiten-im-chat)), 1 Minute bis 24 Stunden,
+  `0` = aus.
+- Beim Aufräumen werden alle Entities dieses Typs in der Dimension entfernt –
+  **außer** Mobs mit Namensschild, gezähmten Tieren, Dorfbewohnern mit Beruf
+  (alle drei einzeln abschaltbar unter `mob-management.protect-*`) und
+  Reittieren, auf denen gerade ein Spieler sitzt.
 
 | Dimension | Verwaltete Mobs |
 |---|---|
 | Nether | Blaze, Ghast, Magma Cube, Wither Skeleton, Zombified Piglin, Piglin, Piglin Brute, Hoglin, Zoglin, Strider, Enderman |
 | End | Enderman, Shulker, Ender Dragon |
+| Overworld | alle 76 Lebewesen der Overworld in 4 Gruppen (siehe [Overworld & Performance](#overworld--performance)) |
 
 Einstellungen stehen in `data.yml`. Der Zähler bis zum nächsten Aufräumen
 beginnt nach einem Neustart von vorn.
@@ -413,12 +423,28 @@ selbst kann nicht gesperrt werden – hier geht es um Mobs und Performance.
 
 **Mob-Kontrolle Overworld**
 - *Mob Spawning*: Gamerule `spawn_mobs` der Overworld an/aus.
-- *Mob Management*: wie bei Nether/End, für 28 Overworld-Mobs (Zombie,
-  Skelett, Creeper, Spinne, Höhlenspinne, Enderman, Hexe, Schleim, Phantom,
-  Ertrunkener, Wüstenzombie, Eiswanderer, Plünderer, Zombiedorfbewohner,
-  Silberfischchen, Sumpfskelett, Kuh, Schwein, Schaf, Huhn, Kaninchen,
-  Pferd, Ziege, Tintenfisch, Leuchttintenfisch, Fledermaus, Kabeljau, Lachs):
-  Klick = Spawnen erlauben/verbieten, Shift-Klick = Aufräum-Intervall.
+- *Mob Management*: wie bei Nether/End, für **alle Lebewesen der Overworld**.
+  Zuerst eine Gruppe wählen, darin mit den Pfeilen unten blättern:
+  - **Monster** (25): Zombie, Wüstenzombie, Ertrunkener, Zombiedorfbewohner,
+    Skelett, Eiswanderer, Sumpfskelett, Parched, Creeper, Spinne, Höhlenspinne,
+    Enderman, Endermite, Hexe, Schleim, Schwefelwürfel, Phantom,
+    Silberfischchen, Plünderer, Diener, Magier, Plagegeist, Verwüster, Breeze,
+    Knarz.
+  - **Tiere** (29, 2 Seiten): Kuh, Pilzkuh, Schwein, Schaf, Huhn, Kaninchen,
+    Pferd, Esel, Maultier, Skelett- und Zombiepferd, Kamel, Kamel-Husk, Lama,
+    Händlerlama, Ziege, Wolf, Katze, Ozelot, Fuchs, Panda, Eisbär, Papagei,
+    Biene, Fledermaus, Frosch, Gürteltier, Schnüffler, Glücklicher Ghast.
+  - **Wasser** (14): Kabeljau, Lachs, Kugelfisch, Tropenfisch, Tintenfisch,
+    Leuchttintenfisch, Delfin, Schildkröte, Axolotl, Kaulquappe, Nautilus,
+    Zombie-Nautilus, Wächter, Großer Wächter.
+  - **Sonstige** (8): Dorfbewohner, Fahrender Händler, Eisengolem,
+    Schneegolem, Kupfergolem, Hilfsgeist, Warden, Wither.
+
+  Klick = Spawnen erlauben/verbieten, Shift-Klick = Aufräum-Presets,
+  Rechtsklick = eigenes Intervall im Chat. Standardmäßig ist alles erlaubt.
+  Vorsicht: Ein Verbot gilt für jede Spawn-Art – z.B. verhindert ein Verbot
+  von *Eisengolem* auch Dorf- und gebaute Golems, eins von *Wither* das Bauen
+  des Withers.
 
 **Farm-Limiter** (`farm-limiter`)
 - Sucht alle 30 s nach großen Tiergruppen: ab `group-size` (Standard 20)
@@ -450,6 +476,10 @@ selbst kann nicht gesperrt werden – hier geht es um Mobs und Performance.
 - Alle `interval-minutes` (Standard 10) werden Items entfernt, die mindestens
   `min-age-seconds` (Standard 60) am Boden liegen – mit Chat-Warnungen vorher
   (Standard 60/30/10 s). XP-Kugeln nur mit `include-xp-orbs: true`.
+- **Rechtsklick** auf den Item-Aufräumer im Overworld-Panel: eigenes
+  Intervall im Chat eingeben (1 Minute bis 24 Stunden). Eine Zeit schaltet den
+  Aufräumer gleich ein, `0`/`aus` schaltet ihn aus (das letzte Intervall
+  bleibt gespeichert). Linksklick schaltet wie bisher an/aus.
 
 **AFK-Sichtweite** (`afk-view`)
 - Nach `afk-minutes` (Standard 5) ohne Aktivität sinkt die Sichtweite des
@@ -491,6 +521,31 @@ Spieler in Sichtweite ist. Als Grund wird angezeigt: `/forceload`,
 ein Plugin (mit Namen), eine Enderperle oder „unbekannt“ (meist Portal- oder
 Entity-Lader).
 
+### Performance-Website
+
+Eine kleine, nur lesende Webseite im dunklen Design mit TPS (1/5/15 min),
+MSPT inkl. Spitze, Spielern, Arbeitsspeicher, CPU, Laufzeit, Status von
+Nether/End, allen Welten (Spieler, Chunks, Entities, Block-Entities) und den
+vollsten Chunks. Jede Karte zeigt mit Farbe **und** Symbol, wie es steht
+(● flüssig, ▲ ausgelastet, ✖ Lag). Zwei Diagramme zeigen MSPT und TPS der
+letzten Stunde – mit der Maus (oder dem Finger) darüberfahren zeigt den Wert
+zu jedem Zeitpunkt. Funktioniert auch auf dem Handy. Sprache folgt der
+Plugin-Sprache, die Seite lädt sich alle 5 Sekunden neu.
+
+**Einrichten:**
+1. In der `config.yml` `web.enabled: true` setzen und einen freien `web.port`
+   wählen (Standard 8105).
+2. Bei gemieteten Servern (Pterodactyl o.ä.) den Port im Panel als
+   zusätzlichen Port freigeben.
+3. Optional `web.public-url` setzen, z.B. `"http://play.meinserver.de:8105"` –
+   diese Adresse zeigt `/dt web` an.
+4. `/dt reload`, dann `/dt web` → Link anklicken.
+
+Der Link enthält einen **geheimen Token**; ohne ihn ist die Seite gesperrt
+(`web.require-token: false` macht sie öffentlich). `/dt web reset-token`
+erzeugt einen neuen Token, falls ein Link in falsche Hände geraten ist.
+Die Seite kann nichts verändern – sie zeigt nur an.
+
 ### PlaceholderAPI
 
 Ist PlaceholderAPI installiert, gibt es diese Platzhalter (z.B. für
@@ -520,6 +575,14 @@ bei jedem Plugin in `plugins/bStats/config.yml`.
 `/dt editor` öffnet das Hauptmenü. Countdowns, Spielerzahlen und das
 Dashboard aktualisieren sich im offenen Menü jede Sekunde live.
 
+**Aussehen:** Jeder Bereich hat seine Farbe – Hauptmenü lila, Nether
+rot/orange, End violett, Overworld grün. Der Rahmen ist in dieser Farbe (mit
+Akzent-Ecken), das Innere dunkel. Jeder Button nennt oben klein seine Gruppe
+(z.B. ZUGANG, REGELN), zeigt seinen Zustand mit ● grün = an / ● rot = aus
+und am Ende in Gelb, was ein Klick macht. Aktive Schalter glühen zusätzlich.
+Klicks haben einen kurzen Sound (an, aus, Fehler – einstellbar unter
+`gui-sounds` in der `config.yml`).
+
 ```
 Hauptmenü
 ├── Nether ──► Control Panel (Nether)
@@ -531,19 +594,28 @@ Hauptmenü
 ├── End ─────► Control Panel (End)   (wie Nether, plus Elytra + Gateways)
 ├── Overworld ► Overworld & Performance
 │               ├── Mob Spawning / Mob Management (Overworld)
+│               │       └── Monster · Tiere · Wasser · Sonstige (blätterbar)
 │               ├── Farm-Limiter, Entity-Cap, Villager-Optimierer,
 │               │   Item-Aufräumer, AFK-Sichtweite, Auto-Performance (an/aus)
 │               ├── Lagmap · Redstone · Chunk-Loader (Klick = Teleport)
+│               ├── Website (Link im Chat)
 │               └── Server-Performance (TPS, MSPT, RAM, Chunks, Entities)
+├── Server    (Spieler online, TPS, MSPT, Plugin-Version – nur Anzeige)
 ├── Lockdown  (Klick = Lockdown an/aus)
 └── Schließen
 ```
 
 ### Control Panel
 
+Aufbau (5 Reihen): oben die Übersicht (Karte), Reihe 1 **Zugang** (Schalter,
+Soft-Lock, Spielerlimit, Spieler drinnen) und **Automatik** (Wartung,
+Zeitplan), Reihe 2 **Regeln** (Keep Inventory, PvP, Mob Spawning, Spawner bzw.
+Elytra + Gateways), Reihe 3 **Verwaltung** (Mob Management, World Border),
+unten „Zurück“.
+
 | Button | Aktion |
 |---|---|
-| Großer Schalter (oben Mitte) | Dimension aktivieren / deaktivieren |
+| Schalter (Reihe 1 links) | Dimension aktivieren / deaktivieren |
 | Soft-Lock | Soft-Lock an/aus |
 | Players Inside | Spielerliste öffnen |
 | Player Limit | Links −1, Shift-Links −10, Rechts +1, Shift-Rechts +10 (aktiviert das Limit) |
@@ -557,11 +629,26 @@ Hauptmenü
 | Elytra-Flug *(End)* | an/aus |
 | Gateways *(End)* | gesperrt/erlaubt |
 | Spawner *(Nether)* | an/aus |
-| Dashboard (Karte) | nur Anzeige |
+| Übersicht (Karte, oben) | nur Anzeige |
 | Zurück | Hauptmenü |
 
 Aktive Schalter „glühen“ (Verzauberungs-Glanz), damit man den Zustand auf
 einen Blick sieht.
+
+### Eigene Zeiten im Chat
+
+Für das Aufräum-Intervall eines Mobs (**Rechtsklick** im Mob-Menü) und für den
+Item-Aufräumer (**Rechtsklick** im Overworld-Panel):
+
+1. Das Menü schließt sich, im Chat steht, was gerade eingestellt ist.
+2. Die neue Zeit in den Chat schreiben: `15` oder `15m` (Minuten), `2h`,
+   `1h30m` – erlaubt sind **1 Minute bis 24 Stunden**. `0`, `aus` oder `off`
+   schaltet aus, `abbrechen` oder `cancel` bricht ab.
+3. Danach öffnet sich das Menü, aus dem man kam, wieder.
+
+Die Eingabe landet **nicht** im öffentlichen Chat. Bei einer ungültigen
+Eingabe kommt ein Hinweis und man kann es direkt nochmal versuchen. Nach 30
+Sekunden ohne Eingabe wird abgebrochen (es ändert sich nichts).
 
 ### Wartung mit eigener Zeit (Amboss)
 
@@ -617,6 +704,11 @@ Nach Änderungen an Dateien: `/dt reload`.
 | `language` | `"en"` | Sprache der Command-Rückmeldungen (Ordnername unter `languages/`). |
 | `dimensions.nether.enabled` / `dimensions.end.enabled` | `true` | Zustand beim **allerersten** Start. Danach zählt nur `data.yml`. |
 | `sounds-enabled` | `true` | Sounds bei allen Benachrichtigungen an/aus. |
+| `gui-sounds.enabled` | `true` | Klick-Sounds im Editor an/aus. |
+| `gui-sounds.click` / `toggle-on` / `toggle-off` / `error` | `UI_BUTTON_CLICK` / `BLOCK_NOTE_BLOCK_PLING` / `BLOCK_NOTE_BLOCK_BASS` / `ENTITY_VILLAGER_NO` | Je `sound`, `volume`, `pitch`: normaler Klick, etwas eingeschaltet, ausgeschaltet, Fehler (z.B. ungültige Eingabe). |
+| `mob-management.protect-named` | `true` | Automatisches Mob-Aufräumen lässt Mobs mit Namensschild stehen. |
+| `mob-management.protect-tamed` | `true` | … lässt gezähmte Tiere stehen. |
+| `mob-management.protect-villagers-with-profession` | `true` | … lässt Dorfbewohner mit Beruf stehen (Arbeitslose und Nichtsnutze werden entfernt). |
 | `block-end-gateways` | `true` | End-Gateway-Teleports sperren. |
 
 **`nether` / `end`** – Benachrichtigungen beim Aktivieren/Deaktivieren
@@ -705,6 +797,10 @@ Nach Änderungen an Dateien: `/dt reload`.
 | `auto-performance.enabled` | `false` | Auto-Performance-Modus an. |
 | `auto-performance.activate-mspt` / `recover-mspt` | `45` / `35` | Ein- und Ausschaltschwelle (ms pro Tick). |
 | `auto-performance.afk-minutes` / `farm-group-size` | `2` / `10` | Strengere Werte, solange der Modus aktiv ist. |
+| `web.enabled` | `false` | Website an. |
+| `web.port` / `bind-address` | `8105` / `"0.0.0.0"` | Port und Netzwerkadresse. |
+| `web.public-url` | `""` | Adresse, die `/dt web` anzeigt. |
+| `web.require-token` | `true` | Website nur mit geheimem Token. |
 
 ### Benachrichtigungen
 
@@ -778,9 +874,15 @@ erkennbar (`%count%`, `%limit-status%`, `%peak%`, `%size%`, `%tps%` usw.).
 ### GUI-Texte
 
 Alle Titel, Item-Namen und Lore-Zeilen des Editors stehen in `gui/main`,
-`gui/nether` und `gui/end` (`config.yml`). Nether und End haben getrennte
-Dateien, damit jede Dimension eigene Farben haben kann. Nach Änderungen
-`/dt reload` und das Menü neu öffnen.
+`gui/nether`, `gui/end` und `gui/overworld` (`config.yml`). Jede Datei hat
+die Farben ihres Bereichs. Nach Änderungen `/dt reload` und das Menü neu
+öffnen.
+
+Mit 3.3.0 hat der Editor ein neues Design bekommen. Beim Update werden die
+GUI-Dateien deshalb **einmalig** durch die neuen ersetzt – die alten liegen
+danach in `backups/` (z.B. `backups/gui-nether-config-…yml`). Wer eigene
+GUI-Texte hatte, überträgt sie von dort. Danach bleiben eigene Änderungen wie
+gewohnt erhalten.
 
 ### data.yml
 
@@ -795,6 +897,7 @@ der Server läuft:
 | `mob-management.<dimension>.<MOB>.enabled` / `.cleanup-minutes` | Mob-Management |
 | `nether.spawners-enabled`, `end.elytra-fly-enabled` | Schalter |
 | `mob-management.overworld.<MOB>...` | Mob-Management der Overworld |
+| `web.token` | Geheimer Token der Performance-Website |
 
 Gespeichert wird absturzsicher im Hintergrund. Ist die Datei trotzdem einmal
 unlesbar, benennt das Plugin sie in `data.yml.corrupt-<Datum>-<Uhrzeit>` um,
@@ -822,7 +925,9 @@ irgendein Wert gelesen wird.
   Optionen ergänzt.
 - **Umbenannte oder entfernte Optionen** übernimmt das Plugin über
   versionierte Migrationen (z.B. entfernt es die seit 1.3.0 ungenutzten
-  `notify`-Abschnitte von `maintenance`, `schedule` und `lockdown`).
+  `notify`-Abschnitte von `maintenance`, `schedule` und `lockdown`). Bei einem
+  kompletten Neu-Design (3.3.0: die GUI-Dateien) kann eine Migration eine Datei
+  auch einmal ganz ersetzen – immer mit Backup.
 - **Backup:** Bevor eine Datei geändert wird, landet die alte Fassung in
   `backups/` (z.B. `backups/config-2026-10-17_14-03-22.yml`). Pro Datei werden
   die letzten 5 Sicherungen behalten. Unveränderte Dateien werden weder
@@ -897,6 +1002,13 @@ Das Modrinth-Projekt ist (noch) nicht erreichbar. Mit
 **Wartung war nach einem Neustart weg.**
 Laufende Countdowns werden nicht gespeichert – nach dem Neustart neu starten.
 
+**Die Performance-Website lässt sich nicht öffnen.**
+- Ist `web.enabled: true` und wurde `/dt reload` ausgeführt? In der Konsole
+  steht beim Start „Performance website running on port …“ oder warum es
+  nicht geklappt hat.
+- Ist der Port frei und (bei gemieteten Servern) im Panel freigegeben?
+- Ohne Token kommt „Forbidden“ – den Link aus `/dt web` verwenden.
+
 **Tiere stehen nach dem Entfernen des Plugins still.**
 Der Farm-Limiter (oder Villager-Optimierer) war noch an. Plugin wieder
 einsetzen, Feature ausschalten (weckt alle Tiere auf), dann entfernen.
@@ -915,8 +1027,9 @@ klicken. Items und Mobs können sich inzwischen auch bewegt haben.
   in einer gesperrten Dimension und Respawn per Seelenanker werden nicht blockiert.
 - Das Aufheben des Lockdowns aktiviert **beide** Dimensionen, auch wenn eine
   davon vorher schon deaktiviert war.
-- Mob-Aufräumen entfernt alle Entities des gewählten Typs, auch benannte oder
-  gezähmte (nur gerittene Reittiere werden verschont).
+- Mob-Aufräumen verschont nur benannte Mobs, gezähmte Tiere, Dorfbewohner mit
+  Beruf und gerittene Reittiere – angeleinte oder in Booten sitzende Mobs
+  werden mit entfernt.
 - Laufende Wartungs-Countdowns überstehen keinen Neustart.
 - Vom Farm-Limiter oder Villager-Optimierer eingefrorene Tiere bleiben
   eingefroren, wenn das Plugin entfernt wird, ohne die Features vorher
@@ -950,7 +1063,7 @@ mvn test
 
 Automatisierte Tests mit JUnit 6 und MockBukkit (`src/test`): Zeit- und
 Dauer-Parsing, Zeitplan, Persistenz, GUI, Portal-Listener, Commands,
-verteiltes Rausbringen von Spielern, Lag-Werkzeuge, Optimierer,
+verteiltes Rausbringen von Spielern, Lag-Werkzeuge, Optimierer, Website,
 PlaceholderAPI.
 
 **Aufbau** (Paket `net.dimensiontoggle`)
@@ -963,7 +1076,7 @@ PlaceholderAPI.
 | `gui` | Editor – jede Aktion steckt als Text im Item, nicht in der Slot-Nummer |
 | `config` | Laden, automatische Config-Updates (Merge, Migrationen, Backups) und kommentarerhaltendes Schreiben der YAML-Dateien |
 | `io` | Hintergrund-Thread und absturzsicheres Schreiben für alle Dateien |
-| `performance` | Overworld & Performance: Monitor, Lagmap, Redstone-Meter, Chunk-Loader, Optimierer |
+| `performance` | Overworld & Performance: Monitor, Lagmap, Redstone-Meter, Chunk-Loader, Optimierer, Website |
 | `hook` | PlaceholderAPI-Erweiterung |
 | `model` | `ToggleDimension` (NETHER/END), `WorldScope` (+ Overworld), Benachrichtigungs-Kanäle |
 

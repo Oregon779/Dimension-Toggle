@@ -39,6 +39,19 @@ class OverworldUiTest extends PluginTestBase {
         server.getScheduler().performOneTick();
     }
 
+    private int slotOfAction(String action) {
+        for (int i = 0; i < top().getSize(); i++) {
+            if (action.equals(net.dimensiontoggle.gui.GuiItems.readAction(plugin, top().getItem(i)))) {
+                return i;
+            }
+        }
+        throw new AssertionError("no " + action + " in menu");
+    }
+
+    private void openPanel() {
+        click(slotOfAction("MAIN_OPEN_OVERWORLD"));
+    }
+
     private int slotOf(Material material) {
         for (int i = 0; i < top().getSize(); i++) {
             if (top().getItem(i) != null && top().getItem(i).getType() == material) {
@@ -50,15 +63,15 @@ class OverworldUiTest extends PluginTestBase {
 
     @Test
     void mainMenuLeadsToTheOverworldPanel() {
-        assertEquals(Material.GRASS_BLOCK, top().getItem(13).getType());
-        click(13);
-        assertEquals(54, top().getSize());
+        assertEquals(Material.GRASS_BLOCK, top().getItem(slotOfAction("MAIN_OPEN_OVERWORLD")).getType());
+        openPanel();
+        assertEquals(45, top().getSize());
         slotOf(Material.FILLED_MAP); // lag map button is there
     }
 
     @Test
     void togglingAFeatureInThePanelSavesIt() {
-        click(13);
+        openPanel();
         click(slotOf(Material.WHEAT));   // farm limiter, currently off
         assertTrue(plugin.getConfigManager().getConfig().getBoolean("farm-limiter.enabled"));
         slotOf(Material.HAY_BLOCK);      // icon switched to "on"
@@ -66,7 +79,7 @@ class OverworldUiTest extends PluginTestBase {
 
     @Test
     void overworldMobSpawningToggleUsesTheGamerule() {
-        click(13);
+        openPanel();
         click(slotOf(Material.SPAWNER));
         assertEquals(Boolean.FALSE, overworld.getGameRuleValue(GameRules.SPAWN_MOBS));
         assertTrue(nether.getGameRuleValue(GameRules.SPAWN_MOBS) != Boolean.FALSE, "only the Overworld");
@@ -74,9 +87,10 @@ class OverworldUiTest extends PluginTestBase {
 
     @Test
     void overworldMobListBlocksSpawningPerType() {
-        click(13);
-        click(slotOf(Material.ZOMBIE_HEAD));
-        click(slotOf(Material.ZOMBIE_HEAD));   // first mob of the Overworld list
+        openPanel();
+        click(slotOfAction("OW_MOBMANAGEMENT"));
+        click(slotOfAction("MOBCAT_MONSTERS"));
+        click(slotOfAction("MOB_TOGGLE_ZOMBIE"));
         assertFalse(plugin.getMobManagementManager().isSpawnEnabled(net.dimensiontoggle.model.WorldScope.OVERWORLD,
                 org.bukkit.entity.EntityType.ZOMBIE));
         assertTrue(plugin.getMobManagementManager().isSpawnEnabled(net.dimensiontoggle.model.WorldScope.NETHER,
@@ -116,4 +130,14 @@ class OverworldUiTest extends PluginTestBase {
         assertEquals(-2, admin.getLocation().getBlockZ() >> 4);
     }
 
+    @Test
+    void webCommandSaysWhenTheWebsiteIsOff() {
+        while (admin.nextComponentMessage() != null) {
+            // discard
+        }
+        admin.performCommand("dt web");
+        String expected = PlainTextComponentSerializer.plainText().serialize(plugin.getMessageManager()
+                .parse(plugin.getMessageManager().getPrefix() + plugin.getMessageManager().get("web-disabled")));
+        assertEquals(expected, PlainTextComponentSerializer.plainText().serialize(admin.nextComponentMessage()));
+    }
 }

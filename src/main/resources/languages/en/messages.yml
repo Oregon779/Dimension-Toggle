@@ -98,6 +98,7 @@ help-footer: "<gradient:#A78BFA:#7C3AED>━━━━━━━━━━━━━�
 names:
   nether: "Nether"
   end: "End"
+  overworld: "Overworld"
 
 # ---------- UPDATE CHECKER ----------
 update-available: "&5&l⚠ &d[DimensionToggle] &fA new version is available: &a%version% &7(you're on &c%current%&7, &e%behind% &7behind). Check Modrinth to update."
@@ -109,6 +110,7 @@ update-check-triggered: "&5&l⚠ &dChecking Modrinth for updates now... &7watch 
 help-lagmap: "&d/dt lagmap [chat] &8» &7Busiest chunks of all worlds &8(also /lagmap)"
 help-redstone: "&d/dt redstone [chat] &8» &7Chunks with the fastest redstone"
 help-chunkloaders: "&d/dt chunkloaders [chat] &8» &7Chunks loaded without a player nearby"
+help-web: "&d/dt web &8» &7Link to the live performance website"
 
 chunk-hover: "&7Click to teleport there"
 teleported-chunk: "&a&l✔ &7Teleported to chunk &f%x%, %z% &7in &f%world%&7."
@@ -138,8 +140,23 @@ reason-plugin: "plugin: %plugins%"
 reason-ender-pearl: "ender pearl"
 reason-unknown: "unknown (portal, entity, ...)"
 
+web-link: "&a&l✔ &7Performance website: &f&n%url% &8(click to open)"
+web-disabled: "&c&l✘ &7The performance website is off &8(config.yml → web.enabled: true, then /dt reload)."
+web-token-reset: "&a&l✔ &7New website token created - old links no longer work."
+
 item-cleaner-warning: "&e&l⚠ &7Items on the ground will be removed in &f%seconds% &7seconds!"
 item-cleaner-done: "&a&l✔ &7Removed &f%count% &7items from the ground."
+
+# ---------- Chat input (own intervals in the editor) ----------
+chat-input-prompt: "&e&l✎ &7Type the new time for &f%what% &7in the chat &8(now: &f%current%&8)"
+chat-input-hint: "&8   e.g. &f15m&8, &f2h&8, &f1h30m &8(1 min - 24 h) · &f0 &8= off · &fcancel &8= abort"
+chat-input-invalid: "&c&l✘ &7That is not a valid time - allowed are 1 minute to 24 hours (e.g. &f15m&7, &f2h&7), &f0 &7for off or &fcancel&7."
+chat-input-cancelled: "&7Input cancelled - nothing was changed."
+chat-input-timeout: "&7No input for 30 seconds - nothing was changed."
+chat-input-set: "&a&l✔ &f%what% &7set to &f%value%&7."
+chat-input-off-word: "off"
+chat-input-what-item-cleaner: "Item cleaner"
+chat-input-what-mob: "%mob% cleanup (%dimension%)"
 
 afk-view-reduced: "&7You're AFK - your view distance was lowered to save performance."
 afk-view-restored: "&7Welcome back - your view distance is back to normal."

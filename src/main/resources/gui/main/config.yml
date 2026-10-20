@@ -1,58 +1,89 @@
 # =====================================================================
-#   DimensionToggle - Main GUI
+#   DimensionToggle - Main menu
 # =====================================================================
-# Every text shown in the main menu (/dt editor), fully editable/translatable.
-# Placeholders where noted. Full MiniMessage is supported here (gradients,
-# small caps via Unicode, etc.) alongside classic & color codes.
+# Every text of these menus, fully editable. Placeholders where noted.
+# MiniMessage (gradients, <#hex> colors, small caps via Unicode) and
+# classic & codes can be mixed freely.
+# Look: the theme color of this area is purple; green = on, red = off,
+# yellow lines tell what a click does.
 
-title: "<gradient:#A78BFA:#7C3AED><bold>DT Toggle</bold></gradient> <dark_gray>| <gray>ᴀᴅᴍɪɴ ᴇᴅɪᴛᴏʀ"
-
-nether-head:
-  name: "<gradient:#FF6B4A:#C81E1E><bold>Nether</bold></gradient>"
-  lore:
-    - "<gray>Status: %status%"
-    - ""
-    - "<gold>➤ <gray>Click to manage this dimension"
-
-end-head:
-  name: "<gradient:#C084FC:#EC4899><bold>End</bold></gradient>"
-  lore:
-    - "<gray>Status: %status%"
-    - ""
-    - "<gold>➤ <gray>Click to manage this dimension"
+title: "<gradient:#C084FC:#7C3AED><bold>ᴅɪᴍᴇɴꜱɪᴏɴ ᴛᴏɢɢʟᴇ</bold></gradient> <dark_gray>» <gray>ᴇᴅɪᴛᴏʀ"
 
 emblem:
-  name: "<gradient:#A78BFA:#7C3AED><bold>Dimension Toggle</bold></gradient>"
+  name: "<gradient:#C084FC:#7C3AED><bold>DimensionToggle</bold></gradient>"
   lore:
+    - "<dark_gray>ᴀᴅᴍɪɴ ᴇᴅɪᴛᴏʀ"
+    - ""
+    - "<gray>Open, close and fine-tune your"
+    - "<gray>dimensions - all with a click."
+    - ""
     - "<dark_gray>A plugin by Stone Plugins"
 
-overworld-head:
-  name: "<gradient:#86EFAC:#16A34A><bold>Overworld</bold></gradient> <dark_gray>& <gray>Performance"
+nether-head:
+  name: "<gradient:#FB923C:#DC2626><bold>Nether</bold></gradient>"
   lore:
-    - "<gray>TPS: <white>%tps% <dark_gray>| <gray>MSPT: <white>%mspt%"
+    - "<dark_gray>ᴅɪᴍᴇɴꜱɪᴏɴ"
     - ""
-    - "<gray>Mob spawning, farm limiter, AFK view,"
-    - "<gray>lagmap, redstone, chunk loaders …"
+    - "<gray>Status <dark_gray>» %status%"
+    - "<gray>Players inside <dark_gray>» <white>%players%"
     - ""
-    - "<gold>➤ <gray>Click to open"
+    - "<#FCD34D>▸ Click <dark_gray>» <gray>open the control panel"
+
+overworld-head:
+  name: "<gradient:#A3E635:#16A34A><bold>Overworld</bold></gradient> <dark_gray>& <gray>Performance"
+  lore:
+    - "<dark_gray>ᴏᴠᴇʀᴡᴏʀʟᴅ & ᴘᴇʀꜰᴏʀᴍᴀɴᴄᴇ"
+    - ""
+    - "<gray>TPS <dark_gray>» <white>%tps%  <gray>MSPT <dark_gray>» <white>%mspt%"
+    - ""
+    - "<gray>Mob spawning, optimizers, lag map,"
+    - "<gray>redstone, chunk loaders, website …"
+    - ""
+    - "<#FCD34D>▸ Click <dark_gray>» <gray>open"
+
+end-head:
+  name: "<gradient:#E879F9:#8B5CF6><bold>End</bold></gradient>"
+  lore:
+    - "<dark_gray>ᴅɪᴍᴇɴꜱɪᴏɴ"
+    - ""
+    - "<gray>Status <dark_gray>» %status%"
+    - "<gray>Players inside <dark_gray>» <white>%players%"
+    - ""
+    - "<#FCD34D>▸ Click <dark_gray>» <gray>open the control panel"
+
+info-button:
+  name: "<aqua><bold>Server</bold>"
+  lore:
+    - "<dark_gray>ʟɪᴠᴇ"
+    - ""
+    - "<gray>Online <dark_gray>» <white>%online%<gray>/<white>%max%"
+    - "<gray>TPS <dark_gray>» <white>%tps%  <gray>MSPT <dark_gray>» <white>%mspt%"
+    - "<gray>Plugin <dark_gray>» <white>%version%"
 
 lockdown-button:
-  name-active: "<gradient:#F87171:#DC2626><bold>⚠ Lift Lockdown</bold></gradient>"
-  name-inactive: "<gray><bold>Lockdown"
+  name-active: "<gradient:#F87171:#B91C1C><bold>⚠ LOCKDOWN ACTIVE</bold></gradient>"
+  name-inactive: "<gray><bold>Lockdown</bold>"
   lore-active:
-    - "<gray>Lockdown is currently <red><bold>ACTIVE</bold><gray>."
+    - "<dark_gray>ᴇᴍᴇʀɢᴇɴᴄʏ"
     - ""
-    - "<gold>➤ <gray>Click to lift the lockdown"
+    - "<gray>Nether and End are closed and"
+    - "<gray>everyone inside was sent out."
+    - ""
+    - "<#FCD34D>▸ Click <dark_gray>» <gray>lift the lockdown"
   lore-inactive:
-    - "<gray>Instantly disables both dimensions."
+    - "<dark_gray>ᴇᴍᴇʀɢᴇɴᴄʏ"
     - ""
-    - "<gold>➤ <gray>Click to activate lockdown"
+    - "<gray>Closes Nether <u>and</u> End at once"
+    - "<gray>and sends everyone inside out."
+    - ""
+    - "<#FCD34D>▸ Click <dark_gray>» <gray>activate the lockdown"
 
 close-button:
-  name: "<red><bold>Close"
+  name: "<#F87171><bold>Close</bold>"
   lore:
-    - "<gray>Leave this menu"
+    - "<dark_gray>Leave the editor"
 
 # Words used for %status% above
-status-enabled: "<gradient:#4ADE80:#16A34A><bold>✔ Enabled</bold></gradient>"
-status-disabled: "<gray>✖ Disabled"
+status-enabled: "<#4ADE80>● Open"
+status-disabled: "<#F87171>● Closed"
+status-locked: "<#FBBF24>● Soft-locked"

@@ -7,6 +7,8 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Tameable;
+import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -30,16 +32,54 @@ public class MobManagementManager implements Listener {
             EntityType.ENDERMAN, EntityType.SHULKER, EntityType.ENDER_DRAGON
     );
 
-    // 28 = exactly the interior of the 6-row mob menu.
-    public static final List<EntityType> OVERWORLD_MOBS = List.of(
-            EntityType.ZOMBIE, EntityType.SKELETON, EntityType.CREEPER, EntityType.SPIDER,
-            EntityType.CAVE_SPIDER, EntityType.ENDERMAN, EntityType.WITCH, EntityType.SLIME,
-            EntityType.PHANTOM, EntityType.DROWNED, EntityType.HUSK, EntityType.STRAY,
-            EntityType.PILLAGER, EntityType.ZOMBIE_VILLAGER, EntityType.SILVERFISH, EntityType.BOGGED,
-            EntityType.COW, EntityType.PIG, EntityType.SHEEP, EntityType.CHICKEN,
-            EntityType.RABBIT, EntityType.HORSE, EntityType.GOAT, EntityType.SQUID,
-            EntityType.GLOW_SQUID, EntityType.BAT, EntityType.COD, EntityType.SALMON
-    );
+    // Every living Overworld mob, grouped the way the mob menu shows them.
+    public enum Category {
+        MONSTERS(List.of(
+                EntityType.ZOMBIE, EntityType.HUSK, EntityType.DROWNED, EntityType.ZOMBIE_VILLAGER,
+                EntityType.SKELETON, EntityType.STRAY, EntityType.BOGGED, EntityType.PARCHED,
+                EntityType.CREEPER, EntityType.SPIDER, EntityType.CAVE_SPIDER, EntityType.ENDERMAN,
+                EntityType.ENDERMITE, EntityType.WITCH, EntityType.SLIME, EntityType.SULFUR_CUBE,
+                EntityType.PHANTOM, EntityType.SILVERFISH, EntityType.PILLAGER, EntityType.VINDICATOR,
+                EntityType.EVOKER, EntityType.VEX, EntityType.RAVAGER, EntityType.BREEZE, EntityType.CREAKING)),
+        ANIMALS(List.of(
+                EntityType.COW, EntityType.MOOSHROOM, EntityType.PIG, EntityType.SHEEP, EntityType.CHICKEN,
+                EntityType.RABBIT, EntityType.HORSE, EntityType.DONKEY, EntityType.MULE,
+                EntityType.SKELETON_HORSE, EntityType.ZOMBIE_HORSE, EntityType.CAMEL, EntityType.CAMEL_HUSK,
+                EntityType.LLAMA, EntityType.TRADER_LLAMA, EntityType.GOAT, EntityType.WOLF, EntityType.CAT,
+                EntityType.OCELOT, EntityType.FOX, EntityType.PANDA, EntityType.POLAR_BEAR, EntityType.PARROT,
+                EntityType.BEE, EntityType.BAT, EntityType.FROG, EntityType.ARMADILLO, EntityType.SNIFFER,
+                EntityType.HAPPY_GHAST)),
+        WATER(List.of(
+                EntityType.COD, EntityType.SALMON, EntityType.PUFFERFISH, EntityType.TROPICAL_FISH,
+                EntityType.SQUID, EntityType.GLOW_SQUID, EntityType.DOLPHIN, EntityType.TURTLE,
+                EntityType.AXOLOTL, EntityType.TADPOLE, EntityType.NAUTILUS, EntityType.ZOMBIE_NAUTILUS,
+                EntityType.GUARDIAN, EntityType.ELDER_GUARDIAN)),
+        OTHER(List.of(
+                EntityType.VILLAGER, EntityType.WANDERING_TRADER, EntityType.IRON_GOLEM, EntityType.SNOW_GOLEM,
+                EntityType.COPPER_GOLEM, EntityType.ALLAY, EntityType.WARDEN, EntityType.WITHER));
+
+        private final List<EntityType> mobs;
+
+        Category(List<EntityType> mobs) {
+            this.mobs = mobs;
+        }
+
+        public List<EntityType> mobs() {
+            return mobs;
+        }
+
+        public String key() {
+            return name().toLowerCase(java.util.Locale.ROOT);
+        }
+    }
+
+    public static final List<EntityType> OVERWORLD_MOBS = java.util.Arrays.stream(Category.values())
+            .flatMap(category -> category.mobs().stream())
+            .toList();
+
+    // Interval limits for a custom cleanup time (chat input).
+    public static final int MIN_CLEANUP_MINUTES = 1;
+    public static final int MAX_CLEANUP_MINUTES = 24 * 60;
 
     private static final Map<WorldScope, Set<EntityType>> MANAGED = new EnumMap<>(Map.of(
             WorldScope.OVERWORLD, EnumSet.copyOf(OVERWORLD_MOBS),
@@ -134,6 +174,16 @@ public class MobManagementManager implements Listener {
         return next;
     }
 
+    // Sets a custom cleanup interval (0 = off), as typed in the chat.
+    public void setCleanupMinutes(WorldScope dimension, EntityType type, int minutes) {
+        int value = minutes <= 0 ? 0 : Math.clamp(minutes, MIN_CLEANUP_MINUTES, MAX_CLEANUP_MINUTES);
+        cleanupMinutes.computeIfAbsent(dimension, d -> new EnumMap<>(EntityType.class)).put(type, value);
+        minutesSinceCleanup.computeIfAbsent(dimension, d -> new EnumMap<>(EntityType.class)).put(type, 0);
+        plugin.getConfigManager().getData()
+                .set("mob-management." + dimension.getKey() + "." + type.name() + ".cleanup-minutes", value);
+        plugin.getConfigManager().saveData();
+    }
+
     public void start() {
         // Offset start (see PeakPlayerManager) so the entity scan never shares a
         // tick with the other repeating tasks.
@@ -180,11 +230,28 @@ public class MobManagementManager implements Listener {
             }
             // getEntities() returns a copy, so removing while iterating is safe.
             for (Entity entity : world.getEntities()) {
-                if (types.contains(entity.getType()) && !carriesPlayer(entity)) {
+                if (types.contains(entity.getType()) && !carriesPlayer(entity) && !isProtected(entity)) {
                     entity.remove();
                 }
             }
         }
+    }
+
+    // Mobs players obviously care about survive the automatic cleanup
+    // (each switchable in config.yml under mob-management.protect-*).
+    private boolean isProtected(Entity entity) {
+        var config = plugin.getConfigManager().getConfig();
+        if (entity.customName() != null && config.getBoolean("mob-management.protect-named", true)) {
+            return true;
+        }
+        if (entity instanceof Tameable tameable && tameable.isTamed()
+                && config.getBoolean("mob-management.protect-tamed", true)) {
+            return true;
+        }
+        return entity instanceof Villager villager
+                && villager.getProfession() != Villager.Profession.NONE
+                && villager.getProfession() != Villager.Profession.NITWIT
+                && config.getBoolean("mob-management.protect-villagers-with-profession", true);
     }
 
     // A strider someone is riding over a lava lake must not vanish from

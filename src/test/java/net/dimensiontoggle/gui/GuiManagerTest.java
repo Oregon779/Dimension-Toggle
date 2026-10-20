@@ -24,8 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class GuiManagerTest extends PluginTestBase {
 
     // Slots from MainGuiBuilder / DimensionGuiBuilder.
-    private static final int MAIN_NETHER_SLOT = 11;
-    private static final int DIMENSION_TOGGLE_SLOT = 13;
+    private static final int MAIN_NETHER_SLOT = MainGuiBuilder.NETHER_SLOT;
+    private static final int DIMENSION_TOGGLE_SLOT = DimensionGuiBuilder.TOGGLE_SLOT;
 
     private PlayerMock admin;
 
@@ -42,7 +42,7 @@ class GuiManagerTest extends PluginTestBase {
 
     @Test
     void editorOpensTheMainMenu() {
-        assertEquals(36, top().getSize());
+        assertEquals(MainGuiBuilder.ROWS * 9, top().getSize());
         assertEquals(Material.NETHERRACK, top().getItem(MAIN_NETHER_SLOT).getType());
     }
 
@@ -63,7 +63,7 @@ class GuiManagerTest extends PluginTestBase {
 
         server.getScheduler().performOneTick();
         assertNotSame(main, top());
-        assertEquals(54, top().getSize());
+        assertEquals(DimensionGuiBuilder.ROWS * 9, top().getSize());
     }
 
     @Test

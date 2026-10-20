@@ -44,8 +44,7 @@ class LagToolsTest extends PluginTestBase {
         spawnZombies(inChunk(0, 0), 4);   // 4 mobs x3 = 12
         dropItems(inChunk(5, 5), 10);     // 10 items x1 = 10
 
-        List<LagMapScanner.ChunkStats> stats = plugin.getLagMapScanner().scan(false).stream()
-                .sorted(LagMapScanner.Sort.SCORE.comparator()).toList();
+        List<LagMapScanner.ChunkStats> stats = plugin.getLagMapScanner().quickTop(10);
         assertEquals(2, stats.size());
         LagMapScanner.ChunkStats first = stats.get(0);
         assertEquals(0, first.x());
@@ -120,7 +119,7 @@ class LagToolsTest extends PluginTestBase {
     void lagmapChatListWorksFromTheConsoleWithoutBlockEntities() {
         spawnZombies(inChunk(1, 1), 3);
         // The full scan needs block entities, which MockBukkit can't list -
-        // check the entity part.
-        assertFalse(plugin.getLagMapScanner().scan(false).isEmpty());
+        // check the entity part through the chat formatter of quickTop data.
+        assertFalse(plugin.getLagMapScanner().quickTop(10).isEmpty());
     }
 }

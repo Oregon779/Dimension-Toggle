@@ -7,7 +7,6 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
@@ -24,7 +23,6 @@ public final class PlayerListGuiBuilder {
                 plugin.getMessageManager().parse(cfg.getString(base + "title", "&b&lPlayers")));
 
         List<Player> players = plugin.getDimensionManager().getPlayersInDimension(dimension);
-        String headLore = cfg.getString(base + "head-lore");
 
         int slot = 0;
         for (Player player : players) {
@@ -32,7 +30,8 @@ public final class PlayerListGuiBuilder {
                 break;
             }
             inventory.setItem(slot, GuiItems.buildPlayerHead(plugin, player, "PLIST_TP_" + player.getUniqueId(),
-                    "&f" + player.getName(), GuiItems.line(headLore)));
+                    GuiItems.sub(cfg.getString(base + "head-name", "&f%player%"), java.util.Map.of("player", player.getName())),
+                    DimensionGuiBuilder.lore(cfg, base + "head-lore", java.util.Map.of("player", player.getName()))));
             slot++;
         }
 
@@ -43,13 +42,15 @@ public final class PlayerListGuiBuilder {
 
         // Only the bottom row is decorative here - the head grid above it is
         // meant to stay a clean roster, not framed like the other menus.
-        ItemStack filler = GuiItems.build(plugin, GuiItems.fillerFor(dimension), null, " ", null);
-        ItemStack border = GuiItems.build(plugin, GuiItems.borderFor(dimension), null, " ", null);
-        for (int i = 45; i < 54; i++) {
-            inventory.setItem(i, (i == 45 || i == 53) ? border : filler);
-        }
         inventory.setItem(49, GuiItems.build(plugin, Material.ARROW, "PLIST_BACK",
-                cfg.getString(base + "back-button.name"), cfg.getStringList(base + "back-button.lore")));
+                cfg.getString(base + "back-button.name"), DimensionGuiBuilder.lore(cfg, base + "back-button.lore", java.util.Map.of())));
+        Inventory bottom = Bukkit.createInventory(null, 9);
+        GuiItems.frame(bottom, plugin, GuiItems.themeFor(dimension), 1);
+        for (int i = 0; i < 9; i++) {
+            if (inventory.getItem(45 + i) == null) {
+                inventory.setItem(45 + i, bottom.getItem(i));
+            }
+        }
 
         return inventory;
     }

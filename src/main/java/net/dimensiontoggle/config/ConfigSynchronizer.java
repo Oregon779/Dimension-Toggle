@@ -86,7 +86,7 @@ public class ConfigSynchronizer {
 
             int version = state().getInt(id(resourcePath) + ".version", 0);
             for (ConfigMigrations.Migration migration : ConfigMigrations.pending(resourcePath, version)) {
-                lines = migrate(lines, migration, notes);
+                lines = migrate(lines, defaultLines, migration, notes);
             }
 
             List<String> eligible = null;
@@ -110,19 +110,23 @@ public class ConfigSynchronizer {
                 plugin.getLogger().warning(resourcePath + ": could not add '" + skipped
                         + "' automatically - please add it by hand (see the default file in the plugin jar).");
             }
-            remember(resourcePath, defaultPaths, ConfigMigrations.latestVersion(resourcePath));
+            // Never step back: a version number used by a dropped dev-build
+            // migration must not make a later migration run twice.
+            remember(resourcePath, defaultPaths, Math.max(version, ConfigMigrations.latestVersion(resourcePath)));
         } catch (IOException e) {
             plugin.getLogger().log(Level.WARNING, "Could not update " + resourcePath + " automatically", e);
         }
     }
 
-    private List<String> migrate(List<String> lines, ConfigMigrations.Migration migration, List<String> notes) {
+    private List<String> migrate(List<String> lines, List<String> defaultLines, ConfigMigrations.Migration migration,
+                                 List<String> notes) {
         List<String> current = lines;
         int applied = 0;
         for (ConfigMigrations.Step step : migration.steps()) {
             List<String> next = switch (step) {
                 case ConfigMigrations.Rename rename -> ConfigUpdater.rename(current, rename.oldPath(), rename.newPath());
                 case ConfigMigrations.Remove remove -> ConfigUpdater.remove(current, remove.path());
+                case ConfigMigrations.Reset ignored -> new ArrayList<>(defaultLines);
             };
             if (next != null) {
                 current = next;

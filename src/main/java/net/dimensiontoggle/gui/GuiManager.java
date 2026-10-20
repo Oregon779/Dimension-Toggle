@@ -3,6 +3,7 @@ package net.dimensiontoggle.gui;
 import net.dimensiontoggle.DimensionToggle;
 import net.dimensiontoggle.config.ConfigValueWriter;
 import net.dimensiontoggle.manager.MaintenanceManager;
+import net.dimensiontoggle.manager.MobManagementManager;
 import net.dimensiontoggle.model.ToggleDimension;
 import net.dimensiontoggle.model.WorldScope;
 import net.dimensiontoggle.performance.LagMapScanner;
@@ -35,7 +36,11 @@ public class GuiManager implements Listener {
 
     private enum MenuType {
         MAIN, DIMENSION, PLAYERLIST, MAINTENANCE, MAINTENANCE_CUSTOM, SCHEDULE, MOBMANAGEMENT, WORLDBORDER,
-        OVERWORLD, OVERWORLD_MOBS, REPORT_LAG, REPORT_REDSTONE, REPORT_LOADERS
+        OVERWORLD, OVERWORLD_MOB_CATEGORIES, OVERWORLD_MOBS, REPORT_LAG, REPORT_REDSTONE, REPORT_LOADERS
+    }
+
+    // Which group/page of the Overworld mob list a player is looking at.
+    private record MobView(MobManagementManager.Category category, int page) {
     }
 
     // Shift-click cleanup in the lag map needs a second shift-click on the
@@ -56,10 +61,19 @@ public class GuiManager implements Listener {
     private final Map<UUID, OpenMenu> openMenus = new HashMap<>();
     private final Map<UUID, LagMapScanner.Sort> lagSort = new HashMap<>();
     private final Map<UUID, PendingCleanup> pendingCleanup = new HashMap<>();
+    private final Map<UUID, MobView> mobViews = new HashMap<>();
+    private final ChatInput chatInput;
     private BukkitTask refreshTask;
+    // Feedback sound of the click being handled (set by the toggles).
+    private String clickSound;
 
     public GuiManager(DimensionToggle plugin) {
         this.plugin = plugin;
+        this.chatInput = new ChatInput(plugin);
+    }
+
+    public ChatInput getChatInput() {
+        return chatInput;
     }
 
     public void start() {
@@ -77,6 +91,7 @@ public class GuiManager implements Listener {
     // these inventories anymore, so an admin could take the GUI items
     // (spawners, elytras, totems, ...) straight out of a menu left open.
     public void closeAllMenus() {
+        chatInput.clearAll();
         for (Map.Entry<UUID, OpenMenu> entry : new HashMap<>(openMenus).entrySet()) {
             Player player = Bukkit.getPlayer(entry.getKey());
             if (player == null) {
@@ -130,9 +145,13 @@ public class GuiManager implements Listener {
             case PLAYERLIST -> PlayerListGuiBuilder.build(plugin, dimension);
             case MAINTENANCE -> MaintenanceGuiBuilder.build(plugin, dimension);
             case SCHEDULE -> ScheduleGuiBuilder.build(plugin, dimension);
-            case MOBMANAGEMENT -> MobManagementGuiBuilder.build(plugin, WorldScope.of(dimension));
+            case MOBMANAGEMENT -> MobManagementGuiBuilder.build(plugin, WorldScope.of(dimension), null, 0);
             case OVERWORLD -> OverworldGuiBuilder.build(plugin);
-            case OVERWORLD_MOBS -> MobManagementGuiBuilder.build(plugin, WorldScope.OVERWORLD);
+            case OVERWORLD_MOB_CATEGORIES -> MobCategoryGuiBuilder.build(plugin);
+            case OVERWORLD_MOBS -> {
+                MobView view = mobView(viewer);
+                yield MobManagementGuiBuilder.build(plugin, WorldScope.OVERWORLD, view.category(), view.page());
+            }
             case REPORT_LAG -> ChunkReportGuiBuilder.build(plugin, ChunkReportGuiBuilder.Mode.LAG,
                     lagSort.getOrDefault(viewer, LagMapScanner.Sort.SCORE), pendingChunk(viewer));
             case REPORT_REDSTONE -> ChunkReportGuiBuilder.build(plugin, ChunkReportGuiBuilder.Mode.REDSTONE,
@@ -176,7 +195,11 @@ public class GuiManager implements Listener {
     // others only change when clicked and are refreshed right after that.
     private static final java.util.Set<MenuType> LIVE_MENUS = java.util.EnumSet.of(
             MenuType.MAIN, MenuType.DIMENSION, MenuType.PLAYERLIST, MenuType.MAINTENANCE, MenuType.MOBMANAGEMENT,
-            MenuType.OVERWORLD, MenuType.OVERWORLD_MOBS);
+            MenuType.OVERWORLD, MenuType.OVERWORLD_MOB_CATEGORIES, MenuType.OVERWORLD_MOBS);
+
+    private MobView mobView(UUID viewer) {
+        return mobViews.getOrDefault(viewer, new MobView(MobManagementManager.Category.MONSTERS, 0));
+    }
 
     private void refreshInPlace(OpenMenu menu, UUID viewer) {
         if (menu.type() != MenuType.MAINTENANCE_CUSTOM) {
@@ -248,6 +271,7 @@ public class GuiManager implements Listener {
     public void onQuit(org.bukkit.event.player.PlayerQuitEvent event) {
         lagSort.remove(event.getPlayer().getUniqueId());
         pendingCleanup.remove(event.getPlayer().getUniqueId());
+        mobViews.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
@@ -291,7 +315,9 @@ public class GuiManager implements Listener {
 
         String action = GuiItems.readAction(plugin, menu.inventory().getItem(event.getSlot()));
         if (action != null) {
+            clickSound = "click";
             handleAction(player, menu, action, event.getClick());
+            plugin.getSoundManager().playGui(player, clickSound);
         }
     }
 
@@ -349,21 +375,24 @@ public class GuiManager implements Listener {
             case "MAIN_OPEN_OVERWORLD" -> navigate(player, menu, MenuType.OVERWORLD, null);
             case "MAIN_LOCKDOWN" -> {
                 plugin.getDimensionManager().toggleLockdownWithBroadcast(player);
+                toggled(plugin.getDimensionManager().isLockdownActive());
                 refresh(player, menu);
             }
             case "MAIN_CLOSE" -> afterClick(player, menu, player::closeInventory);
 
             case "DIM_TOGGLE" -> {
                 plugin.getDimensionManager().setEnabled(dim, !plugin.getDimensionManager().isEnabled(dim), player);
+                toggled(plugin.getDimensionManager().isEnabled(dim));
                 refresh(player, menu);
             }
             case "DIM_SOFTLOCK" -> {
                 plugin.getDimensionManager().toggleSoftLockWithBroadcast(dim, player);
+                toggled(plugin.getDimensionManager().isLocked(dim));
                 refresh(player, menu);
             }
             case "DIM_PLAYERLIST" -> navigate(player, menu, MenuType.PLAYERLIST, dim);
             case "DIM_KEEPINV" -> {
-                plugin.getKeepInventoryManager().toggle(dim);
+                toggled(plugin.getKeepInventoryManager().toggle(dim));
                 refresh(player, menu);
             }
             case "DIM_LIMIT" -> {
@@ -375,40 +404,51 @@ public class GuiManager implements Listener {
             case "DIM_MOBMANAGEMENT" -> navigate(player, menu, MenuType.MOBMANAGEMENT, dim);
             case "DIM_WORLDBORDER" -> navigate(player, menu, MenuType.WORLDBORDER, dim);
             case "DIM_MOBSPAWN" -> {
-                plugin.getMobSpawnManager().toggle(dim);
+                toggled(plugin.getMobSpawnManager().toggle(dim));
                 refresh(player, menu);
             }
             case "DIM_PVP" -> {
-                plugin.getPvpIntegrationManager().toggle(dim);
+                toggled(plugin.getPvpIntegrationManager().toggle(dim));
                 refresh(player, menu);
             }
             case "DIM_SPAWNERS" -> {
-                plugin.getSpawnerToggleManager().toggle(dim);
+                toggled(plugin.getSpawnerToggleManager().toggle(dim));
                 refresh(player, menu);
             }
             case "DIM_ELYTRA" -> {
-                plugin.getElytraFlyManager().toggle();
+                toggled(plugin.getElytraFlyManager().toggle());
                 refresh(player, menu);
             }
             case "DIM_GATEWAY" -> {
-                toggleGateway();
+                toggled(!toggleGateway());
                 refresh(player, menu);
             }
+            case "DIM_PVP_UNAVAILABLE" -> clickSound = "error";
             case "DIM_BACK" -> navigate(player, menu, MenuType.MAIN, null);
 
             case "MOB_BACK" -> navigate(player, menu,
-                    menu.type() == MenuType.OVERWORLD_MOBS ? MenuType.OVERWORLD : MenuType.DIMENSION, dim);
+                    menu.type() == MenuType.OVERWORLD_MOBS ? MenuType.OVERWORLD_MOB_CATEGORIES : MenuType.DIMENSION, dim);
+            case "MOB_PAGE_NEXT", "MOB_PAGE_PREVIOUS" -> {
+                MobView view = mobView(player.getUniqueId());
+                int pages = MobManagementGuiBuilder.pageCount(view.category().mobs());
+                int page = Math.clamp(view.page() + (action.equals("MOB_PAGE_NEXT") ? 1 : -1), 0, pages - 1);
+                mobViews.put(player.getUniqueId(), new MobView(view.category(), page));
+                // The page number is part of the title, so reopen instead of redrawing.
+                navigate(player, menu, MenuType.OVERWORLD_MOBS, null);
+            }
+            case "MOBCAT_BACK" -> navigate(player, menu, MenuType.OVERWORLD, null);
             case "PLIST_BACK", "MAINT_BACK", "SCHED_BACK", "WB_BACK" ->
                     navigate(player, menu, MenuType.DIMENSION, dim);
 
             case "OW_BACK" -> navigate(player, menu, MenuType.MAIN, null);
-            case "OW_MOBMANAGEMENT" -> navigate(player, menu, MenuType.OVERWORLD_MOBS, null);
+            case "OW_MOBMANAGEMENT" -> navigate(player, menu, MenuType.OVERWORLD_MOB_CATEGORIES, null);
             case "OW_MOBSPAWN" -> {
-                plugin.getMobSpawnManager().toggle(WorldScope.OVERWORLD);
+                toggled(plugin.getMobSpawnManager().toggle(WorldScope.OVERWORLD));
                 refresh(player, menu);
             }
             case "OW_FARMLIMITER" -> {
                 boolean on = toggleConfigFlag(player, "farm-limiter", "enabled", false);
+                toggled(on);
                 if (on) {
                     plugin.getFarmLimiter().start();
                 } else if (!plugin.getFarmLimiter().isActive()) {
@@ -417,28 +457,36 @@ public class GuiManager implements Listener {
                 refresh(player, menu);
             }
             case "OW_ENTITYCAP" -> {
-                toggleConfigFlag(player, "entity-cap", "enabled", false);
+                toggled(toggleConfigFlag(player, "entity-cap", "enabled", false));
                 refresh(player, menu);
             }
             case "OW_VILLAGER" -> {
-                if (!toggleConfigFlag(player, "villager-optimizer", "enabled", false)) {
+                boolean on = toggleConfigFlag(player, "villager-optimizer", "enabled", false);
+                toggled(on);
+                if (!on) {
                     plugin.getVillagerOptimizer().unfreezeAll();
                 }
                 refresh(player, menu);
             }
             case "OW_ITEMCLEANER" -> {
-                toggleConfigFlag(player, "item-cleaner", "enabled", false);
+                if (click == ClickType.RIGHT) {
+                    askItemCleanerInterval(player, menu);
+                    return;
+                }
+                toggled(toggleConfigFlag(player, "item-cleaner", "enabled", false));
                 plugin.getItemCleaner().start();
                 refresh(player, menu);
             }
             case "OW_AFKVIEW" -> {
-                if (!toggleConfigFlag(player, "afk-view", "enabled", false) && !plugin.getAfkViewManager().isActive()) {
+                boolean on = toggleConfigFlag(player, "afk-view", "enabled", false);
+                toggled(on);
+                if (!on && !plugin.getAfkViewManager().isActive()) {
                     plugin.getAfkViewManager().restoreAll();
                 }
                 refresh(player, menu);
             }
             case "OW_AUTOPERF" -> {
-                toggleConfigFlag(player, "auto-performance", "enabled", false);
+                toggled(toggleConfigFlag(player, "auto-performance", "enabled", false));
                 refresh(player, menu);
             }
             case "OW_LAGMAP" -> {
@@ -447,6 +495,10 @@ public class GuiManager implements Listener {
             }
             case "OW_REDSTONE" -> navigate(player, menu, MenuType.REPORT_REDSTONE, null);
             case "OW_CHUNKLOADERS" -> navigate(player, menu, MenuType.REPORT_LOADERS, null);
+            case "OW_WEB" -> afterClick(player, menu, () -> {
+                player.closeInventory();
+                player.performCommand("dt web");
+            });
 
             case "CR_BACK" -> navigate(player, menu, MenuType.OVERWORLD, null);
             case "CR_REFRESH" -> {
@@ -465,11 +517,11 @@ public class GuiManager implements Listener {
             case "MAINT_CUSTOM" -> navigate(player, menu, MenuType.MAINTENANCE_CUSTOM, dim);
 
             case "SCHED_TOGGLE_ENABLED" -> {
-                toggleScheduleBoolean(dim, "enabled", false);
+                toggled(toggleScheduleBoolean(dim, "enabled", false));
                 refresh(player, menu);
             }
             case "SCHED_TOGGLE_COUNTDOWN" -> {
-                toggleScheduleBoolean(dim, "countdown-enabled", true);
+                toggled(toggleScheduleBoolean(dim, "countdown-enabled", true));
                 refresh(player, menu);
             }
 
@@ -497,10 +549,17 @@ public class GuiManager implements Listener {
         } else if (action.startsWith("SCHED_CLOSE_")) {
             setScheduleTime(dim, "close-time", action.substring("SCHED_CLOSE_".length()));
             refresh(player, menu);
+        } else if (action.startsWith("MOBCAT_")) {
+            try {
+                MobManagementManager.Category category = MobManagementManager.Category.valueOf(action.substring("MOBCAT_".length()));
+                mobViews.put(player.getUniqueId(), new MobView(category, 0));
+                navigate(player, menu, MenuType.OVERWORLD_MOBS, null);
+            } catch (IllegalArgumentException ignored) {
+                // unknown category - nothing to open
+            }
         } else if (action.startsWith("MOB_TOGGLE_")) {
-            handleMobToggle(menu.type() == MenuType.OVERWORLD_MOBS ? WorldScope.OVERWORLD : WorldScope.of(dim),
+            handleMobToggle(player, menu, menu.type() == MenuType.OVERWORLD_MOBS ? WorldScope.OVERWORLD : WorldScope.of(dim),
                     action.substring("MOB_TOGGLE_".length()), click);
-            refresh(player, menu);
         } else if (action.equals("WB_ADJUST")) {
             adjustWorldBorder(dim, click);
             refresh(player, menu);
@@ -612,19 +671,62 @@ public class GuiManager implements Listener {
         plugin.getMaintenanceManager().start(dimension, seconds, player);
     }
 
-    private void toggleGateway() {
+    private void toggled(boolean nowOn) {
+        clickSound = nowOn ? "toggle-on" : "toggle-off";
+    }
+
+    // Returns whether gateways are blocked now.
+    private boolean toggleGateway() {
         boolean current = plugin.getConfigManager().getConfig().getBoolean("block-end-gateways", true);
         plugin.getConfigManager().getConfig().set("block-end-gateways", !current);
         plugin.getConfigManager().persistConfigEdit("block-end-gateways",
                 path -> ConfigValueWriter.setNestedValue(path, String.valueOf(!current), "block-end-gateways"));
+        return !current;
     }
 
-    private void toggleScheduleBoolean(ToggleDimension dimension, String key, boolean defaultValue) {
+    private boolean toggleScheduleBoolean(ToggleDimension dimension, String key, boolean defaultValue) {
         String path = "schedule." + dimension.getKey() + "." + key;
         boolean current = plugin.getConfigManager().getConfig().getBoolean(path, defaultValue);
         plugin.getConfigManager().getConfig().set(path, !current);
         plugin.getConfigManager().persistConfigEdit(path,
                 file -> ConfigValueWriter.setNestedValue(file, String.valueOf(!current), "schedule", dimension.getKey(), key));
+        return !current;
+    }
+
+    // Closes the menu, asks for a time in the chat and opens the same menu
+    // again afterwards (also after a cancel or the timeout).
+    private void askInChat(Player player, OpenMenu menu, String what, String current, java.util.function.IntConsumer apply) {
+        afterClick(player, menu, () -> {
+            player.closeInventory();
+            chatInput.ask(player, new ChatInput.Request(what, current, apply,
+                    () -> open(player, menu.type(), menu.dimension())));
+        });
+    }
+
+    private void askItemCleanerInterval(Player player, OpenMenu menu) {
+        var config = plugin.getConfigManager().getConfig();
+        String current = config.getBoolean("item-cleaner.enabled", false)
+                ? plugin.getMessageManager().formatDuration(Math.max(1, config.getInt("item-cleaner.interval-minutes", 10)) * 60)
+                : plugin.getMessageManager().get("chat-input-off-word", "off");
+        askInChat(player, menu, plugin.getMessageManager().get("chat-input-what-item-cleaner", "Item cleaner"), current,
+                minutes -> setItemCleanerInterval(player, minutes));
+    }
+
+    // 0 switches the cleaner off; any other value sets the interval and
+    // switches it on.
+    private void setItemCleanerInterval(Player player, int minutes) {
+        var config = plugin.getConfigManager().getConfig();
+        boolean enable = minutes > 0;
+        if (enable) {
+            config.set("item-cleaner.interval-minutes", minutes);
+            plugin.getConfigManager().persistConfigEdit("item-cleaner.interval-minutes",
+                    file -> ConfigValueWriter.setNestedValue(file, String.valueOf(minutes), "item-cleaner", "interval-minutes"));
+        }
+        if (config.getBoolean("item-cleaner.enabled", false) != enable) {
+            toggleConfigFlag(player, "item-cleaner", "enabled", false);
+        }
+        plugin.getLogManager().log(player, "ITEM CLEANER INTERVAL", null, enable ? minutes + " min" : "off");
+        plugin.getItemCleaner().start();
     }
 
     private void setScheduleTime(ToggleDimension dimension, String key, String time) {
@@ -634,7 +736,9 @@ public class GuiManager implements Listener {
                 file -> ConfigValueWriter.setNestedValue(file, "\"" + time + "\"", "schedule", dimension.getKey(), key));
     }
 
-    private void handleMobToggle(WorldScope dimension, String entityTypeName, ClickType click) {
+    // Click: spawning on/off · shift-click: cleanup presets · right-click:
+    // own cleanup interval in the chat.
+    private void handleMobToggle(Player player, OpenMenu menu, WorldScope dimension, String entityTypeName, ClickType click) {
         EntityType type;
         try {
             type = EntityType.valueOf(entityTypeName);
@@ -642,11 +746,26 @@ public class GuiManager implements Listener {
             return;
         }
 
+        MobManagementManager mobs = plugin.getMobManagementManager();
         if (click.isShiftClick()) {
-            plugin.getMobManagementManager().cycleCleanupMinutes(dimension, type);
+            toggled(mobs.cycleCleanupMinutes(dimension, type) > 0);
+        } else if (click == ClickType.RIGHT) {
+            int minutes = mobs.getCleanupMinutes(dimension, type);
+            String current = minutes > 0 ? plugin.getMessageManager().formatDuration(minutes * 60)
+                    : plugin.getMessageManager().get("chat-input-off-word", "off");
+            String what = GuiItems.sub(plugin.getMessageManager().get("chat-input-what-mob", "%mob% (%dimension%)"), Map.of(
+                    "mob", MobManagementGuiBuilder.prettifyName(type.name()),
+                    "dimension", plugin.getMessageManager().getDimensionName(dimension.getKey())));
+            askInChat(player, menu, what, current, value -> {
+                mobs.setCleanupMinutes(dimension, type, value);
+                plugin.getLogManager().log(player, "MOB CLEANUP INTERVAL", null,
+                        dimension.getKey() + " " + type.name() + " " + (value > 0 ? value + " min" : "off"));
+            });
+            return;
         } else {
-            plugin.getMobManagementManager().toggleSpawnEnabled(dimension, type);
+            toggled(mobs.toggleSpawnEnabled(dimension, type));
         }
+        refresh(player, menu);
     }
 
     private void adjustWorldBorder(ToggleDimension dimension, ClickType click) {

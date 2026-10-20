@@ -75,6 +75,11 @@ public class LagMapScanner {
         cachedAt = 0;
     }
 
+    // Cheaper variant for the website: entities only, no block entities.
+    public List<ChunkStats> quickTop(int limit) {
+        return scan(false).stream().sorted(Sort.SCORE.comparator()).limit(limit).toList();
+    }
+
     List<ChunkStats> scan(boolean includeBlockEntities) {
         ConfigurationSection weights = plugin.getConfigManager().getConfig().getConfigurationSection("lagmap.weights");
         int wMob = weight(weights, "mob", 3);

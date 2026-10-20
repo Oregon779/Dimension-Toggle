@@ -35,38 +35,44 @@ public final class ScheduleGuiBuilder {
         timesPlaceholders.put("open-time", openTime);
         timesPlaceholders.put("close-time", closeTime);
 
-        inventory.setItem(4, GuiItems.build(plugin, scheduleEnabled ? Material.LIME_DYE : Material.GRAY_DYE,
+        inventory.setItem(3, GuiItems.build(plugin, scheduleEnabled ? Material.LIME_DYE : Material.GRAY_DYE,
                 "SCHED_TOGGLE_ENABLED",
                 guiCfg.getString(base + "toggle-button." + (scheduleEnabled ? "name-on" : "name-off")),
                 GuiItems.subList(guiCfg.getStringList(base + "toggle-button.lore"), timesPlaceholders), scheduleEnabled));
 
-        inventory.setItem(20, GuiItems.build(plugin, Material.YELLOW_STAINED_GLASS_PANE, null,
-                guiCfg.getString(base + "open-time-header"), null));
-        inventory.setItem(24, GuiItems.build(plugin, Material.ORANGE_STAINED_GLASS_PANE, null,
-                guiCfg.getString(base + "close-time-header"), null));
+        inventory.setItem(13, GuiItems.build(plugin, Material.SUNFLOWER, null,
+                guiCfg.getString(base + "open-time-header"), GuiItems.subList(guiCfg.getStringList(base + "open-time-header-lore"), timesPlaceholders)));
+        inventory.setItem(31, GuiItems.build(plugin, Material.CRYING_OBSIDIAN, null,
+                guiCfg.getString(base + "close-time-header"), GuiItems.subList(guiCfg.getStringList(base + "close-time-header-lore"), timesPlaceholders)));
 
-        int[] openSlots = {28, 29, 30, 31, 32, 33, 34};
+        int[] openSlots = {19, 20, 21, 22, 23, 24, 25};
         String openLoreTemplate = guiCfg.getString(base + "open-time-lore");
         for (int i = 0; i < TIME_PRESETS.length; i++) {
-            inventory.setItem(openSlots[i], GuiItems.build(plugin, Material.LIME_DYE, "SCHED_OPEN_" + TIME_PRESETS[i],
-                    "&a" + TIME_PRESETS[i], List.of(GuiItems.sub(openLoreTemplate, Map.of("time", TIME_PRESETS[i])))));
+            boolean selected = TIME_PRESETS[i].equals(openTime);
+            inventory.setItem(openSlots[i], GuiItems.build(plugin, selected ? Material.LIME_CONCRETE : Material.LIME_DYE,
+                    "SCHED_OPEN_" + TIME_PRESETS[i],
+                    GuiItems.sub(guiCfg.getString(base + "open-time-name", "&a%time%"), Map.of("time", TIME_PRESETS[i])),
+                    List.of(GuiItems.sub(openLoreTemplate, Map.of("time", TIME_PRESETS[i]))), selected));
         }
 
         int[] closeSlots = {37, 38, 39, 40, 41, 42, 43};
         String closeLoreTemplate = guiCfg.getString(base + "close-time-lore");
         for (int i = 0; i < TIME_PRESETS.length; i++) {
-            inventory.setItem(closeSlots[i], GuiItems.build(plugin, Material.RED_DYE, "SCHED_CLOSE_" + TIME_PRESETS[i],
-                    "&c" + TIME_PRESETS[i], List.of(GuiItems.sub(closeLoreTemplate, Map.of("time", TIME_PRESETS[i])))));
+            boolean selected = TIME_PRESETS[i].equals(closeTime);
+            inventory.setItem(closeSlots[i], GuiItems.build(plugin, selected ? Material.RED_CONCRETE : Material.RED_DYE,
+                    "SCHED_CLOSE_" + TIME_PRESETS[i],
+                    GuiItems.sub(guiCfg.getString(base + "close-time-name", "&c%time%"), Map.of("time", TIME_PRESETS[i])),
+                    List.of(GuiItems.sub(closeLoreTemplate, Map.of("time", TIME_PRESETS[i]))), selected));
         }
 
-        inventory.setItem(49, GuiItems.build(plugin, Material.BELL, "SCHED_TOGGLE_COUNTDOWN",
+        inventory.setItem(5, GuiItems.build(plugin, Material.BELL, "SCHED_TOGGLE_COUNTDOWN",
                 guiCfg.getString(base + "countdown-button." + (countdownEnabled ? "name-on" : "name-off")),
                 guiCfg.getStringList(base + "countdown-button.lore"), countdownEnabled));
 
-        GuiItems.fillBorderAndFiller(inventory, plugin, dimension, 6);
+        inventory.setItem(49, GuiItems.build(plugin, Material.ARROW, "SCHED_BACK",
+                guiCfg.getString(base + "back-button.name"), DimensionGuiBuilder.lore(guiCfg, base + "back-button.lore", Map.of())));
 
-        inventory.setItem(45, GuiItems.build(plugin, Material.ARROW, "SCHED_BACK",
-                guiCfg.getString(base + "back-button.name"), guiCfg.getStringList(base + "back-button.lore")));
+        GuiItems.frame(inventory, plugin, GuiItems.themeFor(dimension), 6);
 
         return inventory;
     }

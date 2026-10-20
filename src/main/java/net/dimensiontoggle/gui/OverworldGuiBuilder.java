@@ -18,12 +18,11 @@ import java.util.Map;
 // optimizers (all off by default) and the lag tools.
 public final class OverworldGuiBuilder {
 
-    private static final int DASHBOARD_SLOT = 31;
-    private static final int[] INTERIOR_SLOTS = {
-            19, 20, 21, 22, 23, 24, 25,
-            28, 29, 30,  32, 33, 34,
-            37, 38, 39, 40, 41, 42, 43
-    };
+    // Five rows: dashboard on top, then mob settings (row 1), optimizers
+    // (row 2) and lag tools (row 3), "back" at the bottom.
+    static final int ROWS = 5;
+    static final int DASHBOARD_SLOT = 4;
+    static final int BACK_SLOT = 40;
 
     private OverworldGuiBuilder() {
     }
@@ -33,7 +32,7 @@ public final class OverworldGuiBuilder {
         String base = "panel.";
         var config = plugin.getConfigManager().getConfig();
 
-        Inventory inventory = Bukkit.createInventory(null, 54,
+        Inventory inventory = Bukkit.createInventory(null, ROWS * 9,
                 plugin.getMessageManager().parse(cfg.getString(base + "title", "&a&lOverworld")));
 
         String on = cfg.getString("state-on", "&aON");
@@ -67,6 +66,8 @@ public final class OverworldGuiBuilder {
         features.add(toggle(plugin, cfg, base + "item-cleaner", cleaner ? Material.HOPPER : Material.DROPPER,
                 "OW_ITEMCLEANER", cleaner, on, off,
                 Map.of("minutes", String.valueOf(config.getInt("item-cleaner.interval-minutes", 10)),
+                        "interval", plugin.getMessageManager().formatDuration(
+                                Math.max(1, config.getInt("item-cleaner.interval-minutes", 10)) * 60),
                         "next", secondsLeft < 0 ? "-" : plugin.getMessageManager().formatDuration(secondsLeft))));
 
         boolean afk = plugin.getAfkViewManager().isConfiguredOn();
@@ -91,16 +92,21 @@ public final class OverworldGuiBuilder {
         features.add(GuiItems.build(plugin, Material.LODESTONE, "OW_CHUNKLOADERS",
                 cfg.getString(base + "chunkloaders.name"), cfg.getStringList(base + "chunkloaders.lore")));
 
-        for (int i = 0; i < features.size() && i < INTERIOR_SLOTS.length; i++) {
-            inventory.setItem(INTERIOR_SLOTS[i], features.get(i));
-        }
+        boolean web = plugin.getPerformanceWebServer().isRunning();
+        features.add(GuiItems.build(plugin, web ? Material.SPYGLASS : Material.GRAY_DYE, "OW_WEB",
+                cfg.getString(base + "web." + (web ? "name-on" : "name-off")),
+                cfg.getStringList(base + "web." + (web ? "lore-on" : "lore-off")), web));
+
+        // 2 mob settings, 6 optimizers, 4 tools - one group per row.
+        GuiItems.place(inventory, 1, features.subList(0, 2));
+        GuiItems.place(inventory, 2, features.subList(2, 8));
+        GuiItems.place(inventory, 3, features.subList(8, features.size()));
 
         inventory.setItem(DASHBOARD_SLOT, dashboard(plugin, cfg, base));
-        inventory.setItem(49, GuiItems.build(plugin, Material.ARROW, "OW_BACK",
-                cfg.getString(base + "back-button.name"), cfg.getStringList(base + "back-button.lore")));
+        inventory.setItem(BACK_SLOT, GuiItems.build(plugin, Material.ARROW, "OW_BACK",
+                cfg.getString(base + "back-button.name"), DimensionGuiBuilder.lore(cfg, base + "back-button.lore", Map.of())));
 
-        GuiItems.fillBorderAndFiller(inventory, plugin, GuiItems.fillerFor(WorldScope.OVERWORLD),
-                GuiItems.borderFor(WorldScope.OVERWORLD), 6);
+        GuiItems.frame(inventory, plugin, GuiItems.Theme.OVERWORLD, ROWS);
         return inventory;
     }
 

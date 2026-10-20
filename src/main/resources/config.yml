@@ -40,6 +40,28 @@ dimensions:
 # "notification" display-channel choice, since sound isn't a visual channel.
 sounds-enabled: true
 
+# Short sounds in the /dt editor menus: a click, switching something on or
+# off, and an error (e.g. an invalid input). Sound names: classic names
+# (UI_BUTTON_CLICK) or Minecraft keys (ui.button.click).
+gui-sounds:
+  enabled: true
+  click:
+    sound: UI_BUTTON_CLICK
+    volume: 0.6
+    pitch: 1.2
+  toggle-on:
+    sound: BLOCK_NOTE_BLOCK_PLING
+    volume: 0.7
+    pitch: 1.6
+  toggle-off:
+    sound: BLOCK_NOTE_BLOCK_BASS
+    volume: 0.7
+    pitch: 0.8
+  error:
+    sound: ENTITY_VILLAGER_NO
+    volume: 0.7
+    pitch: 1.0
+
 # ---------- NETHER ----------
 nether:
   activate:
@@ -334,6 +356,19 @@ limits:
     max-players: 5
 
 # =====================================================================
+#   MOB MANAGEMENT
+# =====================================================================
+# Spawning and automatic cleanup per mob type are set in /dt editor (Mob
+# Management of each dimension). The automatic cleanup never removes:
+mob-management:
+  # mobs with a name tag
+  protect-named: true
+  # tamed animals (dogs, cats, horses, parrots, ...)
+  protect-tamed: true
+  # villagers with a profession (nitwits and unemployed ones are removed)
+  protect-villagers-with-profession: true
+
+# =====================================================================
 #   LOGGING
 # =====================================================================
 logging:
@@ -434,3 +469,15 @@ auto-performance:
   recover-mspt: 35
   afk-minutes: 2
   farm-group-size: 10
+
+# A small read-only website with TPS, MSPT, memory, worlds and the busiest
+# chunks. /dt web shows the link. Needs a free port (on rented servers this
+# usually has to be added as an extra port in your host's panel).
+web:
+  enabled: false
+  port: 8105
+  bind-address: "0.0.0.0"
+  # Address shown by /dt web, e.g. "http://play.example.net:8105"
+  public-url: ""
+  # Without the secret token from /dt web the page can't be opened.
+  require-token: true

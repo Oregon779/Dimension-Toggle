@@ -71,6 +71,21 @@ public class SoundManager {
         playForAll(targets, "schedule.sound.warning");
     }
 
+    // Editor feedback: "click", "toggle-on", "toggle-off" or "error".
+    public void playGui(Player player, String kind) {
+        if (!plugin.getConfigManager().getConfig().getBoolean("gui-sounds.enabled", true)) {
+            return;
+        }
+        String path = "gui-sounds." + kind;
+        ConfigurationSection section = plugin.getConfigManager().getConfig().getConfigurationSection(path);
+        if (section == null) {
+            return;
+        }
+        playSoundSafely(player, path, section.getString("sound", ""),
+                (float) section.getDouble("volume", 1.0),
+                (float) section.getDouble("pitch", 1.0));
+    }
+
     private void playPrefixed(Player player, String path) {
         if (!soundsEnabled()) {
             return;

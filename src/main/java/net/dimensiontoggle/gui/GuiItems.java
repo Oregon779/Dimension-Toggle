@@ -110,59 +110,82 @@ public final class GuiItems {
         }
     }
 
-    public static Material fillerFor(WorldScope scope) {
+    // One color theme per area: the frame is the area's color with accent
+    // corners, the inside is dark so the buttons stand out.
+    public enum Theme {
+        MAIN(Material.PURPLE_STAINED_GLASS_PANE, Material.MAGENTA_STAINED_GLASS_PANE),
+        NETHER(Material.RED_STAINED_GLASS_PANE, Material.ORANGE_STAINED_GLASS_PANE),
+        END(Material.MAGENTA_STAINED_GLASS_PANE, Material.PINK_STAINED_GLASS_PANE),
+        OVERWORLD(Material.LIME_STAINED_GLASS_PANE, Material.GREEN_STAINED_GLASS_PANE);
+
+        static final Material INSIDE = Material.BLACK_STAINED_GLASS_PANE;
+
+        final Material border;
+        final Material corner;
+
+        Theme(Material border, Material corner) {
+            this.border = border;
+            this.corner = corner;
+        }
+    }
+
+    public static Theme themeFor(ToggleDimension dimension) {
+        return dimension == ToggleDimension.NETHER ? Theme.NETHER : Theme.END;
+    }
+
+    public static Theme themeFor(WorldScope scope) {
         return switch (scope) {
-            case OVERWORLD -> Material.GREEN_STAINED_GLASS_PANE;
-            case NETHER -> fillerFor(ToggleDimension.NETHER);
-            case END -> fillerFor(ToggleDimension.END);
+            case OVERWORLD -> Theme.OVERWORLD;
+            case NETHER -> Theme.NETHER;
+            case END -> Theme.END;
         };
     }
 
-    public static Material borderFor(WorldScope scope) {
-        return switch (scope) {
-            case OVERWORLD -> Material.LIME_STAINED_GLASS_PANE;
-            case NETHER -> borderFor(ToggleDimension.NETHER);
-            case END -> borderFor(ToggleDimension.END);
-        };
-    }
-
-    public static Material fillerFor(ToggleDimension dimension) {
-        return dimension == ToggleDimension.NETHER
-                ? Material.BLACK_STAINED_GLASS_PANE
-                : Material.PURPLE_STAINED_GLASS_PANE;
-    }
-
-    public static Material borderFor(ToggleDimension dimension) {
-        return dimension == ToggleDimension.NETHER
-                ? Material.ORANGE_STAINED_GLASS_PANE
-                : Material.MAGENTA_STAINED_GLASS_PANE;
-    }
-
-    // Fills every still-empty slot, using the border material on the true
-    // outer edge (top row, bottom row, left/right columns) and the plain
-    // filler everywhere else - a cheap two-tone "frame" instead of one flat
-    // color, without touching any slot a builder already placed a button in.
-    public static void fillBorderAndFiller(Inventory inventory, DimensionToggle plugin,
-                                            Material fillerMaterial, Material borderMaterial, int rows) {
-        ItemStack fillerItem = build(plugin, fillerMaterial, null, " ", null);
-        ItemStack borderItem = build(plugin, borderMaterial, null, " ", null);
+    // Fills every still-empty slot: the outer edge in the theme color with
+    // accent corners, everything inside dark. Slots a builder already put a
+    // button in are left alone.
+    public static void frame(Inventory inventory, DimensionToggle plugin, Theme theme, int rows) {
+        ItemStack inside = build(plugin, Theme.INSIDE, null, " ", null);
+        ItemStack border = build(plugin, theme.border, null, " ", null);
+        ItemStack corner = build(plugin, theme.corner, null, " ", null);
         int lastRow = rows - 1;
-        int size = rows * 9;
-
-        for (int slot = 0; slot < size; slot++) {
+        for (int slot = 0; slot < rows * 9; slot++) {
             if (inventory.getItem(slot) != null) {
                 continue;
             }
             int row = slot / 9;
             int col = slot % 9;
-            boolean isBorder = row == 0 || row == lastRow || col == 0 || col == 8;
-            inventory.setItem(slot, isBorder ? borderItem : fillerItem);
+            boolean edgeRow = row == 0 || row == lastRow;
+            boolean edgeCol = col == 0 || col == 8;
+            inventory.setItem(slot, edgeRow && edgeCol ? corner : edgeRow || edgeCol ? border : inside);
         }
     }
 
-    public static void fillBorderAndFiller(Inventory inventory, DimensionToggle plugin,
-                                            ToggleDimension dimension, int rows) {
-        fillBorderAndFiller(inventory, plugin, fillerFor(dimension), borderFor(dimension), rows);
+    // Slots for `count` buttons in one inner row (columns 1-7), spread so
+    // the row stays symmetric. More than 7 are cut off.
+    public static int[] centeredSlots(int row, int count) {
+        int[] columns = switch (Math.min(count, 7)) {
+            case 0 -> new int[0];
+            case 1 -> new int[]{4};
+            case 2 -> new int[]{3, 5};
+            case 3 -> new int[]{2, 4, 6};
+            case 4 -> new int[]{1, 3, 5, 7};
+            case 5 -> new int[]{2, 3, 4, 5, 6};
+            case 6 -> new int[]{1, 2, 3, 5, 6, 7};
+            default -> new int[]{1, 2, 3, 4, 5, 6, 7};
+        };
+        int[] slots = new int[columns.length];
+        for (int i = 0; i < columns.length; i++) {
+            slots[i] = row * 9 + columns[i];
+        }
+        return slots;
+    }
+
+    public static void place(Inventory inventory, int row, List<ItemStack> items) {
+        int[] slots = centeredSlots(row, items.size());
+        for (int i = 0; i < slots.length; i++) {
+            inventory.setItem(slots[i], items.get(i));
+        }
     }
 
     public static String readAction(DimensionToggle plugin, ItemStack item) {

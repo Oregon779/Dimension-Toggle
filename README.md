@@ -6,7 +6,7 @@ World Border, PvP-/Keep-Inventory-/Elytra-Schaltern, Logging und einem
 kompletten Klick-Editor im Spiel (`/dt editor`). Dazu eine Overworld- und
 Performance-Ebene: Farm-Limiter, Entity-Cap, Villager-Optimierer,
 Item-Aufräumer, AFK-Sichtweite, Auto-Performance-Modus, `/lagmap`,
-Redstone-Meter, Chunk-Loader-Melder, PlaceholderAPI und
+Redstone-Meter, Chunk-Loader-Melder, Performance-Website, PlaceholderAPI und
 bStats.
 
 **📖 Komplette Anleitung: [WIKI.md](WIKI.md)** – alle Features, Commands,
@@ -36,6 +36,7 @@ Permissions, Config-Optionen, der Editor und eine FAQ.
 | `/dt lagmap [chat]` / `/lagmap` | Vollste Chunks aller Welten (Klick = Teleport) | `dimensiontoggle.lagmap` |
 | `/dt redstone [chat]` | Chunks mit dem schnellsten Redstone | `dimensiontoggle.redstone` |
 | `/dt chunkloaders [chat]` | Chunks, die ohne Spieler geladen sind | `dimensiontoggle.chunkloaders` |
+| `/dt web [reset-token]` | Link zur Performance-Website | `dimensiontoggle.performance` |
 | `/dt help` | Zeigt die Commands, die man nutzen darf | – |
 
 Aliase: `/dt`, `/dimtoggle`. Details: [WIKI.md → Commands](WIKI.md#4-commands).
@@ -50,6 +51,7 @@ Aliase: `/dt`, `/dimtoggle`. Details: [WIKI.md → Commands](WIKI.md#4-commands)
 | `dimensiontoggle.bypass.limit.nether` | OP | Nur das Nether-Limit ignorieren |
 | `dimensiontoggle.bypass.limit.end` | OP | Nur das End-Limit ignorieren |
 | `dimensiontoggle.lagmap` / `.redstone` / `.chunkloaders` | OP | Die jeweiligen Lag-Werkzeuge |
+| `dimensiontoggle.performance` | OP | `/dt web` |
 | `dimensiontoggle.performance.notify` | OP | Redstone- und Auto-Performance-Warnungen |
 | `dimensiontoggle.afk.bypass` | niemand | Sichtweite wird bei AFK nie gesenkt |
 
@@ -1038,14 +1040,16 @@ Drag, Schließen beim Deaktivieren), Portal-Listener, Commands, Batch-Teleport.
 Neuer Bereich im Editor (Grasblock im Hauptmenü). Alles, was das
 Spielverhalten verändert, ist standardmäßig **aus**.
 - **Mob-Kontrolle für die Overworld**: Gamerule `spawn_mobs` und
-  Mob-Management für 28 Overworld-Mobs (wie bei Nether/End).
+  Mob-Management für **alle 76 Lebewesen der Overworld** - in vier Gruppen
+  (Monster, Tiere, Wasser, Sonstige) und blätterbar.
 - **Farm-Limiter**: große Tiergruppen (Standard ab 20 einer Art pro Chunk)
   verlieren KI und Kollision, bis ein Spieler eines der Tiere schlägt.
 - **Entity-Cap**: max. Tiere/Dorfbewohner eines Typs pro Chunk (Standard 40),
   darüber kein Züchten/Spawnen mehr.
 - **Villager-Optimierer**: stillstehende Dorfbewohner (Handelshallen)
   verlieren ihre KI, Handel funktioniert weiter, Auffüllen 2× pro Tag.
-- **Item-Aufräumer**: entfernt liegende Items mit Chat-Warnungen.
+- **Item-Aufräumer**: entfernt liegende Items mit Chat-Warnungen; Intervall
+  per Rechtsklick frei im Chat einstellbar.
 - **AFK-Sichtweite**: Sichtweite (optional Simulationsdistanz) von
   AFK-Spielern wird gesenkt und bei Aktivität sofort wiederhergestellt.
 - **Auto-Performance-Modus**: bei anhaltend hoher MSPT laufen AFK-Sichtweite
@@ -1057,6 +1061,31 @@ Spielverhalten verändert, ist standardmäßig **aus**.
   Staff-Warnung.
 - **Chunk-Loader-Melder** (`/dt chunkloaders`): Chunks, die ohne Spieler in
   der Nähe tickend geladen sind, mit Grund (/forceload, Plugin, Enderperle).
+- **Performance-Website** (`/dt web`): TPS, MSPT, RAM, CPU, Welten,
+  vollste Chunks und Verlauf der letzten Stunde im Browser - dunkles,
+  modernes Design, eigene Diagramme für MSPT und TPS mit Werten beim
+  Drüberfahren, handytauglich. Geschützt durch einen geheimen Token,
+  standardmäßig aus (braucht einen freien Port).
+- **Eigene Aufräum-Zeiten im Chat**: Rechtsklick auf einen Mob im
+  Mob-Management (alle Dimensionen) oder auf den Item-Aufräumer, dann z.B.
+  `15m`, `2h` oder `1h30m` in den Chat schreiben (1 Minute bis 24 Stunden,
+  `0` = aus). Die Eingabe erscheint nicht im öffentlichen Chat.
+- **Mob-Aufräumen verschont** Mobs mit Namensschild, gezähmte Tiere und
+  Dorfbewohner mit Beruf (`mob-management.protect-*`, einzeln abschaltbar).
+
+### Neu: Editor im neuen Design
+- Jeder Bereich hat seine Farbe (Hauptmenü lila, Nether rot/orange, End
+  violett, Overworld grün): farbiger Rahmen mit Akzent-Ecken, dunkler
+  Innenbereich.
+- Buttons nach Themen gruppiert (Zugang, Automatik, Regeln, Verwaltung)
+  und symmetrisch angeordnet; die Menüs sind kompakter (5 statt 6 Reihen).
+- Einheitliche Texte: kleine Gruppen-Überschrift, ● grün = an / ● rot = aus,
+  gelbe Zeilen sagen, was ein Klick macht.
+- Klick-Sounds (Klick, an, aus, Fehler), einstellbar unter `gui-sounds`.
+- Hauptmenü mit Server-Info (Spieler online, TPS, MSPT, Version) und
+  Spielerzahl je Dimension.
+- Die GUI-Configs werden beim Update **einmalig** durch die neuen ersetzt -
+  die alten landen als Backup in `backups/`.
 - **PlaceholderAPI**: `%dimensiontoggle_nether_status%` u.v.m.
 - **bStats**-Unterstützung.
 

@@ -69,7 +69,7 @@ geprüft; Entfernen aus Dimensionen mit `%player%`-Konsolen-Commands +
 Ebenfalls gewünscht: **PlaceholderAPI-Support** (Nutzer hat PlaceholderAPI
 2.11.6 und VaultAPI 1.7 als Jars bereitgestellt; Vault vorerst nicht nötig).
 
-**Stand 3.3.0-dev2: alle Punkte unten sind gebaut (dev3: automatische Config-Updates)** (Nutzer wollte alles auf
+**Stand 3.3.0-dev2: alle Punkte unten sind gebaut (dev3: automatische Config-Updates; dev5: Enderperlen-Fix; dev6: Website zurück mit neuem Design, alle Overworld-Mobs in Gruppen, Chat-Eingabe für Intervalle, Editor-Redesign)** (Nutzer wollte alles auf
 einmal ohne weitere Rückfragen). Offen: bStats-Plugin-ID
 (`DimensionToggle.BSTATS_PLUGIN_ID`, 0 = aus) vom Nutzer besorgen.
 
@@ -87,8 +87,8 @@ Ursprüngliche Planung:
 4. AFK-Sichtweite (Render-/Simulationsdistanz nach AFK-Intervall).
 5. Redstone-Clock-Meter.
 6. Chunk-Loader-Melder.
-7. ~~Performance-Website~~ - in dev4 auf Wunsch des Nutzers wieder entfernt
-   (Migrationen räumen `web:`, die Texte und `web.token` aus alten Dateien).
+7. Performance-Website per Command (TPS, MSPT, …) - in dev4 kurz entfernt, in dev6
+   auf Wunsch zurück mit neuem dunklem Design.
 8. bStats (Plugin-ID vom Nutzer nötig).
 Zusätzlich gewählt: Villager-Optimierung, Entity-Cap pro Chunk,
 Boden-Item-Aufräumer, Auto-Performance-Modus, Hopper-/Block-Entity-Zähler
@@ -188,7 +188,9 @@ Package layout under `net.dimensiontoggle`:
   GUI config *before* each one is read (start + `/dt reload`). It (1) runs
   pending `ConfigMigrations` (versioned, idempotent rename/remove steps -
   add one there when an option is renamed or dropped; a *new* option needs
-  nothing but the default file), (2) inserts options missing from the user
+  nothing but the default file; `Step.reset()` replaces a whole file once,
+  used for the 3.3.0 GUI redesign - gui files are at version 3, and stored
+  versions never step back, so new migrations must use higher numbers), (2) inserts options missing from the user
   file via `ConfigUpdater.merge` - nested too, after the nearest preceding
   sibling, with the default's comments, in the user's indentation, every
   insertion re-parsed and rejected if any old value changes (`YamlLines` is
@@ -214,13 +216,17 @@ Package layout under `net.dimensiontoggle`:
   `DimensionToggle.onEnable()` and reached from anywhere via
   `plugin.getXManager()` getters - there's no DI framework.
 - **`performance`** - the Overworld & performance layer (3.3.0):
-  `PerformanceMonitor` (5 s main-thread samples for the editor dashboard,
-  published as an immutable snapshot), `LagMapScanner`, `RedstoneMeter` (event counters
+  `PerformanceMonitor` (5 s main-thread samples, 1 h history, published as
+  an immutable snapshot), `LagMapScanner`, `RedstoneMeter` (event counters
   per chunk, 20 s windows), `ChunkLoaderDetector`, `ChunkReports` (shared
   clickable chat lists + `/dt tpchunk`), optimizers `FarmLimiter`,
   `VillagerOptimizer` (both via `EntityFreezer`: AI off + PDC tag, woken by
   `FreezeListener` on player hit / chunk load), `EntityCapListener`,
-  `ItemCleaner`, `AfkViewManager` and `AutoPerformanceManager`. Gameplay-changing optimizers default to OFF and are toggled
+  `ItemCleaner`, `AfkViewManager`, `AutoPerformanceManager`, and
+  `web.PerformanceWebServer` (JDK `HttpServer`, own thread, token in
+  data.yml, serves only the monitor snapshot - never touch Bukkit API from
+  it; page in `src/main/resources/web/index.html`, excluded from resource
+  filtering). Gameplay-changing optimizers default to OFF and are toggled
   in the Overworld panel (`OverworldGuiBuilder`); lag reports share
   `ChunkReportGuiBuilder`. `model.WorldScope` (OVERWORLD/NETHER/END) is
   used where the Overworld counts too (mob management, spawn gamerule) -
@@ -241,7 +247,8 @@ Package layout under `net.dimensiontoggle`:
   its `PersistentDataContainer` (set by `GuiItems.build(...)`), and
   `GuiManager.onClick` / `handleAction` / `handlePrefixedAction` route on
   that string (`"DIM_TOGGLE"`, `"MAINT_START_5m"`, `"WB_PRESET_10000"`,
-  ...) rather than on slot index. Each menu has its own stateless
+  ...) rather than on slot index (tests look buttons up by action, not
+  slot). Each menu has its own stateless
   `*GuiBuilder.build(plugin, ...)` returning a fresh `Inventory`;
   `GuiManager` tracks which menu a player currently has open in
   `openMenus` and re-`build()`s it once/second via `refreshAll()` so live
@@ -251,6 +258,17 @@ Package layout under `net.dimensiontoggle`:
   redraw through `afterClick()` (next tick, only if the same menu is still
   open). `closeAllMenus()` runs in `onDisable` - menus left open after
   disable are no longer click-protected.
+  Look: `GuiItems.frame(inventory, plugin, Theme, rows)` draws the themed
+  frame (MAIN purple, NETHER red, END magenta, OVERWORLD lime; accent
+  corners, black inside) - call it last, it only fills empty slots;
+  `GuiItems.place(inventory, row, items)` centers a button group in a row.
+  Click feedback: `handleAction` sets `clickSound` (`toggled(on)` for
+  switches), played via `SoundManager.playGui` (`gui-sounds` in config.yml).
+  `ChatInput` (registered listener, owned by `GuiManager`) asks for an
+  interval in the chat: closes the menu, cancels the `AsyncChatEvent` at
+  LOWEST, applies on the main thread, reopens the same menu; 30 s timeout.
+  The Overworld mob list is grouped by `MobManagementManager.Category` and
+  paged (28 per page); the viewer's group/page lives in `GuiManager.mobViews`.
 
 **Everything user-visible is config-driven, not hardcoded in Java.** GUI
 titles/item names/lore live in `gui/main|nether|end/config.yml`; command

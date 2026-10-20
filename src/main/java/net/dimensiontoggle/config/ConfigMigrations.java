@@ -19,7 +19,7 @@ import java.util.List;
 // old option - is harmless.
 public final class ConfigMigrations {
 
-    public sealed interface Step permits Rename, Remove {
+    public sealed interface Step permits Rename, Remove, Reset {
 
         static Step rename(String oldPath, String newPath) {
             return new Rename(oldPath, newPath);
@@ -27,6 +27,12 @@ public final class ConfigMigrations {
 
         static Step remove(String path) {
             return new Remove(path);
+        }
+
+        // Replaces the whole file with the shipped default (the old one goes
+        // to backups/ like any other change). Only for a deliberate redesign.
+        static Step reset() {
+            return new Reset();
         }
     }
 
@@ -36,14 +42,11 @@ public final class ConfigMigrations {
     public record Remove(String path) implements Step {
     }
 
-    public record Migration(String resourcePath, int version, String description, List<Step> steps) {
+    public record Reset() implements Step {
     }
 
-    private static final List<Step> WEBSITE_MESSAGES = List.of(
-            Step.remove(ConfigUpdater.join("help-web")),
-            Step.remove(ConfigUpdater.join("web-link")),
-            Step.remove(ConfigUpdater.join("web-disabled")),
-            Step.remove(ConfigUpdater.join("web-token-reset")));
+    public record Migration(String resourcePath, int version, String description, List<Step> steps) {
+    }
 
     public static final List<Migration> ALL = List.of(
             // 1.2.0 switched each channel on/off under <feature>.notify; since
@@ -54,16 +57,13 @@ public final class ConfigMigrations {
                     Step.remove(ConfigUpdater.join("maintenance", "notify")),
                     Step.remove(ConfigUpdater.join("schedule", "notify")),
                     Step.remove(ConfigUpdater.join("lockdown", "notify")))),
-            // The performance website of the 3.3.0 dev builds was removed
-            // again (with /dt web and its GUI button).
-            new Migration("config.yml", 3, "remove the performance website", List.of(
-                    Step.remove(ConfigUpdater.join("web")))),
-            new Migration("languages/en/messages.yml", 2, "remove the performance website texts",
-                    WEBSITE_MESSAGES),
-            new Migration("languages/de/messages.yml", 2, "remove the performance website texts",
-                    WEBSITE_MESSAGES),
-            new Migration("gui/overworld/config.yml", 2, "remove the performance website button", List.of(
-                    Step.remove(ConfigUpdater.join("panel", "web"))))
+            // 3.3.0: the editor got a new design (colors, layout, texts). The
+            // GUI files are replaced once; version 3 because a dropped dev
+            // build already used 2 for gui/overworld.
+            new Migration("gui/main/config.yml", 3, "new editor design", List.of(Step.reset())),
+            new Migration("gui/nether/config.yml", 3, "new editor design", List.of(Step.reset())),
+            new Migration("gui/end/config.yml", 3, "new editor design", List.of(Step.reset())),
+            new Migration("gui/overworld/config.yml", 3, "new editor design", List.of(Step.reset()))
     );
 
     private ConfigMigrations() {
