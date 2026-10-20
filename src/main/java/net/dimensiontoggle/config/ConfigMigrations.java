@@ -57,14 +57,14 @@ public final class ConfigMigrations {
                     Step.remove(ConfigUpdater.join("maintenance", "notify")),
                     Step.remove(ConfigUpdater.join("schedule", "notify")),
                     Step.remove(ConfigUpdater.join("lockdown", "notify")))),
-            // 3.3.0: the editor got a new design (colors, layout, texts). The
+            // 3.2.0: the editor got a new design (colors, layout, texts). The
             // GUI files are replaced once; version 3 because a dropped dev
             // build already used 2 for gui/overworld.
             new Migration("gui/main/config.yml", 3, "new editor design", List.of(Step.reset())),
             new Migration("gui/nether/config.yml", 3, "new editor design", List.of(Step.reset())),
             new Migration("gui/end/config.yml", 3, "new editor design", List.of(Step.reset())),
             new Migration("gui/overworld/config.yml", 3, "new editor design", List.of(Step.reset())),
-            // 3.3.0: restyled chat messages; 3 because a dropped dev build
+            // 3.2.0: restyled chat messages; 3 because a dropped dev build
             // already used 2 for the language files.
             new Migration("languages/en/messages.yml", 3, "new message style", List.of(Step.reset())),
             new Migration("languages/de/messages.yml", 3, "new message style", List.of(Step.reset()))

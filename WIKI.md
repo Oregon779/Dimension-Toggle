@@ -5,7 +5,7 @@ Mit **DimensionToggle** steuerst du auf deinem Paper-Server, wer wann in den
 tägliche Öffnungszeiten, Notfall-Lockdown, Spielerlimits und vieles mehr –
 per Command oder komplett per Klick im In-Game-Editor.
 
-> Dieses Wiki beschreibt den aktuellen Stand des Plugins (Version 3.3.0, in Entwicklung).
+> Dieses Wiki beschreibt den aktuellen Stand des Plugins (Version 3.2.0).
 > Den Versionsverlauf findest du in der [README](README.md).
 
 ## Inhalt
@@ -880,10 +880,10 @@ erkennbar (`%count%`, `%limit-status%`, `%peak%`, `%size%`, `%tps%` usw.).
 - Die Broadcast-Texte für An/Aus, Wartung, Zeitplan und Lockdown stehen nicht
   in der Sprachdatei, sondern in der `config.yml` direkt neben ihren
   Einstellungen – dort übersetzen.
-- **Stil (seit 3.3.0):** Prefix „DimensionToggle »“ als lila Farbverlauf,
+- **Stil (seit 3.2.0):** Prefix „DimensionToggle »“ als lila Farbverlauf,
   ✔ grün = Erfolg, ✘ rot = Fehler/gesperrt, ⚠ gelb = Warnung, ℹ blau = Info,
   Werte in Weiß. Listen (`/dt help`, `/dt status`, Lag-Berichte) kommen ohne
-  Prefix vor jeder Zeile. Beim Update auf 3.3.0 werden die mitgelieferten
+  Prefix vor jeder Zeile. Beim Update auf 3.2.0 werden die mitgelieferten
   Dateien `languages/en|de/messages.yml` **einmalig** durch die neuen ersetzt;
   die alten liegen in `backups/` (eigene Sprachordner bleiben unangetastet).
 
@@ -894,7 +894,7 @@ Alle Titel, Item-Namen und Lore-Zeilen des Editors stehen in `gui/main`,
 die Farben ihres Bereichs. Nach Änderungen `/dt reload` und das Menü neu
 öffnen.
 
-Mit 3.3.0 hat der Editor ein neues Design bekommen. Beim Update werden die
+Mit 3.2.0 hat der Editor ein neues Design bekommen. Beim Update werden die
 GUI-Dateien deshalb **einmalig** durch die neuen ersetzt – die alten liegen
 danach in `backups/` (z.B. `backups/gui-nether-config-…yml`). Wer eigene
 GUI-Texte hatte, überträgt sie von dort. Danach bleiben eigene Änderungen wie
@@ -937,12 +937,12 @@ irgendein Wert gelesen wird.
   `config-state.yml`, welche Optionen es schon kennt; ergänzt werden nur
   Optionen, die in der neuen Version wirklich neu sind. Fehlt eine Option,
   nutzt das Plugin seinen eingebauten Standardwert. Beim allerersten Start mit
-  dieser Funktion (Update von 3.2.0 oder älter) werden einmalig alle fehlenden
+  dieser Funktion (Update von 3.1.x oder älter) werden einmalig alle fehlenden
   Optionen ergänzt.
 - **Umbenannte oder entfernte Optionen** übernimmt das Plugin über
   versionierte Migrationen (z.B. entfernt es die seit 1.3.0 ungenutzten
   `notify`-Abschnitte von `maintenance`, `schedule` und `lockdown`). Bei einem
-  kompletten Neu-Design (3.3.0: die GUI-Dateien) kann eine Migration eine Datei
+  kompletten Neu-Design (3.2.0: die GUI-Dateien) kann eine Migration eine Datei
   auch einmal ganz ersetzen – immer mit Backup.
 - **Backup:** Bevor eine Datei geändert wird, landet die alte Fassung in
   `backups/` (z.B. `backups/config-2026-10-17_14-03-22.yml`). Pro Datei werden

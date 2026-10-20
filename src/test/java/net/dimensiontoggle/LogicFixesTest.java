@@ -32,7 +32,7 @@ class LogicFixesTest extends PluginTestBase {
     @Test
     void pvpValueFromOlderVersionsIsMigratedIntoTheGameruleOnce() {
         server.getPluginManager().disablePlugin(plugin);
-        // data.yml as written by 3.2.0 and earlier
+        // data.yml as written by 3.1.x and earlier
         org.bukkit.configuration.file.YamlConfiguration old =
                 org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(new java.io.File(plugin.getDataFolder(), "data.yml"));
         old.set("pvp.nether", false);

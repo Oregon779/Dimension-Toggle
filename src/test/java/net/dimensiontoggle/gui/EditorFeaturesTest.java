@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-// The 3.3.0 editor additions: Overworld mob groups with pages, own cleanup
+// The 3.2.0 editor additions: Overworld mob groups with pages, own cleanup
 // intervals typed in the chat, the new frame.
 class EditorFeaturesTest extends PluginTestBase {
 

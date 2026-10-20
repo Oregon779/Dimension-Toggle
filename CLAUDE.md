@@ -34,10 +34,11 @@ Fragen) nacheinander stellen.
 ### Versionierung & Build-Erstellung
 Strikte Trennung zwischen Dev-Builds und Release-Builds für Modrinth:
 
-1. **Stabile Hauptversion:** Die Hauptversion (aktuell `3.3.0`) darfst du
+1. **Stabile Hauptversion:** Die Hauptversion (zuletzt als Release gebaut:
+   `3.2.0`) darfst du
    NIEMALS selbstständig ändern oder erhöhen.
 2. **Dev-Suffix:** Alle laufenden Änderungen, Fixes und Test-Builds tragen
-   das Format `[Hauptversion]-dev[Nummer]`, z.B. `3.3.0-dev1`, `3.3.0-dev2`.
+   das Format `[Hauptversion]-dev[Nummer]`, z.B. `3.2.0-dev1`, `3.2.0-dev2`.
 3. **Automatisches Hochzählen:** Bei jedem neuen Build zählst du
    *ausschließlich* die Dev-Nummer um +1 hoch. Die Version steht nur in
    `pom.xml` (`<version>`); `plugin.yml` übernimmt sie automatisch über
@@ -51,9 +52,14 @@ Strikte Trennung zwischen Dev-Builds und Release-Builds für Modrinth:
    wieder bei `-dev1`.
 
 Hinweis: Der `UpdateChecker` vergleicht nur die Zahlen vor dem Suffix -
-`3.3.0-dev2` gilt gegenüber Modrinth als `3.3.0`.
+`3.2.0-dev2` gilt gegenüber Modrinth als `3.2.0`.
 
-## Roadmap 3.3.0 (mit dem Nutzer abgestimmt)
+**Stand:** `3.2.0` ist als Release gebaut (auf Wunsch des Nutzers 3.2.0
+statt 3.3.0 - die Dev-Builds liefen als `3.3.0-devN`, Modrinth hatte 3.1.x).
+Vor den nächsten Änderungen den Nutzer nach der nächsten Hauptversion
+fragen (Regel 5).
+
+## Roadmap 3.2.0 (mit dem Nutzer abgestimmt, umgesetzt)
 
 Neue Ebene „Overworld & Performance“: dritter Button „Overworld“ im
 Hauptmenü mit eigenem Panel. Lag-Werkzeuge gelten für **alle Welten**.
@@ -62,14 +68,14 @@ getestet, bevor das nächste kommt. Jedes Werkzeug bekommt eine **eigene
 Permission** (z.B. `dimensiontoggle.lagmap`); `dimensiontoggle.admin`
 enthält alle als Children.
 
-Erledigt (3.3.0-dev1): Umstieg auf Paper 26.2 / Java 25 (Nutzer-Server
+Erledigt (dev1): Umstieg auf Paper 26.2 / Java 25 (Nutzer-Server
 läuft auf 26.2; 1.21.x wird nicht mehr unterstützt); Fahrzeuge an Portalen
 geprüft; Entfernen aus Dimensionen mit `%player%`-Konsolen-Commands +
 5s-Sicherheitsnetz.
 Ebenfalls gewünscht: **PlaceholderAPI-Support** (Nutzer hat PlaceholderAPI
 2.11.6 und VaultAPI 1.7 als Jars bereitgestellt; Vault vorerst nicht nötig).
 
-**Stand 3.3.0-dev2: alle Punkte unten sind gebaut (dev3: automatische Config-Updates; dev5: Enderperlen-Fix; dev6: Website zurück mit neuem Design, alle Overworld-Mobs in Gruppen, Chat-Eingabe für Intervalle, Editor-Redesign; dev7: Nether/End-Panel neu angeordnet, Chat-Nachrichten neu gestaltet)** (Nutzer wollte alles auf
+**Alle Punkte unten sind gebaut (dev3: automatische Config-Updates; dev5: Enderperlen-Fix; dev6: Website zurück mit neuem Design, alle Overworld-Mobs in Gruppen, Chat-Eingabe für Intervalle, Editor-Redesign; dev7: Nether/End-Panel neu angeordnet, Chat-Nachrichten neu gestaltet)** (Nutzer wollte alles auf
 einmal ohne weitere Rückfragen). Offen: bStats-Plugin-ID
 (`DimensionToggle.BSTATS_PLUGIN_ID`, 0 = aus) vom Nutzer besorgen.
 
@@ -189,7 +195,7 @@ Package layout under `net.dimensiontoggle`:
   pending `ConfigMigrations` (versioned, idempotent rename/remove steps -
   add one there when an option is renamed or dropped; a *new* option needs
   nothing but the default file; `Step.reset()` replaces a whole file once,
-  used for the 3.3.0 GUI redesign and message restyle - gui and language
+  used for the 3.2.0 GUI redesign and message restyle - gui and language
   files are at version 3, and stored
   versions never step back, so new migrations must use higher numbers), (2) inserts options missing from the user
   file via `ConfigUpdater.merge` - nested too, after the nearest preceding
@@ -216,7 +222,7 @@ Package layout under `net.dimensiontoggle`:
   `UpdateChecker`). All are constructed and wired together once in
   `DimensionToggle.onEnable()` and reached from anywhere via
   `plugin.getXManager()` getters - there's no DI framework.
-- **`performance`** - the Overworld & performance layer (3.3.0):
+- **`performance`** - the Overworld & performance layer (3.2.0):
   `PerformanceMonitor` (5 s main-thread samples, 1 h history, published as
   an immutable snapshot), `LagMapScanner`, `RedstoneMeter` (event counters
   per chunk, 20 s windows), `ChunkLoaderDetector`, `ChunkReports` (shared

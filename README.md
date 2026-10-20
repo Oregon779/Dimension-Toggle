@@ -1022,7 +1022,7 @@ Drag, Schließen beim Deaktivieren), Portal-Listener, Commands, Batch-Teleport.
 
 ---
 
-## Version 3.3.0 (in Entwicklung)
+## Version 3.2.0
 
 ### Umstieg auf Minecraft 26.2
 - Läuft jetzt auf **Paper 26.2** und benötigt **Java 25** (`api-version: '26.2'`).
@@ -1072,13 +1072,16 @@ Spielverhalten verändert, ist standardmäßig **aus**.
   `0` = aus). Die Eingabe erscheint nicht im öffentlichen Chat.
 - **Mob-Aufräumen verschont** Mobs mit Namensschild, gezähmte Tiere und
   Dorfbewohner mit Beruf (`mob-management.protect-*`, einzeln abschaltbar).
+- **PlaceholderAPI**: `%dimensiontoggle_nether_status%` u.v.m.
+- **bStats** vorbereitet (aktiv, sobald eine Plugin-ID eingetragen ist).
 
 ### Neu: Editor im neuen Design
 - Jeder Bereich hat seine Farbe (Hauptmenü lila, Nether rot/orange, End
   violett, Overworld grün): farbiger Rahmen mit Akzent-Ecken, dunkler
   Innenbereich.
 - Buttons nach Themen gruppiert (Zugang, Automatik, Regeln, Verwaltung)
-  und symmetrisch angeordnet; die Menüs sind kompakter (5 statt 6 Reihen).
+  und symmetrisch angeordnet; Hauptmenü und Overworld-Panel sind kompakter
+  (5 statt 6 Reihen).
 - Einheitliche Texte: kleine Gruppen-Überschrift, ● grün = an / ● rot = aus,
   gelbe Zeilen sagen, was ein Klick macht.
 - Klick-Sounds (Klick, an, aus, Fehler), einstellbar unter `gui-sounds`.
@@ -1099,8 +1102,6 @@ Spielverhalten verändert, ist standardmäßig **aus**.
   keine Prefix-Wiederholung mehr in jeder Zeile.
 - Die mitgelieferten Sprachdateien werden beim Update **einmalig** ersetzt
   (Backup in `backups/`).
-- **PlaceholderAPI**: `%dimensiontoggle_nether_status%` u.v.m.
-- **bStats**-Unterstützung.
 
 ### Neu: Automatische Config-Updates
 - `config.yml`, die Sprachdateien (`en`/`de`) und alle GUI-Configs bleiben

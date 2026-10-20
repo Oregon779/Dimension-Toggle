@@ -110,7 +110,7 @@ class ConfigSynchronizerTest extends PluginTestBase {
     void firstRunWithoutStateAddsEverythingMissingOnce() throws Exception {
         drop("schedule", "nether", "countdown-enabled");
         drop("auto-performance");
-        Files.delete(stateFile().toPath());   // like an upgrade from 3.2.0
+        Files.delete(stateFile().toPath());   // like an upgrade from 3.1.x
 
         restart();
 
